@@ -5,6 +5,75 @@
 
 ---
 
+## Environnements et déploiement
+
+### 3 environnements Supabase
+
+| Environnement | Projet Supabase | Usage |
+|---|---|---|
+| DEV | `cockpit-dev` | Développement, données fictives, accès équipe dev |
+| UAT | `cockpit-uat` | Validation par les responsables du parti avant mise en prod |
+| PRD | `cockpit-prd` | Production réelle, données militantes réelles |
+
+Chaque environnement = un projet Supabase séparé avec ses propres URL et clés API.
+
+### Variables à externaliser (ne jamais hardcoder)
+
+Dans Flutter, toutes ces valeurs passent par `AppConfig` selon l'environnement :
+
+```
+SUPABASE_URL         ← différent par environnement
+SUPABASE_ANON_KEY    ← différent par environnement
+APP_ENV              ← development | uat | production
+APP_URL              ← différent par environnement
+```
+
+En Flutter, utiliser `--dart-define` au build pour injecter les variables :
+```bash
+flutter build apk --dart-define=SUPABASE_URL=xxx --dart-define=SUPABASE_ANON_KEY=xxx
+```
+
+### Migrations sur les 3 environnements
+
+```bash
+# Lier et pousser sur chaque environnement
+supabase link --project-ref <REF_DEV>
+supabase db push
+
+supabase link --project-ref <REF_UAT>
+supabase db push
+
+supabase link --project-ref <REF_PRD>
+supabase db push
+```
+
+### Admins techniques et équipe dev
+
+Les admins techniques (équipe support, devs) sont gérés dans une table séparée `admins_techniques`, complètement distincte des rôles politiques militants.
+
+**Table `admins_techniques` :**
+- `id` UUID FK `auth.users` — compte Supabase Auth
+- `nom`, `prenom` TEXT
+- `is_active` BOOLEAN
+- `created_at`, `updated_at` TIMESTAMPTZ
+
+**Règles :**
+- Un admin technique n'a JAMAIS de profil dans `profiles` — ce sont deux mondes séparés
+- L'équipe dev accède uniquement à `cockpit-dev`, jamais à PRD
+- En production, seuls les admins techniques désignés par le Secrétariat IT ont un compte
+
+**Dans Flutter — logique de connexion :**
+À la connexion, on vérifie dans cet ordre :
+1. Le user est dans `admins_techniques` → interface admin/support
+2. Le user est dans `profiles` → interface Cockpit militante
+3. Ni l'un ni l'autre → accès refusé
+
+**Créer un nouvel admin technique :**
+1. Créer le user dans Supabase Studio → Authentication → Users
+2. Insérer manuellement une ligne dans `admins_techniques` avec son UUID
+
+---
+
 ## Convention — codes métier des unités organisationnelles
 
 Le champ `code` de la table `unites_organisationnelles` suit cette convention :
@@ -290,6 +359,11 @@ psql <connection_string> -f supabase/seed.sql
 ```
 
 ---
+
+## Étape 12 — Créer le premier admin
+
+> ⚠️ **À faire plus tard** : remplacer l'email perso par `cockpit@pasteffrance.fr` une fois l'adresse créée.
+> Supabase Studio → Authentication → Users → cliquer sur le user → modifier l'email.
 
 ## Étape 12 — Créer le premier admin
 
