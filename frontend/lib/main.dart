@@ -7,6 +7,8 @@ import 'core/config/app_config.dart';
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_routes.dart';
 import 'core/constants/app_strings.dart';
+import 'features/auth/presentation/pages/login_page.dart';
+
 
 /// Point d'entrée de l'application.
 ///
@@ -86,10 +88,7 @@ final _router = GoRouter(
   routes: [
     GoRoute(
       path: AppRoutes.login,
-      // TODO : remplacer par LoginPage (module auth)
-      builder: (context, state) => const Scaffold(
-        body: Center(child: Text('Connexion — à venir')),
-      ),
+      builder: (context, state) => const LoginPage(),
     ),
     GoRoute(
       path: AppRoutes.dashboard,
