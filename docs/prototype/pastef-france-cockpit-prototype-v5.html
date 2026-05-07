@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pastef France — Plateforme Militante</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  /* Charte Pastef : Rouge foncé + Vert foncé + Or */
+  --v:#1B4D1B;--v2:#2D6E2D;--vb:#E8F0E8;
+  --r:#8B0000;--r2:#A52020;--rb:#F5E8E8;
+  --or:#C8950A;--ob:#FFF8E1;
+  --b:#1a4a8a;--bb:#e8f0fa;
+  --vi:#5B2D8B;--vib:#F0EAF8;
+  --bg:#F5F2F0;--card:#fff;--bd:#DDD8D0;
+  --t:#1a1a1a;--t2:#5a5248;--t3:#9a9088;
+  --nh:64px;--th:56px;
+  --sh:0 2px 12px rgba(27,77,27,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:'Sora',sans-serif;background:#0a1f0a;overflow:hidden;color:var(--t)}
+
+/* LOGIN */
+#LS{position:fixed;inset:0;z-index:300;background:linear-gradient(155deg,#0a1505,#1B4D1B 45%,#8B0000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;transition:opacity .3s}
+.ll{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;color:#fff;text-align:center;letter-spacing:.06em}
+.ll-flag{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px}
+.flag-bar{width:18px;height:36px;border-radius:4px}
+.ls{font-size:.62rem;color:rgba(255,255,255,.6);letter-spacing:.2em;text-transform:uppercase;margin:5px 0 22px;text-align:center}
+.lbox{background:#fff;border-radius:22px;padding:18px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.lbox h2{font-size:.88rem;font-weight:700;margin-bottom:2px;color:var(--t)}
+.lbox p{font-size:.68rem;color:var(--t2);margin-bottom:13px}
+.plist{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;margin-bottom:13px}
+.plist::-webkit-scrollbar{width:3px}.plist::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+.pb{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:2px solid var(--bd);background:#fff;cursor:pointer;text-align:left;transition:all .15s;width:100%}
+.pb:hover,.pb.sel{border-color:var(--v);background:var(--vb)}
+.pav{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.pn{font-size:.78rem;font-weight:700;color:var(--t);display:block}
+.pr{font-size:.6rem;color:var(--t2);display:block}
+.bgo{width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--v),var(--r));color:#fff;font-family:'Sora',sans-serif;font-size:.86rem;font-weight:700;border:none;cursor:pointer;transition:opacity .15s}
+.bgo:disabled{opacity:.35;cursor:not-allowed}
+.bgo:not(:disabled):active{opacity:.8}
+
+/* APP */
+#app{display:none;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;background:var(--bg);box-shadow:0 0 80px rgba(0,0,0,.3)}
+
+/* TOPBAR — bicolore Pastef */
+#TB{height:var(--th);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;z-index:10;position:relative;overflow:hidden}
+#TB::before{content:'';position:absolute;inset:0;left:0;width:50%;background:var(--v)}
+#TB::after{content:'';position:absolute;inset:0;left:50%;background:var(--r)}
+.tb-inner{display:flex;align-items:center;justify-content:space-between;width:100%;position:relative;z-index:2}
+.tblo{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:#fff;letter-spacing:.05em}
+.tbsu{font-size:.54rem;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em}
+.tbr{display:flex;align-items:center;gap:8px}
+.tbbt{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;position:relative}
+.nd{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--or);border:2px solid transparent}
+.av{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;cursor:pointer}
+
+/* ROLE BANNER */
+#RB{background:var(--v);padding:5px 14px;font-size:.62rem;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.rbp{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;font-weight:600;font-size:.58rem}
+
+/* PAGES */
+#PG{flex:1;overflow:hidden;position:relative}
+.pg{position:absolute;inset:0;overflow-y:auto;padding:13px 13px 76px;display:none}
+.pg.act{display:block;animation:fu .18s ease}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pg::-webkit-scrollbar{width:3px}.pg::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+
+/* BOTTOM NAV */
+#BN{height:var(--nh);background:var(--card);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;box-shadow:0 -4px 20px rgba(0,0,0,.08);z-index:10}
+.ni{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:6px 0;border:none;background:none;position:relative}
+.ni-ic{font-size:1.25rem;transition:transform .15s}
+.ni-lb{font-size:.52rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
+.ni.act .ni-lb{color:var(--v)}.ni.act .ni-ic{transform:scale(1.1)}
+.ni.act::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:3px;background:linear-gradient(90deg,var(--v),var(--r));border-radius:0 0 4px 4px}
+
+/* CARDS */
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:11px;box-shadow:var(--sh)}
+.ct{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
+.ct a{font-size:.68rem;font-weight:600;color:var(--v);cursor:pointer;text-transform:none;letter-spacing:0}
+
+/* KPI GRID */
+.kg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.kpi{border-radius:13px;padding:13px;position:relative;overflow:hidden;cursor:pointer}
+.kpi.g{background:linear-gradient(135deg,#1B4D1B,#2D6E2D)}
+.kpi.r{background:linear-gradient(135deg,#8B0000,#A52020)}
+.kpi.o{background:linear-gradient(135deg,#C8950A,#E0AC20)}
+.kpi.b{background:linear-gradient(135deg,#1a4a8a,#2563eb)}
+.kpi.vi{background:linear-gradient(135deg,#5B2D8B,#7c3aed)}
+.kpi.dk{background:linear-gradient(135deg,#2D2D2D,#4a4a4a)}
+.kv{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:900;color:#fff;line-height:1}
+.kl{font-size:.58rem;font-weight:500;color:rgba(255,255,255,.8);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.kt{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.9);margin-top:5px}
+.kb{position:absolute;right:-6px;bottom:-6px;font-size:2.8rem;opacity:.15}
+
+/* WELCOME BANNER */
+.wl{background:linear-gradient(135deg,#1B4D1B,#8B0000);border-radius:14px;padding:15px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden}
+.wl::after{content:'★';position:absolute;right:-10px;top:-10px;font-size:5rem;opacity:.06;color:#fff}
+.wg{font-size:.66rem;opacity:.75;text-transform:uppercase;letter-spacing:.1em}
+.wn{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;margin-top:2px}
+.wr{font-size:.66rem;opacity:.7;margin-top:1px}
+.wd{font-size:.62rem;opacity:.65;margin-top:7px}
+
+/* OBJECTIF */
+.obj{background:var(--card);border-radius:14px;padding:14px;margin-bottom:11px;box-shadow:var(--sh);border-left:4px solid var(--v)}
+.obj-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.obj-pct{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--v)}
+.pt{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin-top:4px}
+.pf{height:100%;border-radius:4px;transition:width 1.2s ease}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.bg{background:var(--vb);color:var(--v)}
+.bo{background:var(--ob);color:var(--or)}
+.br{background:var(--rb);color:var(--r)}
+.bb{background:var(--bb);color:var(--b)}
+.bv{background:var(--vib);color:var(--vi)}
+.bx{background:#f0f0f0;color:#666}
+
+/* LIST */
+.li{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.li:last-child{border-bottom:none;padding-bottom:0}.li:active{opacity:.7}
+.la{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.lm{flex:1;min-width:0}
+.ln{font-size:.82rem;font-weight:600;color:var(--t)}
+.ls2{font-size:.68rem;color:var(--t2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr{text-align:right;flex-shrink:0}
+.lv{font-size:.8rem;font-weight:700;color:var(--t)}
+.ld{font-size:.62rem;color:var(--t3);margin-top:1px}
+
+/* PILLS */
+.pills{display:flex;gap:5px;margin-bottom:13px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.pill{padding:5px 13px;border-radius:20px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;border:none;background:var(--bd);color:var(--t2);transition:all .15s}
+.pill.act{background:var(--v);color:#fff}
+
+/* PROGRESS */
+.pt2{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:3px}
+.pf2{height:100%;border-radius:3px}
+
+/* STAT ROW */
+.sr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bd)}
+.sr:last-child{border-bottom:none}
+.sl{font-size:.75rem;color:var(--t2)}.sv{font-size:.78rem;font-weight:700;color:var(--t)}
+
+/* SECTION HEADER */
+.sh2{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.sh2 h1{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--t)}
+.bk{background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px;color:var(--t2)}
+
+/* PAGE HEADER */
+.ph{margin-bottom:14px}
+.ph h1{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--t)}
+.ph p{font-size:.74rem;color:var(--t2);margin-top:2px}
+
+/* CHART */
+.cw{position:relative;height:175px}
+
+/* ALERTS */
+.al{border-radius:11px;padding:11px 13px;margin-bottom:9px;display:flex;gap:9px;align-items:flex-start}
+.al-o{background:var(--ob);border-left:3px solid var(--or)}
+.al-r{background:var(--rb);border-left:3px solid var(--r)}
+.al-g{background:var(--vb);border-left:3px solid var(--v)}
+.al-ic{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.al-t{font-size:.75rem;color:var(--t);font-weight:500}
+.al-s{font-size:.65rem;color:var(--t2);margin-top:2px}
+
+/* FORM */
+.fg{margin-bottom:13px}
+.fl{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);margin-bottom:5px;display:block}
+.fi{width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:10px;font-family:'Sora',sans-serif;font-size:.82rem;color:var(--t);background:var(--card);outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--v)}
+.fsel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a9088' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px}
+.bp{width:100%;padding:12px;border-radius:11px;background:var(--v);color:#fff;font-family:'Sora',sans-serif;font-size:.86rem;font-weight:700;border:none;cursor:pointer;margin-bottom:8px}
+.bp:active{opacity:.85}
+.bp-r{background:var(--r)}
+.bp-or{background:var(--or)}
+.bp-dk{background:#555}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;align-items:flex-end;justify-content:center;max-width:430px;margin:0 auto;left:50%;transform:translateX(-50%)}
+.ov.open{display:flex}
+.sh3{background:var(--card);border-radius:20px 20px 0 0;padding:18px 18px 36px;width:100%;max-height:90vh;overflow-y:auto;animation:su .22s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh3::-webkit-scrollbar{width:3px}.sh3::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+.hd{width:34px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 14px}
+.st{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:var(--t);margin-bottom:14px}
+
+/* EVENT CARD */
+.ec{background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);display:flex;gap:11px;cursor:pointer}
+.edb{width:44px;border-radius:9px;background:var(--vb);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;padding:6px 0}
+.ed{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--v);line-height:1}
+.em{font-size:.58rem;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.06em}
+.et{font-size:.85rem;font-weight:700;color:var(--t)}
+.es{font-size:.68rem;color:var(--t2);margin-top:2px}
+.ef{display:flex;align-items:center;gap:5px;margin-top:7px;flex-wrap:wrap}
+
+/* REUNION CARD */
+.rc{background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);border-left:4px solid var(--v);cursor:pointer}
+
+/* DECISION */
+.di{padding:9px 0;border-bottom:1px solid var(--bd)}
+.di:last-child{border-bottom:none}
+.dt{font-size:.8rem;color:var(--t);font-weight:500}
+.dm{font-size:.68rem;color:var(--t2);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* DOC */
+.doc{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.doc:last-child{border-bottom:none}
+.dic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+
+/* GRID 2 */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.mc{background:var(--card);border-radius:13px;padding:16px 10px;text-align:center;cursor:pointer;box-shadow:var(--sh);transition:transform .1s}
+.mc:active{transform:scale(.97)}
+
+/* FUNNEL */
+.fs2{margin-bottom:7px}
+.fl2{display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px}
+.fl2 span:first-child{color:var(--t2);font-weight:500}
+.fl2 span:last-child{font-weight:700;color:var(--t)}
+
+/* BUREAU */
+.bu-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}
+.bu-row:last-child{border-bottom:none}
+.bu-poste{font-size:.72rem;font-weight:600;color:var(--t2)}
+.bu-nom{font-size:.78rem;font-weight:700;color:var(--t);text-align:right}
+.sec-hdr{background:var(--vb);padding:7px 11px;border-radius:8px;font-size:.67rem;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.08em;margin:11px 0 5px}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(var(--nh)+14px);right:calc(50% - 215px + 14px);width:50px;height:50px;border-radius:15px;background:linear-gradient(135deg,var(--v),var(--r));border:none;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;box-shadow:0 4px 20px rgba(139,0,0,.4);z-index:20}
+.fab:active{transform:scale(.95)}
+
+/* QR CODE */
+.qr-box{background:var(--bg);border-radius:12px;padding:20px;text-align:center;margin:12px 0}
+.qr-img{width:160px;height:160px;background:#fff;border-radius:8px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bd);font-size:5rem}
+.qr-url{font-size:.68rem;color:var(--t2);word-break:break-all;background:var(--card);padding:8px;border-radius:8px;font-family:monospace}
+
+/* TAUX RECOUVREMENT */
+.recouv-card{background:linear-gradient(135deg,var(--v),#2D6E2D);border-radius:14px;padding:14px;margin-bottom:11px;color:#fff}
+.recouv-pct{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;line-height:1}
+.recouv-bar{height:10px;background:rgba(255,255,255,.2);border-radius:5px;overflow:hidden;margin-top:10px}
+.recouv-fill{height:100%;background:#fff;border-radius:5px;transition:width 1.2s ease}
+
+/* OCR ZONE */
+.ocr-zone{border:2px dashed var(--bd);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:12px}
+.ocr-zone:hover{border-color:var(--v);background:var(--vb)}
+.ocr-icon{font-size:2.5rem;margin-bottom:8px}
+.ocr-txt{font-size:.8rem;font-weight:600;color:var(--t)}
+.ocr-sub{font-size:.68rem;color:var(--t2);margin-top:3px}
+
+/* PROSPECT CARD depuis QR */
+.qr-prospect{background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);border-left:4px solid var(--or)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="LS">
+  <div class="ll-flag">
+    <div class="flag-bar" style="background:#1B4D1B"></div>
+    <div class="flag-bar" style="background:#FFD700"></div>
+    <div class="flag-bar" style="background:#8B0000"></div>
+  </div>
+  <div class="ll">PASTEF</div>
+  <div class="ls">Section France · Plateforme Militante</div>
+  <div class="lbox">
+    <h2>Choisir un profil</h2>
+    <p>Prototype demo — selectionnez votre role</p>
+    <div class="plist">
+      <button class="pb" onclick="selP(this,'be')"><div class="pav" style="background:var(--vb)">👑</div><div><span class="pn">Bureau Executif</span><span class="pr">Coordinateur National · Vue globale</span></div></button>
+      <button class="pb" onclick="selP(this,'coord')"><div class="pav" style="background:var(--bb)">🎯</div><div><span class="pn">Binta Diallo</span><span class="pr">Coordinatrice Adjointe · Vue globale</span></div></button>
+      <button class="pb" onclick="selP(this,'ss93')"><div class="pav" style="background:var(--rb)">🏙️</div><div><span class="pn">Moussa Ndiaye</span><span class="pr">Responsable Sous-section 93</span></div></button>
+      <button class="pb" onclick="selP(this,'ss75')"><div class="pav" style="background:var(--ob)">🗼</div><div><span class="pn">Aminata Fall</span><span class="pr">Responsable Sous-section Paris (75)</span></div></button>
+      <button class="pb" onclick="selP(this,'ssPACA')"><div class="pav" style="background:var(--bb)">🌊</div><div><span class="pn">Omar Diene</span><span class="pr">Responsable Sous-section PACA</span></div></button>
+      <button class="pb" onclick="selP(this,'mvtJ')"><div class="pav" style="background:var(--vib)">🌟</div><div><span class="pn">Fatou Sow</span><span class="pr">Resp. Mouvement des Jeunes · Budget autonome</span></div></button>
+      <button class="pb" onclick="selP(this,'mvtF')"><div class="pav" style="background:var(--rb)">💪</div><div><span class="pn">Rokhaya Ba</span><span class="pr">Resp. Mouvement des Femmes · Budget autonome</span></div></button>
+      <button class="pb" onclick="selP(this,'secIT')"><div class="pav" style="background:var(--bb)">💻</div><div><span class="pn">Ibrahima Sall</span><span class="pr">Resp. Secretariat IT</span></div></button>
+      <button class="pb" onclick="selP(this,'secFin')"><div class="pav" style="background:var(--ob)">💰</div><div><span class="pn">Cheikh Tall</span><span class="pr">Resp. Secretariat Finance</span></div></button>
+      <button class="pb" onclick="selP(this,'cell')"><div class="pav" style="background:var(--vb)">📍</div><div><span class="pn">Aissatou Diop</span><span class="pr">Coordinatrice Cellule Lyon-Villeurbanne</span></div></button>
+    </div>
+    <button class="bgo" id="btnGo" disabled onclick="enterApp()">Acceder a la plateforme →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="TB">
+    <div class="tb-inner">
+      <div><div class="tblo">PASTEF</div><div class="tbsu" id="tbSub">Section France</div></div>
+      <div class="tbr">
+        <button class="tbbt" onclick="OS('scanQuick')" style="background:rgba(255,255,255,.2)">📷</button>
+      <button class="tbbt" onclick="OS('notif')">🔔<div class="nd"></div></button>
+        <div class="av" id="avLbl" onclick="OS('profil')">BE</div>
+      </div>
+    </div>
+  </div>
+  <div id="RB"><span id="rbRole">Bureau Executif</span>&nbsp;<span class="rbp" id="rbScope">Vue globale France</span></div>
+
+  <div id="PG">
+
+    <!-- DASHBOARD -->
+    <div class="pg act" id="p-dash">
+      <div class="wl">
+        <div class="wg">Bonjour</div>
+        <div class="wn" id="wName">Coordinateur National</div>
+        <div class="wr" id="wRole">Bureau Executif · Vue globale France</div>
+        <div class="wd" id="wDate"></div>
+      </div>
+      <div class="obj">
+        <div class="obj-top">
+          <div style="font-size:.7rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.07em">🎯 Objectif 10 000 Militants France</div>
+          <div class="obj-pct" id="objPct">34%</div>
+        </div>
+        <div style="font-size:.68rem;color:var(--t2);margin-bottom:6px" id="objSub">3 420 / 10 000</div>
+        <div class="pt"><div class="pf" id="objBar" style="width:34%;background:linear-gradient(90deg,var(--v),var(--r))"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--t3);margin-top:5px"><span>+142 ce mois</span><span>+1 240 cette annee</span></div>
+      </div>
+      <div class="kg">
+        <div class="kpi g" onclick="navTo('p-militants',1)"><div class="kv" id="kMil">3 420</div><div class="kl">Militants</div><div class="kt" id="kMilT">+142 ce mois</div><div class="kb">🫂</div></div>
+        <div class="kpi r" onclick="navTo('p-finances',2)"><div class="kv" id="kFin">71%</div><div class="kl">Taux recouvrement</div><div class="kt" id="kFinT">24 800€ entrees</div><div class="kb">💰</div></div>
+        <div class="kpi b" onclick="navTo('p-prospects',3)"><div class="kv">1 840</div><div class="kl">Prospects</div><div class="kt">Conv. 18,6%</div><div class="kb">📋</div></div>
+        <div class="kpi o" onclick="goTo('p-evts')"><div class="kv">12</div><div class="kl">Evenements</div><div class="kt">4 a venir</div><div class="kb">📅</div></div>
+        <div class="kpi vi" onclick="navTo('p-plus',4)"><div class="kv" id="kCel">38</div><div class="kl">Cellules</div><div class="kt">+3 ce trim.</div><div class="kb">🏘️</div></div>
+        <div class="kpi dk" onclick="goTo('p-reunions')"><div class="kv">5</div><div class="kl">Actions retard</div><div class="kt">A traiter</div><div class="kb">⚡</div></div>
+      </div>
+      <div class="card"><div class="ct">Evolution militants — 6 mois</div><div class="cw"><canvas id="dashChart"></canvas></div></div>
+      <div class="al al-r"><div class="al-ic">🔴</div><div><div class="al-t">Budget communication Q2 — decision en retard</div><div class="al-s">Secretariat Communication · Depuis 5 jours</div></div></div>
+      <div class="al al-o"><div class="al-ic">🟡</div><div><div class="al-t">Taux de recouvrement SS-75 : 58% — en dessous de l'objectif</div><div class="al-s">284 militants en retard · Relance a prevoir</div></div></div>
+      <div class="al al-g"><div class="al-ic">🟢</div><div><div class="al-t">Grand Meeting IDF — 142 nouveaux prospects enregistres</div><div class="al-s">Via QR Code · A appeler cette semaine</div></div></div>
+      <div style="display:flex;gap:8px;margin-bottom:11px"><button class="bp" style="margin:0;flex:1" onclick="OS('genRapport')">📄 Rapport d'activite PDF</button></div>
+      <div class="card">
+        <div class="ct">Prochains evenements <a onclick="goTo('p-evts')">Voir →</a></div>
+        <div class="li" onclick="OS('evt1')"><div class="la" style="background:var(--vb)">📣</div><div class="lm"><div class="ln">Grand Meeting IDF</div><div class="ls2">Salle Pleyel, Paris · 800 attendus</div></div><div class="lr"><div class="lv" style="color:var(--v)">29 Mar</div><div class="ld">Dans 7j</div></div></div>
+        <div class="li" onclick="OS('evt1')"><div class="la" style="background:var(--bb)">🏛️</div><div class="lm"><div class="ln">AG Section France</div><div class="ls2">Paris 19e · Tous responsables</div></div><div class="lr"><div class="lv" style="color:var(--b)">5 Avr</div><div class="ld">Dans 14j</div></div></div>
+      </div>
+    </div>
+
+    <!-- MILITANTS -->
+    <div class="pg" id="p-militants">
+      <div class="ph"><h1>Militants</h1><p id="milSub">3 420 membres · 38 cellules actives</p></div>
+      <div class="obj">
+        <div class="obj-top"><div style="font-size:.7rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.07em">🎯 Objectif</div><div class="obj-pct" id="milObjPct">34%</div></div>
+        <div style="font-size:.68rem;color:var(--t2);margin-bottom:6px" id="milObjSub">3 420 / 10 000</div>
+        <div class="pt"><div class="pf" id="milObjBar" style="width:34%;background:linear-gradient(90deg,var(--v),var(--r))"></div></div>
+      </div>
+      <div class="kg">
+        <div class="kpi g"><div class="kv" id="milTotal">3 420</div><div class="kl">Total</div><div class="kt">+4,3% ce trim.</div></div>
+        <div class="kpi r"><div class="kv">58%</div><div class="kl">Hommes</div><div class="kt">42% Femmes</div></div>
+      </div>
+      <div class="card"><div class="ct">Tendance 6 mois</div><div class="cw"><canvas id="milChart"></canvas></div></div>
+
+      <div style="display:flex;gap:8px;margin-bottom:11px">
+        <button class="bp" id="btnAddMil" onclick="OS('newMil')" style="margin:0;flex:1;display:none">+ Ajouter un militant</button>
+        <button class="bp bp-r" id="btnImport" onclick="OS('importMil')" style="margin:0;flex:1">📥 Import</button>
+      </div>
+
+      <div class="pills">
+        <div class="pill act" onclick="setPill(this)">Sous-sections</div>
+        <div class="pill" onclick="setPill(this)">Mouvements</div>
+        <div class="pill" onclick="setPill(this)">Secretariats</div>
+        <div class="pill" onclick="setPill(this)">Cellules</div>
+      </div>
+      <div class="card">
+        <div class="ct">Par sous-section</div>
+        <div class="li" onclick="OS('ss93')"><div class="la" style="background:var(--rb);font-size:.7rem;font-weight:800;color:var(--r)">93</div><div class="lm"><div class="ln">Seine-Saint-Denis</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:82%;background:var(--r)"></div></div></div><div style="font-size:.6rem;color:var(--t3);margin-top:2px">820 / 1 000 · 82%</div></div><div class="lr"><div class="lv">820</div><div class="ld" style="color:var(--v)">+11%</div></div></div>
+        <div class="li" onclick="OS('ss75')"><div class="la" style="background:var(--ob);font-size:.7rem;font-weight:800;color:var(--or)">75</div><div class="lm"><div class="ln">Paris</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:68%;background:var(--or)"></div></div></div><div style="font-size:.6rem;color:var(--t3);margin-top:2px">680 / 1 000 · 68%</div></div><div class="lr"><div class="lv">680</div><div class="ld" style="color:var(--v)">+8%</div></div></div>
+        <div class="li" onclick="OS('ss92')"><div class="la" style="background:var(--bb);font-size:.7rem;font-weight:800;color:var(--b)">92</div><div class="lm"><div class="ln">Hauts-de-Seine</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:45%;background:var(--b)"></div></div></div><div style="font-size:.6rem;color:var(--t3);margin-top:2px">360 / 800 · 45%</div></div><div class="lr"><div class="lv">360</div><div class="ld" style="color:var(--v)">+6%</div></div></div>
+        <div class="li" onclick="OS('ssPACA')"><div class="la" style="background:var(--vb);font-size:.7rem;font-weight:800;color:var(--v)">PACA</div><div class="lm"><div class="ln">PACA</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:38%;background:var(--v2)"></div></div></div><div style="font-size:.6rem;color:var(--t3);margin-top:2px">190 / 500 · 38%</div></div><div class="lr"><div class="lv">190</div><div class="ld" style="color:var(--v)">+14%</div></div></div>
+      </div>
+    </div>
+
+    <!-- FINANCES -->
+    <div class="pg" id="p-finances">
+      <div class="ph"><h1>Finances</h1><p id="finSub">Exercice 2025 · Section France</p></div>
+
+      <!-- TAUX DE RECOUVREMENT -->
+      <div class="recouv-card">
+        <div style="font-size:.68rem;opacity:.8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Taux de recouvrement</div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between">
+          <div class="recouv-pct" id="recouvPct">71%</div>
+          <div style="font-size:.72rem;opacity:.85;text-align:right"><div id="recouvDetail">2 432 / 3 420 militants</div><div style="margin-top:2px;opacity:.7">Objectif : 80%</div></div>
+        </div>
+        <div class="recouv-bar"><div class="recouv-fill" id="recouvBar" style="width:71%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:.62rem;opacity:.75;margin-top:6px"><span>🟢 A jour : <strong id="recouvAjour">2 432</strong></span><span>🟡 Retard : <strong id="recouvRetard">488</strong></span><span>🔴 Inactif : <strong id="recouvInactif">284</strong></span></div>
+      </div>
+
+      <div class="kg">
+        <div class="kpi g"><div class="kv" id="kFinIn">24 800€</div><div class="kl">Entrees</div><div class="kt">Cumul 2025</div><div class="kb">📈</div></div>
+        <div class="kpi r"><div class="kv" id="kFinOut">8 340€</div><div class="kl">Depenses</div><div class="kt">Cumul 2025</div><div class="kb">📉</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--v)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><div style="font-size:.7rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.07em">Solde global</div></div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--v)" id="finSolde">16 460 €</div>
+        <div style="font-size:.68rem;color:var(--t2);margin-top:3px" id="finDetail">Entrees 24 800€ · Depenses 8 340€</div>
+      </div>
+      <div class="card"><div class="ct">Entrees vs Depenses — 6 mois</div><div class="cw"><canvas id="finChart"></canvas></div></div>
+
+      <!-- Taux recouvrement par SS -->
+      <div class="card">
+        <div class="ct">Taux de recouvrement par sous-section</div>
+        <div class="li"><div class="la" style="background:var(--vb);font-size:.7rem;font-weight:800;color:var(--v)">93</div><div class="lm"><div class="ln">Seine-Saint-Denis</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:78%;background:var(--v)"></div></div></div></div><div class="lr"><div class="lv" style="color:var(--v)">78%</div></div></div>
+        <div class="li"><div class="la" style="background:var(--rb);font-size:.7rem;font-weight:800;color:var(--r)">75</div><div class="lm"><div class="ln">Paris</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:58%;background:var(--r)"></div></div></div></div><div class="lr"><div class="lv" style="color:var(--r)">58%</div><div class="ld" style="color:var(--r)">⚠ Bas</div></div></div>
+        <div class="li"><div class="la" style="background:var(--ob);font-size:.7rem;font-weight:800;color:var(--or)">PACA</div><div class="lm"><div class="ln">PACA</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:82%;background:var(--or)"></div></div></div></div><div class="lr"><div class="lv" style="color:var(--or)">82%</div></div></div>
+      </div>
+
+      <div class="pills" style="margin-top:4px">
+        <div class="pill act" onclick="setPill(this)">Entrees</div>
+        <div class="pill" onclick="setPill(this)">Depenses</div>
+        <div class="pill" onclick="setPill(this)">Par SS</div>
+      </div>
+      <div class="card">
+        <div class="ct">Entrees par categorie</div>
+        <div class="sr"><span class="sl">💳 Cotisations</span><span class="sv" style="color:var(--v)" id="finCot">18 200€</span></div>
+        <div class="sr"><span class="sl">🎁 Dons & contributions</span><span class="sv" style="color:var(--v)">3 800€</span></div>
+        <div class="sr"><span class="sl">📅 Benefices evenements</span><span class="sv" style="color:var(--v)">1 900€</span></div>
+        <div class="sr"><span class="sl">👕 Vente goodies / vetements</span><span class="sv" style="color:var(--v)">900€</span></div>
+      </div>
+      <div class="card">
+        <div class="ct">Depenses par categorie</div>
+        <div class="sr"><span class="sl">🎪 Logistique evenements</span><span class="sv" style="color:var(--r)">3 200€</span></div>
+        <div class="sr"><span class="sl">📢 Communication & impression</span><span class="sv" style="color:var(--r)">1 800€</span></div>
+        <div class="sr"><span class="sl">👕 Achat goodies / stock</span><span class="sv" style="color:var(--r)">1 200€</span></div>
+        <div class="sr"><span class="sl">🚗 Deplacements</span><span class="sv" style="color:var(--r)">940€</span></div>
+        <div class="sr"><span class="sl">📋 Frais administratifs</span><span class="sv" style="color:var(--r)">700€</span></div>
+        <div class="sr"><span class="sl">🎓 Formation</span><span class="sv" style="color:var(--r)">500€</span></div>
+      </div>
+      <button class="bp" id="btnAddCot" onclick="OS('newCot')" style="display:none">+ Enregistrer une cotisation</button>
+      <button class="bp bp-r" id="btnAddTrans" onclick="OS('newTrans')" style="display:none">+ Nouvelle transaction</button>
+    </div>
+
+    <!-- PROSPECTS -->
+    <div class="pg" id="p-prospects">
+      <div class="ph"><h1>Prospects</h1><p>Entonnoir de conversion militant</p></div>
+      <div class="card" style="border-left:4px solid var(--v)">
+        <div style="font-size:.7rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Taux de conversion global</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--v)">18,6%</div>
+        <div style="font-size:.7rem;color:var(--t2)">Contacts → Militants · 6 mois glissants</div>
+      </div>
+      <!-- Prospects via QR -->
+      <div class="al al-o">
+        <div class="al-ic">📱</div>
+        <div><div class="al-t">142 nouveaux prospects via QR Code — Meeting IDF 15 Mars</div><div class="al-s">A appeler cette semaine · Assigne a SS-75 et SS-93</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Entonnoir — 6 mois</div>
+        <div class="fs2"><div class="fl2"><span>📬 Contacts</span><span>9 880</span></div><div class="pt"><div class="pf" style="width:100%;background:var(--b)"></div></div></div>
+        <div class="fs2"><div class="fl2"><span>🎯 Prospects</span><span>7 240</span></div><div class="pt"><div class="pf" style="width:73%;background:var(--or)"></div></div></div>
+        <div class="fs2"><div class="fl2"><span>🌱 Sensibilises</span><span>4 180</span></div><div class="pt"><div class="pf" style="width:42%;background:var(--v2)"></div></div></div>
+        <div class="fs2"><div class="fl2"><span>✅ Militants</span><span>1 840</span></div><div class="pt"><div class="pf" style="width:18%;background:var(--v)"></div></div></div>
+      </div>
+      <!-- Prospects QR recents -->
+      <div class="card">
+        <div class="ct">Prospects QR recents <a onclick="goTo('p-evts')">Voir events →</a></div>
+        <div class="qr-prospect"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:.82rem;font-weight:700">Mamadou Diarra</div><div style="font-size:.68rem;color:var(--t2)">📱 06 12 34 56 78 · Paris 93 · ♂</div><div style="font-size:.68rem;color:var(--t2)">Interet : JPS · Meeting IDF 15 Mars</div></div><span class="badge bo">A appeler</span></div></div>
+        <div class="qr-prospect"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:.82rem;font-weight:700">Aicha Diallo</div><div style="font-size:.68rem;color:var(--t2)">📱 07 98 76 54 32 · Saint-Denis · ♀</div><div style="font-size:.68rem;color:var(--t2)">Interet : MOJIP · Meeting IDF 15 Mars</div></div><span class="badge bo">A appeler</span></div></div>
+        <div class="qr-prospect"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:.82rem;font-weight:700">Ibrahim Seck</div><div style="font-size:.68rem;color:var(--t2)">📱 06 45 67 89 01 · Aubervilliers · ♂</div><div style="font-size:.68rem;color:var(--t2)">Interet : Cadres · Meeting IDF 15 Mars</div></div><span class="badge bg">Contacte</span></div></div>
+      </div>
+      <div class="card"><div class="ct">Nouveaux militants — 6 mois</div><div class="cw"><canvas id="proChart"></canvas></div></div>
+    </div>
+
+    <!-- PLUS -->
+    <div class="pg" id="p-plus">
+      <div class="ph"><h1>Modules</h1><p>Tous les outils</p></div>
+      <div class="g2">
+        <div class="mc" onclick="goTo('p-evts')"><div style="font-size:2rem;margin-bottom:7px">📅</div><div style="font-size:.8rem;font-weight:700">Evenements</div><div style="font-size:.64rem;color:var(--t2);margin-top:2px">4 a venir</div></div>
+        <div class="mc" onclick="goTo('p-reunions')"><div style="font-size:2rem;margin-bottom:7px">🏛️</div><div style="font-size:.8rem;font-weight:700">Reunions</div><div style="font-size:.64rem;color:var(--t2);margin-top:2px">3 decisions att.</div></div>
+        <div class="mc" onclick="goTo('p-bureau')"><div style="font-size:2rem;margin-bottom:7px">🏅</div><div style="font-size:.8rem;font-weight:700">Bureau</div><div style="font-size:.64rem;color:var(--t2);margin-top:2px" id="buSub">Mon entite</div></div>
+        <div class="mc" onclick="goTo('p-cra')"><div style="font-size:2rem;margin-bottom:7px">📊</div><div style="font-size:.8rem;font-weight:700">CR Activite</div><div style="font-size:.64rem;color:var(--t2);margin-top:2px">31/38 recus</div></div>
+        <div class="mc" onclick="goTo('p-docs')"><div style="font-size:2rem;margin-bottom:7px">📁</div><div style="font-size:.8rem;font-weight:700">Documents</div><div style="font-size:.64rem;color:var(--t2);margin-top:2px">Base officielle</div></div>
+        <div class="mc" onclick="goTo('p-elec')"><div style="font-size:2rem;margin-bottom:7px">🗳️</div><div style="font-size:.8rem;font-weight:700">Elections</div><div style="font-size:.64rem;color:var(--t2);margin-top:2px">1 planifiee</div></div>
+        <div class="mc" onclick="goTo('p-rapports')"><div style="font-size:2rem;margin-bottom:7px">📑</div><div style="font-size:.8rem;font-weight:700">Rapports</div><div style="font-size:.64rem;color:var(--t2);margin-top:2px">PDF · 5 types</div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Mouvements <span style="color:var(--v);font-size:.6rem;font-weight:600">Budget autonome</span></div>
+        <div class="li" onclick="OS('mvtJ')"><div class="la" style="background:var(--vib)">🌟</div><div class="lm"><div class="ln">Mouvement des Jeunes (JPS)</div><div class="ls2">Fatou Sow · Vice : Ibou Diallo</div></div><div class="lr"><div class="lv">420</div></div></div>
+        <div class="li" onclick="OS('mvtF')"><div class="la" style="background:var(--rb)">💪</div><div class="lm"><div class="ln">Mouvement des Femmes (MOJIP)</div><div class="ls2">Rokhaya Ba · Vice : Ndaye Seck</div></div><div class="lr"><div class="lv">580</div></div></div>
+        <div class="li" onclick="OS('mvtC')"><div class="la" style="background:var(--bb)">🎓</div><div class="lm"><div class="ln">Mouvement des Cadres</div><div class="ls2">Dr. Mamadou Lo · Vice : Awa Ndir</div></div><div class="lr"><div class="lv">310</div></div></div>
+        <div class="li" onclick="OS('mvtFo')"><div class="la" style="background:var(--ob)">🏠</div><div class="lm"><div class="ln">Mouvement des Foyers</div><div class="ls2">Bineta Diop · Vice : Saliou Ba</div></div><div class="lr"><div class="lv">280</div></div></div>
+        <div class="li" onclick="OS('mvtMg')"><div class="la" style="background:var(--vb)">🌿</div><div class="lm"><div class="ln">Maggi Pastef</div><div class="ls2">Coumba Sarr · Vice : Adja Niang</div></div><div class="lr"><div class="lv">190</div></div></div>
+      </div>
+      <div class="card">
+        <div class="ct">Secretariats</div>
+        <div class="li" onclick="OS('secFin')"><div class="la" style="background:var(--ob)">💰</div><div class="lm"><div class="ln">Finance</div><div class="ls2">Cheikh Tall · Vice : Amina Sow</div></div><div class="lr"><div class="badge bg">Actif</div></div></div>
+        <div class="li" onclick="OS('secVE')"><div class="la" style="background:var(--rb)">🗳️</div><div class="lm"><div class="ln">Veille Electorale</div><div class="ls2">Lamine Diallo · Vice : Awa Mbaye</div></div><div class="lr"><div class="badge bg">Actif</div></div></div>
+        <div class="li" onclick="OS('secComm')"><div class="la" style="background:var(--bb)">📢</div><div class="lm"><div class="ln">Communication</div><div class="ls2">Marieme Faye · Vice : Daouda Ba</div></div><div class="lr"><div class="badge br">Retard</div></div></div>
+        <div class="li" onclick="OS('secMass')"><div class="la" style="background:var(--vb)">📈</div><div class="lm"><div class="ln">Massification</div><div class="ls2">Babacar Ndiaye · Vice : Khadija Sy</div></div><div class="lr"><div class="badge bg">Actif</div></div></div>
+        <div class="li" onclick="OS('secForm')"><div class="la" style="background:var(--vib)">🎓</div><div class="lm"><div class="ln">Formation</div><div class="ls2">Pr. Aissatou Fall · Vice : Moussa Deme</div></div><div class="lr"><div class="badge bo">En cours</div></div></div>
+        <div class="li" onclick="OS('secIT')"><div class="la" style="background:var(--bb)">💻</div><div class="lm"><div class="ln">IT</div><div class="ls2">Ibrahima Sall · Vice : Fatou Ndiaye</div></div><div class="lr"><div class="badge bg">Actif</div></div></div>
+      </div>
+    </div>
+
+    <!-- BUREAU -->
+    <div class="pg" id="p-bureau">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Bureau</h1></div>
+      <div class="card" style="border-left:4px solid var(--v);margin-bottom:11px">
+        <div style="font-size:.7rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px" id="bureauNom">Bureau Executif</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge bg" id="bureauPostes">16 postes</span><span class="badge bb">Mandat 2024-2026</span></div>
+      </div>
+      <div class="card" id="bureauCard"></div>
+      <button class="bp" onclick="OS('editBureau')">✏️ Modifier le bureau</button>
+    </div>
+
+    <!-- EVENEMENTS -->
+    <div class="pg" id="p-evts">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Evenements</h1></div>
+      <div class="pills">
+        <div class="pill act" onclick="setPill(this)">Tous</div>
+        <div class="pill" onclick="setPill(this)">A venir</div>
+        <div class="pill" onclick="setPill(this)">Termines</div>
+      </div>
+      <div class="ec" onclick="OS('evt1')">
+        <div class="edb"><div class="ed">29</div><div class="em">Mar</div></div>
+        <div style="flex:1">
+          <div class="et">Grand Meeting IDF</div>
+          <div class="es">Salle Pleyel, Paris · 20h00</div>
+          <div class="ef"><span class="badge bg">Meeting</span><span class="badge bb">800 attendus</span><span class="badge bo">QR Code actif</span></div>
+        </div>
+      </div>
+      <div class="ec" onclick="OS('evtAG')">
+        <div class="edb"><div class="ed">5</div><div class="em">Avr</div></div>
+        <div style="flex:1">
+          <div class="et">Assemblee Generale Section France</div>
+          <div class="es">Paris 19e · 14h00</div>
+          <div class="ef"><span class="badge bv">Assemblee</span><span class="badge bo">60 membres</span></div>
+        </div>
+      </div>
+      <div class="ec" onclick="OS('evt1')" style="opacity:.6">
+        <div class="edb" style="background:#f0f0f0"><div class="ed" style="color:#999">15</div><div class="em" style="color:#999">Mar</div></div>
+        <div style="flex:1">
+          <div class="et">Meeting IDF — Termine</div>
+          <div class="es">Salle Pleyel · 742 presents · 142 prospects QR</div>
+          <div class="ef"><span class="badge bx">Termine</span><span class="badge bo">142 prospects</span></div>
+        </div>
+      </div>
+      <button class="bp" onclick="OS('newEvt')">+ Creer un evenement</button>
+    </div>
+
+    <!-- REUNIONS -->
+    <div class="pg" id="p-reunions">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Reunions</h1></div>
+      <div class="rc" onclick="OS('reun1')"><div style="display:flex;justify-content:space-between"><div style="font-size:.86rem;font-weight:700">Bureau Executif</div><div class="badge bg">Cloturee</div></div><div style="font-size:.68rem;color:var(--t2);margin-top:2px">18 Mars 2025 · Paris 10e · 12 membres</div><div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap"><span class="badge bo">4 decisions</span><span class="badge bb">PV dispo</span></div></div>
+      <div class="rc" onclick="OS('reun1')" style="border-left-color:var(--r)"><div style="display:flex;justify-content:space-between"><div style="font-size:.86rem;font-weight:700">Assemblee Generale</div><div class="badge bo">En cours</div></div><div style="font-size:.68rem;color:var(--t2);margin-top:2px">22 Mars 2025 · Paris 19e · 68 membres</div><div style="display:flex;gap:5px;margin-top:8px"><span class="badge bo">2 decisions</span></div></div>
+      <button class="bp" onclick="OS('newReun')">+ Creer une reunion</button>
+    </div>
+
+    <!-- CRA -->
+    <div class="pg" id="p-cra">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>CR d'activite</h1></div>
+      <div class="card" style="background:linear-gradient(135deg,var(--v),var(--r));color:#fff;margin-bottom:11px">
+        <div style="font-size:.66rem;opacity:.75;text-transform:uppercase;letter-spacing:.1em">Mars 2025</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;margin:3px 0">Comptes rendus</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
+          <div style="text-align:center"><div style="font-size:1.1rem;font-weight:800">31</div><div style="font-size:.58rem;opacity:.8">Recus</div></div>
+          <div style="text-align:center"><div style="font-size:1.1rem;font-weight:800">7</div><div style="font-size:.58rem;opacity:.8">En attente</div></div>
+          <div style="text-align:center"><div style="font-size:1.1rem;font-weight:800">82%</div><div style="font-size:.58rem;opacity:.8">Taux</div></div>
+        </div>
+      </div>
+      <div class="card" onclick="OS('cra1')" style="cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:.86rem;font-weight:700">Cellule Lyon-Villeurbanne</div><div style="font-size:.68rem;color:var(--t2)">ARA · Mars 2025</div></div><div class="badge bg">Valide</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px"><div style="font-size:.7rem;color:var(--t2)">👥 <strong style="color:var(--t)">18</strong> prospects</div><div style="font-size:.7rem;color:var(--t2)">📅 <strong style="color:var(--t)">2</strong> evenements</div><div style="font-size:.7rem;color:var(--t2)">💰 <strong style="color:var(--t)">840€</strong></div><div style="font-size:.7rem;color:var(--t2)">⚠️ <strong style="color:var(--r)">1</strong> difficulte</div></div></div>
+      <button class="bp" onclick="OS('newCra')">+ Saisir mon CR d'activite</button>
+      <button class="bp bp-r" onclick="OS('genRapport')">📄 Generer rapport PDF</button>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="pg" id="p-docs">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Documents</h1></div>
+      <div class="pills"><div class="pill act" onclick="setPill(this)">Tous</div><div class="pill" onclick="setPill(this)">PV</div><div class="pill" onclick="setPill(this)">Circulaires</div><div class="pill" onclick="setPill(this)">Statuts</div></div>
+      <div class="card">
+        <div class="ct">Recents</div>
+        <div class="doc" onclick="OS('doc1')"><div class="dic" style="background:var(--rb)">📄</div><div style="flex:1"><div style="font-size:.8rem;font-weight:600">PV — Bureau Executif 18 Mars</div><div style="font-size:.65rem;color:var(--t2)">Proces-verbal · 6 pages</div></div><div style="font-size:.66rem;color:var(--t3)">PDF</div></div>
+        <div class="doc" onclick="OS('doc1')"><div class="dic" style="background:var(--bb)">📋</div><div style="flex:1"><div style="font-size:.8rem;font-weight:600">Circulaire N°8 — Objectifs 2025</div><div style="font-size:.65rem;color:var(--t2)">Bureau Executif</div></div><div style="font-size:.66rem;color:var(--t3)">PDF</div></div>
+        <div class="doc" onclick="OS('doc1')"><div class="dic" style="background:var(--vb)">📜</div><div style="flex:1"><div style="font-size:.8rem;font-weight:600">Statuts Section France v2024</div><div style="font-size:.65rem;color:var(--t2)">Statuts officiels · AG 2024</div></div><div style="font-size:.66rem;color:var(--t3)">PDF</div></div>
+      </div>
+    </div>
+
+    <!-- ELECTIONS -->
+    <div class="pg" id="p-elec">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Elections</h1></div>
+      <div style="background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh)" onclick="OS('elec1')"><div style="display:flex;justify-content:space-between"><div style="font-size:.88rem;font-weight:700">Election Resp. Bretagne</div><div class="badge bo">Planifiee</div></div><div style="font-size:.7rem;color:var(--t2);margin-top:3px">20 Avril 2025 · 3 candidats</div></div>
+      <button class="bp" onclick="OS('newElec')">+ Planifier une election</button>
+    </div>
+
+
+    <!-- RAPPORTS -->
+    <div class="pg" id="p-rapports">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Rapports PDF</h1></div>
+      <div style="font-size:.74rem;color:var(--t2);margin-bottom:14px">Generez et exportez vos rapports officiels en PDF depuis votre perimetre.</div>
+
+      <!-- TYPE SELECTOR -->
+      <div class="pills">
+        <div class="pill act" onclick="setPill(this)">Tous</div>
+        <div class="pill" onclick="setPill(this)">Activite</div>
+        <div class="pill" onclick="setPill(this)">Finance</div>
+        <div class="pill" onclick="setPill(this)">Reunion</div>
+        <div class="pill" onclick="setPill(this)">Evenement</div>
+      </div>
+
+      <!-- CRA -->
+      <div class="card" style="border-left:4px solid var(--v);cursor:pointer" onclick="OS('rptCRA')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--vb);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">📊</div>
+          <div style="flex:1">
+            <div style="font-size:.88rem;font-weight:700;color:var(--t)">Rapport d'activite mensuel</div>
+            <div style="font-size:.7rem;color:var(--t2);margin-top:2px">CRA · Simple ou consolide · Par periode</div>
+          </div>
+          <div style="font-size:1rem;color:var(--t3)">›</div>
+        </div>
+      </div>
+
+      <!-- FINANCIER -->
+      <div class="card" style="border-left:4px solid var(--r);cursor:pointer" onclick="OS('rptFin')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--rb);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">💰</div>
+          <div style="flex:1">
+            <div style="font-size:.88rem;font-weight:700;color:var(--t)">Rapport financier</div>
+            <div style="font-size:.7rem;color:var(--t2);margin-top:2px">Entrees, depenses, solde · Par periode</div>
+          </div>
+          <div style="font-size:1rem;color:var(--t3)">›</div>
+        </div>
+      </div>
+
+      <!-- REUNION -->
+      <div class="card" style="border-left:4px solid var(--b);cursor:pointer" onclick="OS('rptReun')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--bb);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🏛️</div>
+          <div style="flex:1">
+            <div style="font-size:.88rem;font-weight:700;color:var(--t)">Rapport de reunion (PV / CR)</div>
+            <div style="font-size:.7rem;color:var(--t2);margin-top:2px">Une reunion ou toutes les reunions de la periode</div>
+          </div>
+          <div style="font-size:1rem;color:var(--t3)">›</div>
+        </div>
+      </div>
+
+      <!-- EVENEMENT -->
+      <div class="card" style="border-left:4px solid var(--or);cursor:pointer" onclick="OS('rptEvt')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--ob);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">📅</div>
+          <div style="flex:1">
+            <div style="font-size:.88rem;font-weight:700;color:var(--t)">Rapport d'evenement</div>
+            <div style="font-size:.7rem;color:var(--t2);margin-top:2px">Un evenement ou bilan de la periode + prospects QR</div>
+          </div>
+          <div style="font-size:1rem;color:var(--t3)">›</div>
+        </div>
+      </div>
+
+      <!-- COTISATIONS -->
+      <div class="card" style="border-left:4px solid var(--vi);cursor:pointer" onclick="OS('rptCot')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--vib);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">📋</div>
+          <div style="flex:1">
+            <div style="font-size:.88rem;font-weight:700;color:var(--t)">Etat cotisations / recouvrement</div>
+            <div style="font-size:.7rem;color:var(--t2);margin-top:2px">Statut par militant · Consolide par sous-section</div>
+          </div>
+          <div style="font-size:1rem;color:var(--t3)">›</div>
+        </div>
+      </div>
+
+      <!-- HISTORIQUE -->
+      <div class="card">
+        <div class="ct">Rapports generes recemment</div>
+        <div class="li" onclick="OS('rptPreview')">
+          <div class="la" style="background:var(--vb)">📄</div>
+          <div class="lm"><div class="ln">CRA Consolide — Mars 2025</div><div class="ls2">Section France · 38 cellules · Genere le 22 mars</div></div>
+          <div class="lr"><div style="font-size:.7rem;font-weight:700;color:var(--v)">PDF</div><div class="ld">2,4 Mo</div></div>
+        </div>
+        <div class="li" onclick="OS('rptPreview')">
+          <div class="la" style="background:var(--rb)">📄</div>
+          <div class="lm"><div class="ln">Rapport Financier — T1 2025</div><div class="ls2">SS-93 · Simple · Genere le 15 mars</div></div>
+          <div class="lr"><div style="font-size:.7rem;font-weight:700;color:var(--v)">PDF</div><div class="ld">840 Ko</div></div>
+        </div>
+        <div class="li" onclick="OS('rptPreview')">
+          <div class="la" style="background:var(--bb)">📄</div>
+          <div class="lm"><div class="ln">PV — Bureau Executif 18 Mars</div><div class="ls2">Simple · Valide · Genere le 18 mars</div></div>
+          <div class="lr"><div style="font-size:.7rem;font-weight:700;color:var(--v)">PDF</div><div class="ld">320 Ko</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /PG -->
+
+  <div id="BN">
+    <button class="ni act" onclick="navTo('p-dash',0)"><div class="ni-ic">🏠</div><div class="ni-lb">Accueil</div></button>
+    <button class="ni" onclick="navTo('p-militants',1)"><div class="ni-ic">🫂</div><div class="ni-lb">Militants</div></button>
+    <button class="ni" onclick="navTo('p-finances',2)"><div class="ni-ic">💰</div><div class="ni-lb">Finances</div></button>
+    <button class="ni" onclick="navTo('p-prospects',3)"><div class="ni-ic">📋</div><div class="ni-lb">Prospects</div></button>
+    <button class="ni" onclick="navTo('p-plus',4)"><div class="ni-ic">&#8943;</div><div class="ni-lb">Plus</div></button>
+  </div>
+</div>
+
+<!-- ═══ OVERLAYS ═══ -->
+<div class="ov" id="ov-notif" onclick="CS('notif')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Notifications</div><div class="al al-r"><div class="al-ic">🔴</div><div><div class="al-t">Budget comm. Q2 en retard</div><div class="al-s">Il y a 5 jours</div></div></div><div class="al al-o"><div class="al-ic">🟡</div><div><div class="al-t">142 prospects QR a appeler</div><div class="al-s">Meeting IDF 15 Mars</div></div></div><div class="al al-g"><div class="al-ic">🟢</div><div><div class="al-t">Taux recouvrement SS-93 : 78%</div><div class="al-s">Au dessus de l'objectif 80%</div></div></div></div></div>
+
+<div class="ov" id="ov-profil" onclick="CS('profil')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div style="text-align:center;margin-bottom:18px"><div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--v),var(--r));display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;margin:0 auto 8px" id="profilAv">BE</div><div style="font-size:.95rem;font-weight:700" id="profilNom">Bureau Executif</div><div style="font-size:.74rem;color:var(--t2)" id="profilRole">Coordinateur National</div></div><div class="sr"><span class="sl">Perimetre</span><span class="sv" id="profilScope">France entiere</span></div><div class="sr"><span class="sl">Statut cotisation</span><span class="badge bg">A jour</span></div><div style="margin-top:14px"><button class="bp bp-dk" onclick="CS('profil');resetApp()">Changer de profil</button></div></div></div>
+
+<!-- EVENT DETAIL avec QR -->
+<div class="ov" id="ov-evt1" onclick="CS('evt1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Grand Meeting IDF</div>
+  <div class="badge bg" style="margin-bottom:12px">Planifie · 29 Mars 2025</div>
+  <div class="sr"><span class="sl">Lieu</span><span class="sv">Salle Pleyel, Paris 17e</span></div>
+  <div class="sr"><span class="sl">Organisateur</span><span class="sv" id="evtOrg">Bureau Executif</span></div>
+  <div class="sr"><span class="sl">Attendus</span><span class="sv">800 militants</span></div>
+  <div class="sr"><span class="sl">Budget prevu</span><span class="sv">2 400€</span></div>
+  <!-- QR Code section -->
+  <div style="margin:14px 0 8px;font-size:.7rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em">QR Code Inscription Prospects</div>
+  <div class="qr-box">
+    <div class="qr-img">📱</div>
+    <div style="font-size:.78rem;font-weight:700;color:var(--t);margin-bottom:6px">Scanner pour s'inscrire</div>
+    <div class="qr-url">pastef-france.fr/meeting/grand-idf-29mars</div>
+    <div style="font-size:.68rem;color:var(--t2);margin-top:8px">Les participants sont automatiquement enregistres comme Prospects dans votre entonnoir</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="bp" onclick="CS('evt1')" style="margin-bottom:0">📥 Telecharger QR</button>
+    <button class="bp bp-r" onclick="CS('evt1')" style="margin-bottom:0">📤 Partager</button>
+  </div>
+</div></div>
+
+<!-- AG Event -->
+<div class="ov" id="ov-evtAG" onclick="CS('evtAG')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Assemblee Generale</div>
+  <div class="sr"><span class="sl">Date</span><span class="sv">5 Avril 2025 · 14h00</span></div>
+  <div class="sr"><span class="sl">Lieu</span><span class="sv">Paris 19e</span></div>
+  <div class="sr"><span class="sl">Membres attendus</span><span class="sv">60 responsables</span></div>
+  <div style="margin:14px 0 8px;font-size:.7rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em">QR Code Presence</div>
+  <div class="qr-box"><div class="qr-img">📱</div><div style="font-size:.78rem;font-weight:700;color:var(--t);margin-bottom:6px">QR Code de presences</div><div class="qr-url">pastef-france.fr/ag/5avril-presence</div></div>
+  <button class="bp" onclick="CS('evtAG')">📥 Telecharger QR</button>
+</div></div>
+
+<!-- NOUVEAU EVENEMENT -->
+<div class="ov" id="ov-newEvt" onclick="CS('newEvt')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Creer un evenement</div>
+  <div class="fg"><label class="fl">Type</label><select class="fi fsel"><option>Meeting / Rassemblement</option><option>Reunion de bureau</option><option>Conference de presse</option><option>Terrain / Porte-a-porte</option><option>Evenement convivial</option></select></div>
+  <div class="fg"><label class="fl">Titre</label><input class="fi" type="text" placeholder="Ex: Meeting Paris Nord"></div>
+  <div class="fg"><label class="fl">Date & Heure</label><input class="fi" type="datetime-local"></div>
+  <div class="fg"><label class="fl">Lieu</label><input class="fi" type="text" placeholder="Adresse ou salle"></div>
+  <div class="fg"><label class="fl">Participants attendus</label><input class="fi" type="number" placeholder="0"></div>
+  <div style="background:var(--vb);border-radius:10px;padding:11px;margin-bottom:13px">
+    <div style="font-size:.75rem;font-weight:700;color:var(--v);margin-bottom:4px">📱 QR Code Prospects</div>
+    <div style="font-size:.7rem;color:var(--t2)">Un QR code sera genere automatiquement. Les participants qui le scannent sont enregistres comme Prospects avec leurs informations.</div>
+  </div>
+  <button class="bp" onclick="CS('newEvt')">Creer l'evenement + generer QR</button>
+</div></div>
+
+<!-- PAGE QR PROSPECT (simulation) -->
+<div class="ov" id="ov-qrPage" onclick="CS('qrPage')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;margin-bottom:16px">
+    <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--v),var(--r));display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:#fff;margin:0 auto 8px">P</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:var(--t)">PASTEF France</div>
+    <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Grand Meeting IDF · 29 Mars 2025</div>
+  </div>
+  <div style="font-size:.8rem;font-weight:600;color:var(--t);margin-bottom:12px;text-align:center">Remplissez vos informations pour rester en contact avec nous !</div>
+  <div class="fg"><label class="fl">Nom & Prenom *</label><input class="fi" type="text" placeholder="Votre nom complet"></div>
+  <div class="fg"><label class="fl">Telephone *</label><input class="fi" type="tel" placeholder="+33 6 XX XX XX XX"></div>
+  <div class="fg"><label class="fl">Email</label><input class="fi" type="email" placeholder="votre@email.com"></div>
+  <div class="fg"><label class="fl">Ville</label><input class="fi" type="text" placeholder="Votre ville"></div>
+  <div class="fg"><label class="fl">Sexe</label><select class="fi fsel"><option value="">-- Choisir --</option><option>Masculin</option><option>Feminin</option></select></div>
+  <div class="fg"><label class="fl">Mouvement d'interet</label><select class="fi fsel"><option value="">-- Choisir --</option><option>JPS - Mouvement des Jeunes</option><option>MOJIP - Mouvement des Femmes</option><option>Mouvement des Cadres</option><option>Mouvement des Foyers</option><option>Maggi Pastef</option><option>Aucun de particulier</option></select></div>
+  <button class="bp" onclick="CS('qrPage');OS('qrSuccess')">Je rejoins le mouvement !</button>
+</div></div>
+
+<!-- QR SUCCESS -->
+<div class="ov" id="ov-qrSuccess" onclick="CS('qrSuccess')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;padding:20px 0">
+    <div style="font-size:3rem;margin-bottom:12px">✅</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--v);margin-bottom:8px">Merci !</div>
+    <div style="font-size:.82rem;color:var(--t);margin-bottom:6px">Votre inscription a ete enregistree.</div>
+    <div style="font-size:.74rem;color:var(--t2)">Un responsable Pastef de votre region vous contactera tres prochainement.</div>
+    <div style="margin-top:16px;padding:12px;background:var(--vb);border-radius:10px;font-size:.72rem;color:var(--v);font-weight:600">Bienvenue dans la famille Pastef France 🇸🇳</div>
+  </div>
+  <button class="bp" onclick="CS('qrSuccess')">Fermer</button>
+</div></div>
+
+<!-- IMPORT MILITANTS -->
+<div class="ov" id="ov-importMil" onclick="CS('importMil')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Import de militants</div>
+  <!-- OCR -->
+  <div style="font-size:.72rem;font-weight:700;color:var(--t);margin-bottom:10px">Option 1 — Scanner une feuille manuscrite</div>
+  <div class="ocr-zone" onclick="OS('ocrPreview')">
+    <div class="ocr-icon">📄</div>
+    <div class="ocr-txt">Prendre une photo de la feuille</div>
+    <div class="ocr-sub">L'IA extrait automatiquement les informations</div>
+  </div>
+  <div style="font-size:.72rem;font-weight:700;color:var(--t);margin-bottom:10px;margin-top:4px">Option 2 — Importer un fichier CSV ou Excel</div>
+  <div class="ocr-zone">
+    <div class="ocr-icon">📊</div>
+    <div class="ocr-txt">Glisser-deposer votre fichier</div>
+    <div class="ocr-sub">Format : Nom, Prenom, Telephone, Email, Ville, Sexe</div>
+  </div>
+  <button class="bp bp-r" onclick="CS('importMil');OS('csvPreview')">📥 Choisir un fichier</button>
+  <div style="margin-top:8px;text-align:center"><a href="#" style="font-size:.7rem;color:var(--v);text-decoration:none" onclick="CS('importMil')">Telecharger le modele CSV</a></div>
+</div></div>
+
+<!-- OCR PREVIEW -->
+<div class="ov" id="ov-ocrPreview" onclick="CS('ocrPreview')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Analyse en cours...</div>
+  <div style="text-align:center;padding:16px 0">
+    <div style="font-size:2.5rem;margin-bottom:10px">🔍</div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--t);margin-bottom:4px">L'IA analyse votre document</div>
+    <div style="font-size:.7rem;color:var(--t2)">Extraction des informations manuscrites...</div>
+    <div style="margin:16px 0;height:6px;background:var(--bd);border-radius:3px;overflow:hidden"><div style="height:100%;width:75%;background:linear-gradient(90deg,var(--v),var(--r));border-radius:3px;animation:prog 2s ease infinite"></div></div>
+  </div>
+  <div style="font-size:.72rem;font-weight:700;color:var(--t);margin-bottom:8px">Militants detectes — A valider</div>
+  <div class="card" style="padding:10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:.8rem;font-weight:600">Oumar Gueye</div><div style="font-size:.68rem;color:var(--t2)">📱 06 12 34 56 78 · Paris 93 · ♂</div></div><div style="display:flex;gap:6px"><span style="font-size:1rem;cursor:pointer">✅</span><span style="font-size:1rem;cursor:pointer">✏️</span></div></div></div>
+  <div class="card" style="padding:10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:.8rem;font-weight:600">Awa Diallo</div><div style="font-size:.68rem;color:var(--t2)">📱 07 98 76 54 32 · Saint-Denis · ♀</div></div><div style="display:flex;gap:6px"><span style="font-size:1rem;cursor:pointer">✅</span><span style="font-size:1rem;cursor:pointer">✏️</span></div></div></div>
+  <div class="card" style="padding:10px;margin-bottom:8px;border:1.5px solid var(--or)"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:.8rem;font-weight:600">Ibr??? Seck <span style="font-size:.65rem;color:var(--or)">⚠ Lisibilite faible</span></div><div style="font-size:.68rem;color:var(--t2)">📱 06 ??? ?? 89 01 · ♂</div></div><div style="display:flex;gap:6px"><span style="font-size:1rem;cursor:pointer">✏️</span><span style="font-size:1rem;cursor:pointer">❌</span></div></div></div>
+  <button class="bp" onclick="CS('ocrPreview')">✅ Valider et importer (2/3)</button>
+  <button class="bp bp-dk" onclick="CS('ocrPreview')">Corriger manuellement</button>
+</div></div>
+
+<!-- CSV PREVIEW -->
+<div class="ov" id="ov-csvPreview" onclick="CS('csvPreview')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Apercu CSV — 156 lignes</div>
+  <div style="background:var(--vb);border-radius:10px;padding:11px;margin-bottom:12px">
+    <div style="font-size:.75rem;font-weight:700;color:var(--v);margin-bottom:4px">✅ Fichier valide</div>
+    <div style="font-size:.7rem;color:var(--t2)">156 militants detectes · 0 erreurs · 3 doublons potentiels</div>
+  </div>
+  <div style="font-size:.72rem;font-weight:700;color:var(--t);margin-bottom:8px">Apercu des premieres lignes</div>
+  <div style="overflow-x:auto;margin-bottom:12px"><table style="width:100%;font-size:.65rem;border-collapse:collapse"><tr style="background:var(--v);color:#fff"><th style="padding:6px 8px;text-align:left">Nom</th><th style="padding:6px 8px;text-align:left">Tel</th><th style="padding:6px 8px;text-align:left">Ville</th></tr><tr style="border-bottom:1px solid var(--bd)"><td style="padding:5px 8px">Mamadou Diallo</td><td style="padding:5px 8px">0612...</td><td style="padding:5px 8px">Paris</td></tr><tr style="border-bottom:1px solid var(--bd);background:#f9f9f9"><td style="padding:5px 8px">Fatou Sarr</td><td style="padding:5px 8px">0789...</td><td style="padding:5px 8px">Lyon</td></tr><tr><td style="padding:5px 8px">Ibou Ndiaye</td><td style="padding:5px 8px">0645...</td><td style="padding:5px 8px">Marseille</td></tr></table></div>
+  <div class="fg"><label class="fl">Sous-section de rattachement</label><select class="fi fsel"><option>Detecter automatiquement (par ville)</option><option>Seine-Saint-Denis (93)</option><option>Paris (75)</option><option>PACA</option></select></div>
+  <button class="bp" onclick="CS('csvPreview')">✅ Importer 156 militants</button>
+  <button class="bp bp-dk" onclick="CS('csvPreview')">Annuler</button>
+</div></div>
+
+<!-- AJOUTER MILITANT -->
+<div class="ov" id="ov-newMil" onclick="CS('newMil')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Ajouter un militant</div>
+  <div class="fg"><label class="fl">Nom & Prenom</label><input class="fi" type="text" placeholder="Ex: Mamadou Diallo"></div>
+  <div class="fg"><label class="fl">Telephone</label><input class="fi" type="tel" placeholder="+33 6 XX XX XX XX"></div>
+  <div class="fg"><label class="fl">Email</label><input class="fi" type="email" placeholder="email@exemple.com"></div>
+  <div class="fg"><label class="fl">Ville & Code postal</label><input class="fi" type="text" placeholder="Ex: Paris 75018"></div>
+  <div class="fg"><label class="fl">Sexe</label><select class="fi fsel"><option>Masculin</option><option>Feminin</option></select></div>
+  <div class="fg"><label class="fl">Cellule</label><select class="fi fsel" id="milCellule"><option>Cellule Saint-Denis</option><option>Cellule Aubervilliers</option></select></div>
+  <div class="fg"><label class="fl">Mouvement(s)</label><select class="fi fsel"><option>Aucun</option><option>JPS</option><option>MOJIP</option><option>Cadres</option><option>Foyers</option><option>Maggi Pastef</option></select></div>
+  <button class="bp" onclick="CS('newMil')">Enregistrer le militant</button>
+</div></div>
+
+<!-- COTISATION -->
+<div class="ov" id="ov-newCot" onclick="CS('newCot')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Enregistrer une cotisation</div>
+  <div class="fg"><label class="fl">Militant</label><input class="fi" type="text" placeholder="Rechercher un militant..."></div>
+  <div class="fg"><label class="fl">Montant (€)</label><input class="fi" type="number" placeholder="0"></div>
+  <div class="fg"><label class="fl">Periode</label><select class="fi fsel"><option>Mars 2025</option><option>Fevrier 2025</option></select></div>
+  <div class="fg"><label class="fl">Mode de paiement</label><select class="fi fsel"><option>Virement</option><option>Especes</option><option>Cheque</option><option>PayPal / Lydia</option></select></div>
+  <button class="bp" onclick="CS('newCot')">Enregistrer</button>
+</div></div>
+
+<!-- TRANSACTION -->
+<div class="ov" id="ov-newTrans" onclick="CS('newTrans')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Nouvelle transaction</div>
+  <div class="fg"><label class="fl">Type</label><select class="fi fsel"><option>Entree</option><option>Depense</option></select></div>
+  <div class="fg"><label class="fl">Categorie</label><select class="fi fsel"><option>Cotisation</option><option>Don / Contribution</option><option>Benefice evenement</option><option>Vente goodies</option><option>Logistique evenement</option><option>Communication</option><option>Materiel militant</option><option>Deplacement</option><option>Frais administratifs</option><option>Formation</option></select></div>
+  <div class="fg"><label class="fl">Montant (€)</label><input class="fi" type="number" placeholder="0"></div>
+  <div class="fg"><label class="fl">Date</label><input class="fi" type="date"></div>
+  <div class="fg"><label class="fl">Description</label><input class="fi" type="text" placeholder="Ex: Impression flyers mars"></div>
+  <button class="bp" onclick="CS('newTrans')">Enregistrer</button>
+</div></div>
+
+<!-- REUNION -->
+<div class="ov" id="ov-reun1" onclick="CS('reun1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Bureau Executif — 18 Mars</div><div class="sr"><span class="sl">Date</span><span class="sv">18 Mars 2025 · 19h00</span></div><div class="sr"><span class="sl">Lieu</span><span class="sv">Paris 10e</span></div><div class="sr"><span class="sl">Participants</span><span class="sv">12 membres</span></div><div style="margin:12px 0 5px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Decisions</div><div class="di"><div class="dt">Valider budget communication Q2</div><div class="dm"><span class="badge br">En retard</span></div></div><div class="di"><div class="dt">Lancer campagne goodies</div><div class="dm"><span class="badge bg">Executee</span></div></div><div style="margin-top:14px;display:flex;gap:8px"><button class="bp bp-r" onclick="CS('reun1')" style="margin-bottom:0">PV</button><button class="bp" onclick="CS('reun1')" style="margin-bottom:0">CR PDF</button></div></div></div>
+
+<div class="ov" id="ov-newReun" onclick="CS('newReun')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Creer une reunion</div><div class="fg"><label class="fl">Instance</label><select class="fi fsel"><option>Bureau Executif</option><option>Assemblee Generale</option><option>Sous-section</option><option>Mouvement</option><option>Secretariat</option><option>Cellule</option></select></div><div class="fg"><label class="fl">Date</label><input class="fi" type="date"></div><div class="fg"><label class="fl">Lieu</label><input class="fi" type="text" placeholder="Adresse ou visio"></div><div class="fg"><label class="fl">Ordre du jour</label><textarea class="fi" rows="3" style="resize:none"></textarea></div><button class="bp" onclick="CS('newReun')">Creer</button></div></div>
+
+<div class="ov" id="ov-newCra" onclick="CS('newCra')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Saisir mon CR — Mars 2025</div><div class="fg"><label class="fl">Cellule</label><select class="fi fsel"><option>Cellule Lyon-Villeurbanne</option><option>Cellule Saint-Denis</option></select></div><div class="fg"><label class="fl">Prospects contactes</label><input type="number" class="fi" value="18"></div><div class="fg"><label class="fl">Cotisations collectees (€)</label><input type="number" class="fi" value="840"></div><div class="fg"><label class="fl">Actions terrain</label><textarea class="fi" rows="3" style="resize:none"></textarea></div><div class="fg"><label class="fl">Difficultes</label><textarea class="fi" rows="2" style="resize:none"></textarea></div><button class="bp" onclick="CS('newCra')">Soumettre</button></div></div>
+
+<div class="ov" id="ov-cra1" onclick="CS('cra1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">CR — Cellule Lyon</div><div class="badge bg" style="margin-bottom:12px">Valide · Mars 2025</div><div class="sr"><span class="sl">Prospects</span><span class="sv">18 contactes</span></div><div class="sr"><span class="sl">Cotisations</span><span class="sv">840€</span></div><div style="margin:12px 0 5px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Actions</div><div style="font-size:.8rem;color:var(--t);background:var(--bg);padding:10px;border-radius:10px">Reunion de sensibilisation et porte-a-porte quartiers Cusset et Gratte-Ciel.</div></div></div>
+
+<div class="ov" id="ov-doc1" onclick="CS('doc1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">PV — Bureau Executif</div><div class="sr"><span class="sl">Type</span><span class="badge br">Proces-verbal</span></div><div class="sr"><span class="sl">Date</span><span class="sv">18 Mars 2025</span></div><div class="sr"><span class="sl">Acces</span><span class="badge bo">BE uniquement</span></div><div style="margin-top:14px;display:flex;gap:8px"><button class="bp" onclick="CS('doc1')" style="margin-bottom:0">Consulter</button><button class="bp bp-dk" onclick="CS('doc1')" style="margin-bottom:0">Telecharger</button></div></div></div>
+
+<div class="ov" id="ov-elec1" onclick="CS('elec1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Election Resp. Bretagne</div><div class="badge bo" style="margin-bottom:12px">Planifiee</div><div class="sr"><span class="sl">Date</span><span class="sv">20 Avril 2025</span></div><div class="sr"><span class="sl">Candidats</span><span class="sv">3 enregistres</span></div><button class="bp" style="margin-top:14px" onclick="CS('elec1')">+ Ajouter un candidat</button></div></div>
+
+<div class="ov" id="ov-newElec" onclick="CS('newElec')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Planifier une election</div><div class="fg"><label class="fl">Type</label><select class="fi fsel"><option>Resp. de cellule</option><option>Resp. de sous-section</option><option>Bureau Executif</option><option>Vote de motion</option></select></div><div class="fg"><label class="fl">Perimetre</label><select class="fi fsel"><option>Paris (75)</option><option>Seine-Saint-Denis (93)</option><option>Bretagne</option></select></div><div class="fg"><label class="fl">Date prevue</label><input type="date" class="fi"></div><button class="bp" onclick="CS('newElec')">Creer</button></div></div>
+
+<div class="ov" id="ov-editBureau" onclick="CS('editBureau')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Modifier le bureau</div><div class="fg"><label class="fl">Poste</label><select class="fi fsel"><option>Coordinateur/trice</option><option>Vice-Coordinateur/trice</option><option>Resp. Communication</option><option>Vice-Resp. Communication</option><option>Resp. Finances</option><option>Vice-Resp. Finances</option><option>Resp. Massification</option><option>Vice-Resp. Massification</option><option>Resp. Veille Electorale</option><option>Vice-Resp. Veille Electorale</option><option>Resp. Organisation</option><option>Vice-Resp. Organisation</option><option>Resp. Formation</option><option>Vice-Resp. Formation</option><option>Resp. local MOJIP</option><option>Resp. local JPS</option><option>Resp. local Maggi Pastef</option><option>Resp. local Foyer</option></select></div><div class="fg"><label class="fl">Nom & Prenom</label><input class="fi" type="text" placeholder="Ex: Fatou Sow"></div><div class="fg"><label class="fl">Telephone</label><input class="fi" type="tel"></div><div class="fg"><label class="fl">Date de prise de fonction</label><input class="fi" type="date"></div><button class="bp" onclick="CS('editBureau')">Enregistrer</button></div></div>
+
+<div class="ov" id="ov-ss93" onclick="CS('ss93')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Seine-Saint-Denis (93)</div><div class="sr"><span class="sl">Militants</span><span class="sv">820</span></div><div class="sr"><span class="sl">Objectif</span><span class="sv">1 000 · 82%</span></div><div class="sr"><span class="sl">Taux recouvrement</span><span class="sv" style="color:var(--v)">78%</span></div><div class="sr"><span class="sl">Coordinateur</span><span class="sv">Moussa Ndiaye</span></div><div class="sr"><span class="sl">Vice-Coordinateur</span><span class="sv">Aida Sarr</span></div></div></div>
+
+<div class="ov" id="ov-ss75" onclick="CS('ss75')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Paris (75)</div><div class="sr"><span class="sl">Militants</span><span class="sv">680</span></div><div class="sr"><span class="sl">Objectif</span><span class="sv">1 000 · 68%</span></div><div class="sr"><span class="sl">Taux recouvrement</span><span class="sv" style="color:var(--r)">58% ⚠</span></div><div class="sr"><span class="sl">Coordinatrice</span><span class="sv">Aminata Fall</span></div></div></div>
+
+<div class="ov" id="ov-ss92" onclick="CS('ss92')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Hauts-de-Seine (92)</div><div class="sr"><span class="sl">Militants</span><span class="sv">360</span></div><div class="sr"><span class="sl">Taux recouvrement</span><span class="sv">71%</span></div><div class="sr"><span class="sl">Coordinateur</span><span class="sv">Ibou Diallo</span></div></div></div>
+
+<div class="ov" id="ov-ssPACA" onclick="CS('ssPACA')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">PACA</div><div class="sr"><span class="sl">Militants</span><span class="sv">190</span></div><div class="sr"><span class="sl">Taux recouvrement</span><span class="sv" style="color:var(--v)">82%</span></div><div class="sr"><span class="sl">Coordinateur</span><span class="sv">Omar Diene</span></div></div></div>
+
+<div class="ov" id="ov-mvtJ" onclick="CS('mvtJ')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Mouvement des Jeunes (JPS)</div><div class="badge bg" style="margin-bottom:12px">Budget autonome</div><div class="sr"><span class="sl">Membres</span><span class="sv">420</span></div><div class="sr"><span class="sl">Entrees</span><span class="sv" style="color:var(--v)">2 100€</span></div><div class="sr"><span class="sl">Depenses</span><span class="sv" style="color:var(--r)">1 400€</span></div><div class="sr"><span class="sl">Solde</span><span class="sv" style="color:var(--v)">700€</span></div><div class="sr"><span class="sl">Taux recouvrement</span><span class="sv" style="color:var(--v)">74%</span></div><div class="sr"><span class="sl">Coordinatrice</span><span class="sv">Fatou Sow</span></div></div></div>
+
+<div class="ov" id="ov-mvtF" onclick="CS('mvtF')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Mouvement des Femmes (MOJIP)</div><div class="badge bg" style="margin-bottom:12px">Budget autonome</div><div class="sr"><span class="sl">Membres</span><span class="sv">580</span></div><div class="sr"><span class="sl">Entrees</span><span class="sv" style="color:var(--v)">2 900€</span></div><div class="sr"><span class="sl">Depenses</span><span class="sv" style="color:var(--r)">1 800€</span></div><div class="sr"><span class="sl">Solde</span><span class="sv" style="color:var(--v)">1 100€</span></div><div class="sr"><span class="sl">Coordinatrice</span><span class="sv">Rokhaya Ba</span></div></div></div>
+
+<div class="ov" id="ov-mvtC" onclick="CS('mvtC')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Mouvement des Cadres</div><div class="badge bg" style="margin-bottom:12px">Budget autonome</div><div class="sr"><span class="sl">Membres</span><span class="sv">310</span></div><div class="sr"><span class="sl">Coordinateur</span><span class="sv">Dr. Mamadou Lo</span></div></div></div>
+
+<div class="ov" id="ov-mvtFo" onclick="CS('mvtFo')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Mouvement des Foyers</div><div class="badge bg" style="margin-bottom:12px">Budget autonome</div><div class="sr"><span class="sl">Membres</span><span class="sv">280</span></div><div class="sr"><span class="sl">Coordinateur</span><span class="sv">Bineta Diop</span></div></div></div>
+
+<div class="ov" id="ov-mvtMg" onclick="CS('mvtMg')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Maggi Pastef</div><div class="badge bg" style="margin-bottom:12px">Budget autonome</div><div class="sr"><span class="sl">Membres</span><span class="sv">190</span></div><div class="sr"><span class="sl">Coordinatrice</span><span class="sv">Coumba Sarr</span></div></div></div>
+
+<div class="ov" id="ov-secFin" onclick="CS('secFin')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Secretariat Finance</div><div class="sr"><span class="sl">Responsable</span><span class="sv">Cheikh Tall</span></div><div class="sr"><span class="sl">Vice-Responsable</span><span class="sv">Amina Sow</span></div></div></div>
+<div class="ov" id="ov-secVE" onclick="CS('secVE')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Secretariat Veille Electorale</div><div class="sr"><span class="sl">Responsable</span><span class="sv">Lamine Diallo</span></div><div class="sr"><span class="sl">Vice-Responsable</span><span class="sv">Awa Mbaye</span></div></div></div>
+<div class="ov" id="ov-secComm" onclick="CS('secComm')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Secretariat Communication</div><div class="sr"><span class="sl">Responsable</span><span class="sv">Marieme Faye</span></div><div class="sr"><span class="sl">Vice-Responsable</span><span class="sv">Daouda Ba</span></div><div class="sr"><span class="sl">Actions en retard</span><span class="sv" style="color:var(--r)">2</span></div></div></div>
+<div class="ov" id="ov-secMass" onclick="CS('secMass')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Secretariat Massification</div><div class="sr"><span class="sl">Responsable</span><span class="sv">Babacar Ndiaye</span></div><div class="sr"><span class="sl">Vice-Responsable</span><span class="sv">Khadija Sy</span></div></div></div>
+<div class="ov" id="ov-secForm" onclick="CS('secForm')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Secretariat Formation</div><div class="sr"><span class="sl">Responsable</span><span class="sv">Pr. Aissatou Fall</span></div><div class="sr"><span class="sl">Vice-Responsable</span><span class="sv">Moussa Deme</span></div></div></div>
+<div class="ov" id="ov-secIT" onclick="CS('secIT')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Secretariat IT</div><div class="sr"><span class="sl">Responsable</span><span class="sv">Ibrahima Sall</span></div><div class="sr"><span class="sl">Vice-Responsable</span><span class="sv">Fatou Ndiaye</span></div></div></div>
+
+
+<!-- RAPPORT CRA -->
+<div class="ov" id="ov-rptCRA" onclick="CS('rptCRA')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Rapport d'activite (CRA)</div>
+  <div class="fg"><label class="fl">Perimetre</label><select class="fi fsel" id="rptCRASrc"><option>Section France (consolide)</option><option>Sous-section 93</option><option>Sous-section 75</option><option>PACA</option><option>Cellule Lyon-Villeurbanne</option></select></div>
+  <div class="fg"><label class="fl">Periode</label><select class="fi fsel"><option>Mars 2025</option><option>Fevrier 2025</option><option>T1 2025 (Jan-Mars)</option><option>2024 (annuel)</option></select></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px">
+    <div id="rptSimple" onclick="selectRptMode('simple')" style="border:2px solid var(--v);background:var(--vb);border-radius:10px;padding:12px;text-align:center;cursor:pointer">
+      <div style="font-size:1.3rem">📄</div>
+      <div style="font-size:.75rem;font-weight:700;color:var(--v);margin-top:4px">Simple</div>
+      <div style="font-size:.62rem;color:var(--t2);margin-top:2px">Ce niveau uniquement</div>
+    </div>
+    <div id="rptConsolide" onclick="selectRptMode('consolide')" style="border:2px solid var(--bd);background:#fff;border-radius:10px;padding:12px;text-align:center;cursor:pointer">
+      <div style="font-size:1.3rem">📚</div>
+      <div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-top:4px">Consolide</div>
+      <div style="font-size:.62rem;color:var(--t2);margin-top:2px">Inclut niveaux inferieurs</div>
+    </div>
+  </div>
+  <div style="background:var(--vb);border-radius:10px;padding:11px;margin-bottom:13px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--v);margin-bottom:3px">Contenu du rapport</div>
+    <div style="font-size:.68rem;color:var(--t2)">Actions terrain · Prospects contactes · Evenements · Cotisations collectees · Difficultes · Synthese par cellule</div>
+  </div>
+  <button class="bp" onclick="CS('rptCRA');OS('rptGeneration')">Generer le rapport PDF</button>
+</div></div>
+
+<!-- RAPPORT FINANCIER -->
+<div class="ov" id="ov-rptFin" onclick="CS('rptFin')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Rapport financier</div>
+  <div class="fg"><label class="fl">Perimetre</label><select class="fi fsel"><option>Section France (consolide)</option><option>Sous-section 93</option><option>Mouvement JPS</option><option>MOJIP</option></select></div>
+  <div class="fg"><label class="fl">Periode</label><select class="fi fsel"><option>Mars 2025</option><option>T1 2025</option><option>2024 (annuel)</option></select></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px">
+    <div style="border:2px solid var(--v);background:var(--vb);border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📄</div><div style="font-size:.75rem;font-weight:700;color:var(--v);margin-top:4px">Simple</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Ce niveau uniquement</div></div>
+    <div style="border:2px solid var(--bd);background:#fff;border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📚</div><div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-top:4px">Consolide</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Toutes entites</div></div>
+  </div>
+  <div style="background:var(--rb);border-radius:10px;padding:11px;margin-bottom:13px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--r);margin-bottom:3px">Contenu du rapport</div>
+    <div style="font-size:.68rem;color:var(--t2)">Entrees (cotisations, dons, events, goodies) · Depenses par categorie · Solde · Taux recouvrement · Graphiques</div>
+  </div>
+  <button class="bp" onclick="CS('rptFin');OS('rptGeneration')">Generer le rapport PDF</button>
+</div></div>
+
+<!-- RAPPORT REUNION -->
+<div class="ov" id="ov-rptReun" onclick="CS('rptReun')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Rapport de reunion</div>
+  <div class="fg"><label class="fl">Reunion</label><select class="fi fsel"><option>Bureau Executif — 18 Mars 2025</option><option>Assemblee Generale — 22 Mars 2025</option><option>Toutes les reunions du mois</option></select></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px">
+    <div style="border:2px solid var(--v);background:var(--vb);border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📄</div><div style="font-size:.75rem;font-weight:700;color:var(--v);margin-top:4px">PV simple</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Cette reunion</div></div>
+    <div style="border:2px solid var(--bd);background:#fff;border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📚</div><div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-top:4px">Bilan periode</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Toutes reunions</div></div>
+  </div>
+  <div style="background:var(--bb);border-radius:10px;padding:11px;margin-bottom:13px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--b);margin-bottom:3px">Contenu du rapport</div>
+    <div style="font-size:.68rem;color:var(--t2)">Participants · Ordre du jour · Points discutes · Decisions (+ responsable + echeance) · Prochaine reunion</div>
+  </div>
+  <button class="bp" onclick="CS('rptReun');OS('rptGeneration')">Generer le rapport PDF</button>
+</div></div>
+
+<!-- RAPPORT EVENEMENT -->
+<div class="ov" id="ov-rptEvt" onclick="CS('rptEvt')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Rapport d'evenement</div>
+  <div class="fg"><label class="fl">Evenement</label><select class="fi fsel"><option>Grand Meeting IDF — 29 Mars</option><option>AG Section France — 5 Avril</option><option>Tous les evenements du mois</option></select></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px">
+    <div style="border:2px solid var(--v);background:var(--vb);border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📄</div><div style="font-size:.75rem;font-weight:700;color:var(--v);margin-top:4px">Simple</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Cet evenement</div></div>
+    <div style="border:2px solid var(--bd);background:#fff;border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📚</div><div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-top:4px">Bilan periode</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Tous les events</div></div>
+  </div>
+  <div style="background:var(--ob);border-radius:10px;padding:11px;margin-bottom:13px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--or);margin-bottom:3px">Contenu du rapport</div>
+    <div style="font-size:.68rem;color:var(--t2)">Details event · Participants reels vs attendus · Bilan financier · Prospects QR enregistres · Suivi des relances</div>
+  </div>
+  <button class="bp" onclick="CS('rptEvt');OS('rptGeneration')">Generer le rapport PDF</button>
+</div></div>
+
+<!-- RAPPORT COTISATIONS -->
+<div class="ov" id="ov-rptCot" onclick="CS('rptCot')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Etat cotisations</div>
+  <div class="fg"><label class="fl">Perimetre</label><select class="fi fsel"><option>Section France (consolide)</option><option>Sous-section 93</option><option>Sous-section 75</option><option>PACA</option><option>JPS</option><option>MOJIP</option></select></div>
+  <div class="fg"><label class="fl">Periode</label><select class="fi fsel"><option>Mars 2025</option><option>T1 2025</option><option>2024 (annuel)</option></select></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px">
+    <div style="border:2px solid var(--v);background:var(--vb);border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📄</div><div style="font-size:.75rem;font-weight:700;color:var(--v);margin-top:4px">Simple</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Ce niveau</div></div>
+    <div style="border:2px solid var(--bd);background:#fff;border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.3rem">📚</div><div style="font-size:.75rem;font-weight:700;color:var(--t2);margin-top:4px">Consolide</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Par sous-section</div></div>
+  </div>
+  <div style="background:var(--vib);border-radius:10px;padding:11px;margin-bottom:13px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--vi);margin-bottom:3px">Contenu du rapport</div>
+    <div style="font-size:.68rem;color:var(--t2)">Taux recouvrement global · Liste militants a jour / en retard / inactifs · Montants collectes · Ecarts vs objectif</div>
+  </div>
+  <button class="bp" onclick="CS('rptCot');OS('rptGeneration')">Generer le rapport PDF</button>
+</div></div>
+
+<!-- GENERATION EN COURS -->
+<div class="ov" id="ov-rptGeneration" onclick="CS('rptGeneration')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;padding:10px 0 20px">
+    <div style="font-size:2.5rem;margin-bottom:12px">⚙️</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:var(--t);margin-bottom:6px">Generation du rapport...</div>
+    <div style="font-size:.72rem;color:var(--t2);margin-bottom:16px">Compilation des donnees et mise en page</div>
+    <div style="height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:6px">
+      <div style="height:100%;background:linear-gradient(90deg,var(--v),var(--r));border-radius:3px;width:100%;animation:rptProg 2s ease forwards"></div>
+    </div>
+    <div style="font-size:.65rem;color:var(--t3)" id="rptStep">Collecte des donnees...</div>
+  </div>
+  <div id="rptDone" style="display:none">
+    <div style="background:var(--vb);border-radius:12px;padding:16px;text-align:center;margin-bottom:14px">
+      <div style="font-size:2rem;margin-bottom:8px">✅</div>
+      <div style="font-size:.85rem;font-weight:700;color:var(--v);margin-bottom:4px">Rapport genere avec succes</div>
+      <div style="font-size:.7rem;color:var(--t2)">CRA Consolide — Mars 2025 · Section France</div>
+      <div style="font-size:.68rem;color:var(--t3);margin-top:4px">14 pages · 2,4 Mo · PDF/A</div>
+    </div>
+    <button class="bp" onclick="CS('rptGeneration')">📥 Telecharger le PDF</button>
+    <button class="bp bp-r" onclick="CS('rptGeneration')">📤 Partager par email</button>
+    <button class="bp" style="background:#555" onclick="CS('rptGeneration')">Retour aux rapports</button>
+  </div>
+</div></div>
+
+<!-- APERCU RAPPORT -->
+<div class="ov" id="ov-rptPreview" onclick="CS('rptPreview')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">CRA Consolide — Mars 2025</div>
+  <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:14px">
+    <!-- Miniature rapport -->
+    <div style="background:#fff;border-radius:8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid var(--v)">
+        <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,var(--v),var(--r));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff">P</div>
+        <div><div style="font-size:.8rem;font-weight:800;color:var(--v)">PASTEF Section France</div><div style="font-size:.6rem;color:var(--t2)">Rapport d'activite mensuel · Mars 2025</div></div>
+      </div>
+      <div style="font-size:.7rem;font-weight:700;color:var(--t);margin-bottom:6px">Synthese nationale</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+        <div style="background:var(--vb);border-radius:6px;padding:8px;text-align:center"><div style="font-size:.95rem;font-weight:800;color:var(--v)">3 420</div><div style="font-size:.58rem;color:var(--t2)">Militants</div></div>
+        <div style="background:var(--rb);border-radius:6px;padding:8px;text-align:center"><div style="font-size:.95rem;font-weight:800;color:var(--r)">71%</div><div style="font-size:.58rem;color:var(--t2)">Recouvrement</div></div>
+        <div style="background:var(--ob);border-radius:6px;padding:8px;text-align:center"><div style="font-size:.95rem;font-weight:800;color:var(--or)">142</div><div style="font-size:.58rem;color:var(--t2)">Prospects QR</div></div>
+        <div style="background:var(--bb);border-radius:6px;padding:8px;text-align:center"><div style="font-size:.95rem;font-weight:800;color:var(--b)">12</div><div style="font-size:.58rem;color:var(--t2)">Evenements</div></div>
+      </div>
+      <div style="font-size:.65rem;color:var(--t3);text-align:center;border-top:1px solid var(--bd);padding-top:8px">... 14 pages · Genere le 22 Mars 2025 ...</div>
+    </div>
+  </div>
+  <div class="sr"><span class="sl">Type</span><span class="sv">CRA Consolide</span></div>
+  <div class="sr"><span class="sl">Perimetre</span><span class="sv">Section France · 38 cellules</span></div>
+  <div class="sr"><span class="sl">Periode</span><span class="sv">Mars 2025</span></div>
+  <div class="sr"><span class="sl">Pages</span><span class="sv">14 pages</span></div>
+  <div class="sr"><span class="sl">Taille</span><span class="sv">2,4 Mo</span></div>
+  <div style="margin-top:14px;display:flex;gap:8px">
+    <button class="bp" onclick="CS('rptPreview')" style="margin-bottom:0">📥 Telecharger</button>
+    <button class="bp bp-r" onclick="CS('rptPreview')" style="margin-bottom:0">📤 Partager</button>
+  </div>
+</div></div>
+
+
+<!-- ═══ SCAN OVERLAYS ═══ -->
+
+<!-- SCAN RAPIDE (ponctuel) -->
+<div class="ov" id="ov-scanQuick" onclick="CS('scanQuick')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div class="st">Scanner une carte membre</div>
+  <div style="text-align:center;margin-bottom:16px">
+    <!-- Viewfinder simulé -->
+    <div style="width:220px;height:220px;border-radius:16px;background:#111;margin:0 auto;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,0));display:flex;align-items:center;justify-content:center">
+        <div style="width:160px;height:160px;position:relative">
+          <div style="position:absolute;top:0;left:0;width:30px;height:30px;border-top:3px solid #fff;border-left:3px solid #fff;border-radius:3px 0 0 0"></div>
+          <div style="position:absolute;top:0;right:0;width:30px;height:30px;border-top:3px solid #fff;border-right:3px solid #fff;border-radius:0 3px 0 0"></div>
+          <div style="position:absolute;bottom:0;left:0;width:30px;height:30px;border-bottom:3px solid #fff;border-left:3px solid #fff;border-radius:0 0 0 3px"></div>
+          <div style="position:absolute;bottom:0;right:0;width:30px;height:30px;border-bottom:3px solid #fff;border-right:3px solid #fff;border-radius:0 0 3px 0"></div>
+          <div style="position:absolute;top:50%;left:0;right:0;height:2px;background:rgba(27,77,27,.8);animation:scanLine 2s ease-in-out infinite"></div>
+        </div>
+        <div style="position:absolute;font-size:2.5rem;opacity:.15">📱</div>
+      </div>
+    </div>
+    <div style="font-size:.75rem;color:var(--t2);margin-top:10px">Pointez la camera vers le QR code de la carte</div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button class="bp" onclick="simulateScan('ok')" style="margin:0;flex:1;font-size:.78rem">✅ Simuler: A jour</button>
+    <button class="bp bp-r" onclick="simulateScan('retard')" style="margin:0;flex:1;font-size:.78rem">⚠️ En retard</button>
+  </div>
+  <button class="bp" onclick="simulateScan('inconnu')" style="background:#555;font-size:.78rem">❌ Simuler: Inconnu</button>
+</div></div>
+
+<!-- RESULTAT SCAN — OK -->
+<div class="ov" id="ov-scanOK" onclick="CS('scanOK')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;padding:10px 0 16px">
+    <div style="width:72px;height:72px;border-radius:50%;background:var(--vb);border:3px solid var(--v);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px">✅</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--v)">Militant verifie</div>
+    <div style="font-size:.72rem;color:var(--t2);margin-top:4px">Cotisation a jour</div>
+  </div>
+  <div style="background:var(--vb);border-radius:12px;padding:14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:46px;height:46px;border-radius:12px;background:var(--v);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0">MN</div>
+      <div>
+        <div style="font-size:.92rem;font-weight:700;color:var(--t)">Moussa Ndiaye</div>
+        <div style="font-size:.7rem;color:var(--t2);margin-top:2px">SS-93 · Cellule Saint-Denis</div>
+        <div style="font-size:.7rem;color:var(--t2)">Militant depuis Janvier 2022</div>
+      </div>
+    </div>
+  </div>
+  <div class="sr"><span class="sl">Statut cotisation</span><span class="badge bg">A jour · Mars 2025</span></div>
+  <div class="sr"><span class="sl">Sous-section</span><span class="sv">Seine-Saint-Denis (93)</span></div>
+  <div class="sr"><span class="sl">Cellule</span><span class="sv">Cellule Saint-Denis</span></div>
+  <div class="sr"><span class="sl">Presence enregistree</span><span class="sv" style="color:var(--v)">✅ 18h42</span></div>
+  <div style="margin-top:14px;display:flex;gap:8px">
+    <button class="bp" onclick="CS('scanOK');OS('scanQuick')" style="margin-bottom:0">Scanner suivant</button>
+    <button class="bp" style="background:#555;margin-bottom:0" onclick="CS('scanOK')">Fermer</button>
+  </div>
+</div></div>
+
+<!-- RESULTAT SCAN — RETARD -->
+<div class="ov" id="ov-scanRetard" onclick="CS('scanRetard')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;padding:10px 0 16px">
+    <div style="width:72px;height:72px;border-radius:50%;background:var(--ob);border:3px solid var(--or);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px">⚠️</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--or)">Cotisation en retard</div>
+    <div style="font-size:.72rem;color:var(--t2);margin-top:4px">Presence enregistree · Avertissement</div>
+  </div>
+  <div style="background:var(--ob);border-radius:12px;padding:14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:46px;height:46px;border-radius:12px;background:var(--or);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0">AF</div>
+      <div>
+        <div style="font-size:.92rem;font-weight:700;color:var(--t)">Aminata Fall</div>
+        <div style="font-size:.7rem;color:var(--t2);margin-top:2px">SS-75 · Cellule Paris-18e</div>
+        <div style="font-size:.7rem;color:var(--t2)">Militante depuis Mars 2020</div>
+      </div>
+    </div>
+  </div>
+  <div class="sr"><span class="sl">Statut cotisation</span><span class="badge br">En retard · 2 mois</span></div>
+  <div class="sr"><span class="sl">Derniere cotisation</span><span class="sv">Janvier 2025</span></div>
+  <div class="sr"><span class="sl">Presence enregistree</span><span class="sv" style="color:var(--v)">✅ 18h43</span></div>
+  <div style="background:var(--rb);border-radius:10px;padding:10px;margin:12px 0;font-size:.75rem;color:var(--r)">La militante peut acceder a l'evenement. Pensez a lui rappeler de regulariser sa cotisation.</div>
+  <div style="display:flex;gap:8px">
+    <button class="bp" onclick="CS('scanRetard');OS('scanQuick')" style="margin-bottom:0">Scanner suivant</button>
+    <button class="bp bp-r" onclick="CS('scanRetard')" style="margin-bottom:0;font-size:.75rem">Envoyer rappel cotisation</button>
+  </div>
+</div></div>
+
+<!-- RESULTAT SCAN — INCONNU -->
+<div class="ov" id="ov-scanInconnu" onclick="CS('scanInconnu')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;padding:10px 0 16px">
+    <div style="width:72px;height:72px;border-radius:50%;background:var(--rb);border:3px solid var(--r);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 12px">❌</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--r)">Carte non reconnue</div>
+    <div style="font-size:.72rem;color:var(--t2);margin-top:4px">Ce QR code ne correspond a aucun militant enregistre</div>
+  </div>
+  <div style="background:var(--rb);border-radius:12px;padding:14px;margin-bottom:14px">
+    <div style="font-size:.78rem;font-weight:600;color:var(--r);margin-bottom:6px">Que faire ?</div>
+    <div style="font-size:.72rem;color:var(--t2);line-height:1.5">
+      1. Verifier si la personne est bien membre Pastef France<br>
+      2. Si oui, son inscription n'est peut-etre pas encore dans le systeme<br>
+      3. Contacter un responsable ou enregistrer la personne manuellement
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="bp" onclick="CS('scanInconnu');OS('newMil')" style="margin-bottom:0">+ Enregistrer manuellement</button>
+    <button class="bp" onclick="CS('scanInconnu');OS('scanQuick')" style="background:#555;margin-bottom:0">Scanner a nouveau</button>
+  </div>
+</div></div>
+
+<!-- SCAN MODE EVENEMENT -->
+<div class="ov" id="ov-scanEvent" onclick="CS('scanEvent')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--v),var(--r));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">📷</div>
+    <div>
+      <div style="font-size:.92rem;font-weight:700;color:var(--t)">Mode scan — Grand Meeting IDF</div>
+      <div style="font-size:.68rem;color:var(--t2);margin-top:2px">29 Mars 2025 · Salle Pleyel</div>
+    </div>
+  </div>
+
+  <!-- Stats presences en temps reel -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+    <div style="background:var(--vb);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--v)" id="scanCount">247</div>
+      <div style="font-size:.6rem;color:var(--t2);text-transform:uppercase;letter-spacing:.06em">Presences</div>
+    </div>
+    <div style="background:var(--ob);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--or)">18</div>
+      <div style="font-size:.6rem;color:var(--t2);text-transform:uppercase;letter-spacing:.06em">Retard cot.</div>
+    </div>
+    <div style="background:var(--rb);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--r)">3</div>
+      <div style="font-size:.6rem;color:var(--t2);text-transform:uppercase;letter-spacing:.06em">Inconnus</div>
+    </div>
+  </div>
+
+  <!-- Viewfinder -->
+  <div style="background:#111;border-radius:14px;padding:20px;text-align:center;margin-bottom:14px">
+    <div style="width:180px;height:180px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center">
+      <div style="width:140px;height:140px;position:relative">
+        <div style="position:absolute;top:0;left:0;width:28px;height:28px;border-top:3px solid #fff;border-left:3px solid #fff;border-radius:3px 0 0 0"></div>
+        <div style="position:absolute;top:0;right:0;width:28px;height:28px;border-top:3px solid #fff;border-right:3px solid #fff;border-radius:0 3px 0 0"></div>
+        <div style="position:absolute;bottom:0;left:0;width:28px;height:28px;border-bottom:3px solid #fff;border-left:3px solid #fff;border-radius:0 0 0 3px"></div>
+        <div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-bottom:3px solid #fff;border-right:3px solid #fff;border-radius:0 0 3px 0"></div>
+        <div style="position:absolute;top:50%;left:0;right:0;height:2px;background:rgba(200,149,10,.9);animation:scanLine 2s ease-in-out infinite"></div>
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.6);margin-top:8px">Scanner la carte membre</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+    <button class="bp" onclick="simulateScanEvent('ok')" style="margin:0;font-size:.7rem;padding:9px">✅ A jour</button>
+    <button class="bp bp-r" onclick="simulateScanEvent('retard')" style="margin:0;font-size:.7rem;padding:9px;background:var(--or)">⚠️ Retard</button>
+    <button class="bp bp-r" onclick="simulateScanEvent('inconnu')" style="margin:0;font-size:.7rem;padding:9px">❌ Inconnu</button>
+  </div>
+
+  <!-- Derniers scans -->
+  <div style="font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Derniers scans</div>
+  <div id="lastScans">
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)"><div style="width:28px;height:28px;border-radius:8px;background:var(--vb);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--v)">MN</div><div style="flex:1"><div style="font-size:.78rem;font-weight:600">Moussa Ndiaye</div><div style="font-size:.62rem;color:var(--t2)">SS-93 · 18h42</div></div><span class="badge bg">OK</span></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)"><div style="width:28px;height:28px;border-radius:8px;background:var(--ob);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--or)">AF</div><div style="flex:1"><div style="font-size:.78rem;font-weight:600">Aminata Fall</div><div style="font-size:.62rem;color:var(--t2)">SS-75 · 18h41</div></div><span class="badge bo">Retard</span></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0"><div style="width:28px;height:28px;border-radius:8px;background:var(--vb);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--v)">ID</div><div style="flex:1"><div style="font-size:.78rem;font-weight:600">Ibou Diallo</div><div style="font-size:.62rem;color:var(--t2)">SS-92 · 18h40</div></div><span class="badge bg">OK</span></div>
+  </div>
+
+  <div style="margin-top:12px;display:flex;gap:8px">
+    <button class="bp" onclick="CS('scanEvent');OS('rptEvt')" style="margin-bottom:0;font-size:.75rem">📊 Rapport presences</button>
+    <button class="bp" style="background:#555;margin-bottom:0;font-size:.75rem" onclick="CS('scanEvent')">Fermer</button>
+  </div>
+</div></div>
+
+<style>
+@keyframes scanLine{0%{top:10%}50%{top:90%}100%{top:10%}}
+</style>
+
+<style>@keyframes prog{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+@keyframes rptProg{0%{width:0%}100%{width:100%}}</style>
+
+<script>
+const BUREAUX={
+  be:{title:'Bureau Executif',postes:'16 postes',sections:[
+    {label:'Direction',items:[['Coordinateur/trice','Ousmane Sonko'],['Coordinateur/trice Adjoint/e','Binta Diallo']]},
+    {label:'Poles',items:[['Resp. Finances','Cheikh Tall'],['Vice-Resp. Finances','Amina Sow'],['Resp. Massification','Babacar Ndiaye'],['Vice-Resp. Massification','Khadija Sy'],['Resp. IT','Ibrahima Sall'],['Vice-Resp. IT','Fatou Ndiaye'],['Resp. Communication','Marieme Faye'],['Vice-Resp. Communication','Daouda Ba'],['Resp. Veille Electorale','Lamine Diallo'],['Vice-Resp. Veille Electorale','Awa Mbaye'],['Resp. Formation','Pr. Aissatou Fall'],['Vice-Resp. Formation','Moussa Deme']]}]},
+  ss:{title:'Bureau SS-93',postes:'18 postes',sections:[
+    {label:'Direction',items:[['Coordinateur/trice','Moussa Ndiaye'],['Vice-Coordinateur/trice','Aida Sarr']]},
+    {label:'Poles',items:[['Resp. Communication','Omar Gueye'],['Vice-Resp. Communication','Bineta Ndir'],['Resp. Finances','Cheikh Lo'],['Vice-Resp. Finances','Awa Diop'],['Resp. Massification','Ibou Sarr'],['Vice-Resp. Massification','Ndaye Fall'],['Resp. Veille Electorale','Mamadou Ba'],['Vice-Resp. Veille Electorale','Seynabou Sy'],['Resp. Organisation','Lamine Ndiaye'],['Vice-Resp. Organisation','Coumba Sow'],['Resp. Formation','Dr. Fatou Mbaye'],['Vice-Resp. Formation','Modou Diallo']]},
+    {label:'Responsables locaux',items:[['Resp. local MOJIP','Ndaye Camara'],['Resp. local JPS','Ibrahima Diallo'],['Resp. local Maggi Pastef','Mariama Seck'],['Resp. local Foyer','Abdou Ndiaye']]}]},
+  mvt:{title:'Bureau JPS',postes:'18 postes',sections:[
+    {label:'Direction',items:[['Coordinateur/trice','Fatou Sow'],['Vice-Coordinateur/trice','Ibou Diallo']]},
+    {label:'Poles',items:[['Resp. Communication','Astou Ba'],['Vice-Resp. Communication','Cheikh Ndiaye'],['Resp. Finances','Lamine Sarr'],['Vice-Resp. Finances','Mariama Lo'],['Resp. Massification','Omar Seck'],['Vice-Resp. Massification','Bineta Gueye'],['Resp. Veille Electorale','Ibrahima Sy'],['Vice-Resp. Veille Electorale','Awa Fall'],['Resp. Organisation','Seydou Mbaye'],['Vice-Resp. Organisation','Ndaye Diop'],['Resp. Formation','Mamadou Ndir'],['Vice-Resp. Formation','Coumba Ba']]},
+    {label:'Responsables locaux',items:[['Resp. local MOJIP','Khadija Sow'],['Resp. local JPS','Abdou Fall'],['Resp. local Maggi Pastef','Aminata Sarr'],['Resp. local Foyer','Oumar Ndiaye']]}]},
+  cell:{title:'Bureau Cellule Lyon-Villeurbanne',postes:'18 postes',sections:[
+    {label:'Direction',items:[['Coordinatrice','Aissatou Diop'],['Vice-Coordinateur','Omar Camara']]},
+    {label:'Poles',items:[['Resp. Communication','Fatou Lo'],['Vice-Resp. Communication','Ibou Seck'],['Resp. Finances','Cheikh Gueye'],['Vice-Resp. Finances','Awa Sarr'],['Resp. Massification','Lamine Ba'],['Vice-Resp. Massification','Ndaye Mbaye'],['Resp. Veille Electorale','Mamadou Sy'],['Vice-Resp. Veille Electorale','Bineta Diallo'],['Resp. Organisation','Seydou Fall'],['Vice-Resp. Organisation','Mariama Ndiaye'],['Resp. Formation','Ibrahima Diop'],['Vice-Resp. Formation','Coumba Lo']]},
+    {label:'Responsables locaux',items:[['Resp. local MOJIP','Astou Ndir'],['Resp. local JPS','Oumar Sow'],['Resp. local Maggi Pastef','Ndaye Sarr'],['Resp. local Foyer','Cheikh Camara']]}]}
+};
+
+const PROFILES={
+  be:{nom:'Bureau Executif',role:'Coordinateur National',scope:'Vue globale France',av:'BE',kMil:'3 420',kFin:'71%',kFinT:'24 800€ entrees',finIn:'24 800€',finOut:'8 340€',finSolde:'16 460 €',finDetail:'Entrees 24 800€ · Depenses 8 340€',finCot:'18 200€',finSub:'Section France · 2025',recouv:'71%',recouvW:'71%',recouvDet:'2 432 / 3 420 militants',recouvAj:'2 432',recouvRet:'488',recouvIn:'284',obj:'34%',objW:'34%',objSub:'3 420 / 10 000',milObj:'34%',milObjW:'34%',milObjSub:'3 420 / 10 000',milTotal:'3 420',milSub:'3 420 membres · 38 cellules',kCel:'38',bureauKey:'be',canAddMil:true,canCot:true,canTrans:true,evtOrg:'Bureau Executif'},
+  coord:{nom:'Binta Diallo',role:'Coordinatrice Adjointe',scope:'Vue globale France',av:'BD',kMil:'3 420',kFin:'71%',kFinT:'24 800€ entrees',finIn:'24 800€',finOut:'8 340€',finSolde:'16 460 €',finDetail:'Entrees 24 800€ · Depenses 8 340€',finCot:'18 200€',finSub:'Section France · 2025',recouv:'71%',recouvW:'71%',recouvDet:'2 432 / 3 420 militants',recouvAj:'2 432',recouvRet:'488',recouvIn:'284',obj:'34%',objW:'34%',objSub:'3 420 / 10 000',milObj:'34%',milObjW:'34%',milObjSub:'3 420 / 10 000',milTotal:'3 420',milSub:'3 420 membres · 38 cellules',kCel:'38',bureauKey:'be',canAddMil:true,canCot:true,canTrans:true,evtOrg:'Bureau Executif'},
+  ss93:{nom:'Moussa Ndiaye',role:'Resp. Sous-section 93',scope:'Seine-Saint-Denis (93)',av:'MN',kMil:'820',kFin:'78%',kFinT:'3 280€ entrees',finIn:'3 280€',finOut:'1 240€',finSolde:'2 040 €',finDetail:'Entrees 3 280€ · Depenses 1 240€',finCot:'2 800€',finSub:'SS-93 · 2025',recouv:'78%',recouvW:'78%',recouvDet:'640 / 820 militants',recouvAj:'640',recouvRet:'120',recouvIn:'60',obj:'82%',objW:'82%',objSub:'820 / 1 000 · objectif SS-93',milObj:'82%',milObjW:'82%',milObjSub:'820 / 1 000',milTotal:'820',milSub:'820 membres · 8 cellules',kCel:'8',bureauKey:'ss',canAddMil:true,canCot:true,canTrans:true,evtOrg:'Sous-section 93'},
+  ss75:{nom:'Aminata Fall',role:'Resp. Sous-section Paris 75',scope:'Paris (75)',av:'AF',kMil:'680',kFin:'58%',kFinT:'2 720€ entrees',finIn:'2 720€',finOut:'980€',finSolde:'1 740 €',finDetail:'Entrees 2 720€ · Depenses 980€',finCot:'2 200€',finSub:'SS-75 · 2025',recouv:'58%',recouvW:'58%',recouvDet:'394 / 680 militants',recouvAj:'394',recouvRet:'180',recouvIn:'106',obj:'68%',objW:'68%',objSub:'680 / 1 000',milObj:'68%',milObjW:'68%',milObjSub:'680 / 1 000',milTotal:'680',milSub:'680 membres · 6 cellules',kCel:'6',bureauKey:'ss',canAddMil:true,canCot:true,canTrans:true,evtOrg:'Sous-section 75'},
+  ssPACA:{nom:'Omar Diene',role:'Resp. Sous-section PACA',scope:'PACA',av:'OD',kMil:'190',kFin:'82%',kFinT:'760€ entrees',finIn:'760€',finOut:'320€',finSolde:'440 €',finDetail:'Entrees 760€ · Depenses 320€',finCot:'620€',finSub:'PACA · 2025',recouv:'82%',recouvW:'82%',recouvDet:'156 / 190 militants',recouvAj:'156',recouvRet:'24',recouvIn:'10',obj:'38%',objW:'38%',objSub:'190 / 500',milObj:'38%',milObjW:'38%',milObjSub:'190 / 500',milTotal:'190',milSub:'190 membres · 3 cellules',kCel:'3',bureauKey:'ss',canAddMil:true,canCot:true,canTrans:true,evtOrg:'PACA'},
+  mvtJ:{nom:'Fatou Sow',role:'Resp. Mouvement des Jeunes',scope:'Mouvement des Jeunes (JPS)',av:'FS',kMil:'420',kFin:'74%',kFinT:'2 100€ entrees',finIn:'2 100€',finOut:'1 400€',finSolde:'700 €',finDetail:'Entrees 2 100€ · Depenses 1 400€',finCot:'1 800€',finSub:'JPS · Budget autonome · 2025',recouv:'74%',recouvW:'74%',recouvDet:'311 / 420 membres',recouvAj:'311',recouvRet:'72',recouvIn:'37',obj:'—',objW:'0%',objSub:'420 membres du mouvement',milObj:'—',milObjW:'0%',milObjSub:'420 membres JPS',milTotal:'420',milSub:'420 membres · Jeunes',kCel:'—',bureauKey:'mvt',canAddMil:true,canCot:true,canTrans:true,evtOrg:'JPS'},
+  mvtF:{nom:'Rokhaya Ba',role:'Resp. Mouvement des Femmes',scope:'MOJIP',av:'RB',kMil:'580',kFin:'69%',kFinT:'2 900€ entrees',finIn:'2 900€',finOut:'1 800€',finSolde:'1 100 €',finDetail:'Entrees 2 900€ · Depenses 1 800€',finCot:'2 400€',finSub:'MOJIP · Budget autonome · 2025',recouv:'69%',recouvW:'69%',recouvDet:'400 / 580 membres',recouvAj:'400',recouvRet:'110',recouvIn:'70',obj:'—',objW:'0%',objSub:'580 membres du mouvement',milObj:'—',milObjW:'0%',milObjSub:'580 membres MOJIP',milTotal:'580',milSub:'580 membres · Femmes',kCel:'—',bureauKey:'mvt',canAddMil:true,canCot:true,canTrans:true,evtOrg:'MOJIP'},
+  secIT:{nom:'Ibrahima Sall',role:'Resp. Secretariat IT',scope:'Secretariat IT',av:'IS',kMil:'—',kFin:'—',kFinT:'Vue IT',finIn:'—',finOut:'—',finSolde:'—',finDetail:'Pas de budget propre',finCot:'—',finSub:'IT',recouv:'—',recouvW:'0%',recouvDet:'—',recouvAj:'—',recouvRet:'—',recouvIn:'—',obj:'—',objW:'0%',objSub:'Perimetre Secretariat IT',milObj:'—',milObjW:'0%',milObjSub:'Vue secretariat',milTotal:'—',milSub:'Vue Secretariat IT',kCel:'—',bureauKey:'be',canAddMil:false,canCot:false,canTrans:false,evtOrg:'IT'},
+  secFin:{nom:'Cheikh Tall',role:'Resp. Secretariat Finance',scope:'Secretariat Finance',av:'CT',kMil:'—',kFin:'71%',kFinT:'Finances globales',finIn:'24 800€',finOut:'8 340€',finSolde:'16 460 €',finDetail:'Finances globales section',finCot:'18 200€',finSub:'Finances Section France',recouv:'71%',recouvW:'71%',recouvDet:'2 432 / 3 420',recouvAj:'2 432',recouvRet:'488',recouvIn:'284',obj:'—',objW:'0%',objSub:'Vue finances',milObj:'—',milObjW:'0%',milObjSub:'Vue finances',milTotal:'—',milSub:'Vue Secretariat Finance',kCel:'—',bureauKey:'be',canAddMil:false,canCot:true,canTrans:true,evtOrg:'Finance'},
+  cell:{nom:'Aissatou Diop',role:'Coord. Cellule Lyon-Villeurbanne',scope:'Cellule Lyon-Villeurbanne',av:'AD',kMil:'64',kFin:'74%',kFinT:'840€ collectes',finIn:'840€',finOut:'280€',finSolde:'560 €',finDetail:'Entrees 840€ · Depenses 280€',finCot:'720€',finSub:'Cellule Lyon · 2025',recouv:'74%',recouvW:'74%',recouvDet:'47 / 64 militants',recouvAj:'47',recouvRet:'11',recouvIn:'6',obj:'64%',objW:'64%',objSub:'64 / 100 · objectif cellule',milObj:'64%',milObjW:'64%',milObjSub:'64 / 100',milTotal:'64',milSub:'64 membres · Cellule ARA',kCel:'1',bureauKey:'cell',canAddMil:true,canCot:true,canTrans:true,evtOrg:'Cellule Lyon'},
+};
+
+let curP=null,prevPg='p-dash',curPg='p-dash';
+const NAVIDS=['p-dash','p-militants','p-finances','p-prospects','p-plus'];
+let charts={};
+
+function selP(btn,id){document.querySelectorAll('.pb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');curP=id;document.getElementById('btnGo').disabled=false}
+
+function set(id,val){const el=document.getElementById(id);if(el)el.textContent=val}
+function setstyle(id,prop,val){const el=document.getElementById(id);if(el)el.style[prop]=val}
+function showif(id,show){const el=document.getElementById(id);if(el)el.style.display=show?'block':'none'}
+
+function enterApp(){
+  if(!curP)return;
+  const p=PROFILES[curP];
+  set('tbSub',p.scope);set('rbRole',p.role);set('rbScope',p.scope);set('avLbl',p.av);
+  set('wName',p.nom);set('wRole',p.role+' · '+p.scope);
+  set('kMil',p.kMil);set('kFin',p.kFin);set('kFinT',p.kFinT);set('kCel',p.kCel);
+  set('objPct',p.obj);setstyle('objBar','width',p.objW);set('objSub',p.objSub);
+  set('milObjPct',p.milObj);setstyle('milObjBar','width',p.milObjW);set('milObjSub',p.milObjSub);
+  set('milTotal',p.milTotal);set('milSub',p.milSub);
+  set('kFinIn',p.finIn);set('kFinOut',p.finOut);set('finSolde',p.finSolde);
+  set('finDetail',p.finDetail);set('finCot',p.finCot);set('finSub',p.finSub);
+  set('recouvPct',p.recouv);setstyle('recouvBar','width',p.recouvW);
+  set('recouvDetail',p.recouvDet);set('recouvAjour',p.recouvAj);
+  set('recouvRetard',p.recouvRet);set('recouvInactif',p.recouvIn);
+  set('evtOrg',p.evtOrg);
+  set('profilAv',p.av);set('profilNom',p.nom);set('profilRole',p.role);set('profilScope',p.scope);
+  set('buSub',p.scope.split('·')[0].trim());
+  showif('btnAddMil',p.canAddMil);showif('btnAddCot',p.canCot);showif('btnAddTrans',p.canTrans);
+  buildBureau(p.bureauKey);
+  const days=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const months=['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
+  const now=new Date();
+  set('wDate',days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear());
+  document.getElementById('LS').style.opacity='0';
+  setTimeout(()=>{document.getElementById('LS').style.display='none';},350);
+  document.getElementById('app').style.display='flex';
+  setTimeout(initCharts,120);
+}
+
+function buildBureau(key){
+  const b=BUREAUX[key];
+  set('bureauNom',b.title);set('bureauPostes',b.postes);
+  let html='';
+  b.sections.forEach(sec=>{
+    html+=`<div class="sec-hdr">${sec.label}</div>`;
+    sec.items.forEach(([poste,nom])=>{
+      html+=`<div class="bu-row"><span class="bu-poste">${poste}</span><span class="bu-nom">${nom}</span></div>`;
+    });
+  });
+  document.getElementById('bureauCard').innerHTML=html;
+}
+
+function goTo(id){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('act'));document.getElementById(id).classList.add('act');if(NAVIDS.includes(curPg))prevPg=curPg;curPg=id}
+function navTo(id,idx){goTo(id);const ni=document.querySelectorAll('.ni');ni.forEach(n=>n.classList.remove('act'));ni[idx].classList.add('act');prevPg=id}
+function goBack(){goTo(prevPg);const i=NAVIDS.indexOf(prevPg);if(i>-1){const ni=document.querySelectorAll('.ni');ni.forEach(n=>n.classList.remove('act'));ni[i].classList.add('act')}}
+function OS(id){document.getElementById('ov-'+id).classList.add('open')}
+function CS(id){document.getElementById('ov-'+id).classList.remove('open')}
+function setPill(el){el.parentElement.querySelectorAll('.pill').forEach(p=>p.classList.remove('act'));el.classList.add('act')}
+
+function simulateScan(type){
+  CS('scanQuick');
+  if(type==='ok') OS('scanOK');
+  else if(type==='retard') OS('scanRetard');
+  else OS('scanInconnu');
+}
+
+let scanCountVal = 247;
+const scanNames = [
+  {init:'FD',nom:'Fatou Diallo',ss:'SS-93',status:'ok'},
+  {init:'OB',nom:'Omar Ba',ss:'SS-75',status:'retard'},
+  {init:'CS',nom:'Cheikh Sarr',ss:'PACA',status:'ok'},
+  {init:'ND',nom:'Ndaye Diop',ss:'SS-92',status:'ok'},
+  {init:'BS',nom:'Bineta Seck',ss:'ARA',status:'inconnu'},
+];
+let scanIdx = 0;
+
+function simulateScanEvent(type){
+  scanIdx = (scanIdx + 1) % scanNames.length;
+  const person = scanNames[scanIdx];
+  if(type === 'ok') scanCountVal++;
+  const el = document.getElementById('scanCount');
+  if(el) el.textContent = scanCountVal;
+  const lastScans = document.getElementById('lastScans');
+  if(lastScans){
+    const badgeClass = type==='ok'?'bg':type==='retard'?'bo':'br';
+    const badgeTxt = type==='ok'?'OK':type==='retard'?'Retard':'Inconnu';
+    const bgCol = type==='ok'?'var(--vb)':type==='retard'?'var(--ob)':'var(--rb)';
+    const txCol = type==='ok'?'var(--v)':type==='retard'?'var(--or)':'var(--r)';
+    const now = new Date();
+    const time = now.getHours()+'h'+String(now.getMinutes()).padStart(2,'0');
+    const newRow = `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)"><div style="width:28px;height:28px;border-radius:8px;background:${bgCol};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:${txCol}">${person.init}</div><div style="flex:1"><div style="font-size:.78rem;font-weight:600">${person.nom}</div><div style="font-size:.62rem;color:var(--t2)">${person.ss} · ${time}</div></div><span class="badge ${badgeClass}">${badgeTxt}</span></div>`;
+    lastScans.insertAdjacentHTML('afterbegin', newRow);
+    const rows = lastScans.querySelectorAll('div[style*="border-bottom"]');
+    if(rows.length > 4) rows[rows.length-1].remove();
+  }
+}
+
+
+function selectRptMode(mode){
+  const s=document.getElementById('rptSimple');
+  const c=document.getElementById('rptConsolide');
+  if(!s||!c)return;
+  if(mode==='simple'){s.style.border='2px solid var(--v)';s.style.background='var(--vb)';s.querySelector('div:nth-child(2)').style.color='var(--v)';c.style.border='2px solid var(--bd)';c.style.background='#fff';c.querySelector('div:nth-child(2)').style.color='var(--t2)';}
+  else{c.style.border='2px solid var(--v)';c.style.background='var(--vb)';c.querySelector('div:nth-child(2)').style.color='var(--v)';s.style.border='2px solid var(--bd)';s.style.background='#fff';s.querySelector('div:nth-child(2)').style.color='var(--t2)';}
+}
+
+// Simulate PDF generation
+document.addEventListener('click',function(e){
+  if(e.target&&e.target.closest('#ov-rptGeneration')){
+    const steps=['Collecte des donnees...','Calcul des indicateurs...','Mise en page du rapport...','Ajout des graphiques...','Finalisation PDF...'];
+    let i=0;
+    const stepEl=document.getElementById('rptStep');
+    const doneEl=document.getElementById('rptDone');
+    if(stepEl)stepEl.textContent=steps[0];
+    if(doneEl)doneEl.style.display='none';
+    const iv=setInterval(()=>{
+      i++;
+      if(i<steps.length){if(stepEl)stepEl.textContent=steps[i];}
+      else{clearInterval(iv);if(doneEl)doneEl.style.display='block';if(stepEl)stepEl.textContent='';}
+    },600);
+  }
+});
+
+function resetApp(){document.getElementById('app').style.display='none';document.getElementById('LS').style.opacity='1';document.getElementById('LS').style.display='flex';curP=null;document.getElementById('btnGo').disabled=true;document.querySelectorAll('.pb').forEach(b=>b.classList.remove('sel'))}
+
+Chart.defaults.color='#9a9088';Chart.defaults.font.family='Sora';Chart.defaults.font.size=10;
+const M6=['Oct','Nov','Dec','Jan','Fev','Mar'],gc='rgba(0,0,0,0.04)';
+
+function mkLine(id,datasets){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(ctx,{type:'line',data:{labels:M6,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:datasets.length>1,position:'bottom',labels:{boxWidth:10,padding:10}},tooltip:{backgroundColor:'#1a1a1a',borderColor:'rgba(27,77,27,.3)',borderWidth:1}},scales:{x:{grid:{color:gc}},y:{grid:{color:gc}}}}});
+}
+
+function initCharts(){
+  mkLine('dashChart',[{label:'Militants',data:[2680,2840,2980,3100,3260,3420],borderColor:'#1B4D1B',backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,175);g.addColorStop(0,'rgba(27,77,27,.25)');g.addColorStop(1,'rgba(27,77,27,0)');return g},fill:true,tension:0.45,pointBackgroundColor:'#1B4D1B',pointRadius:3,borderWidth:2}]);
+  mkLine('milChart',[{label:'Militants',data:[2680,2840,2980,3100,3260,3420],borderColor:'#1B4D1B',backgroundColor:'rgba(27,77,27,.1)',fill:true,tension:0.4,pointBackgroundColor:'#1B4D1B',pointRadius:3,borderWidth:2}]);
+  mkLine('finChart',[{label:'Entrees',data:[3200,3800,4100,3950,4600,5150],borderColor:'#1B4D1B',backgroundColor:'rgba(27,77,27,.08)',fill:true,tension:0.4,pointBackgroundColor:'#1B4D1B',pointRadius:3,borderWidth:2},{label:'Depenses',data:[1100,1400,1200,1650,1380,1610],borderColor:'#8B0000',backgroundColor:'rgba(139,0,0,.05)',fill:true,tension:0.4,pointBackgroundColor:'#8B0000',pointRadius:3,borderWidth:2}]);
+  mkLine('proChart',[{label:'Nouveaux militants',data:[180,210,240,195,265,142],borderColor:'#8B0000',backgroundColor:'rgba(139,0,0,.08)',fill:true,tension:0.4,pointBackgroundColor:'#8B0000',pointRadius:3,borderWidth:2}]);
+}
+
+function printRapport(){const p=PROFILES[curP];CS('rapportPreview');const w=window.open('','_blank');w.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport Pastef</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a1a1a;padding:28px;max-width:720px;margin:0 auto}.hdr{background:linear-gradient(135deg,#1B4D1B,#8B0000);color:#fff;padding:20px;border-radius:8px;margin-bottom:20px}.h1{font-size:1.2rem;font-weight:900}.sub{font-size:.7rem;opacity:.75;margin-top:2px}.sec{margin-bottom:18px}.sec-t{font-size:.72rem;font-weight:700;text-transform:uppercase;color:#1B4D1B;border-bottom:2px solid #1B4D1B;padding-bottom:4px;margin-bottom:9px}.kg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px}.kb{background:#f4f4f4;border-radius:7px;padding:9px;text-align:center;border-left:3px solid #1B4D1B}.kv{font-size:1.2rem;font-weight:900;color:#1B4D1B}.kl{font-size:.6rem;color:#666;margin-top:2px}.row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;font-size:.78rem}.ob{height:6px;background:#eee;border-radius:3px;overflow:hidden;margin:5px 0 10px}.of{height:100%;background:linear-gradient(90deg,#1B4D1B,#8B0000);border-radius:3px}.ft{margin-top:24px;padding-top:12px;border-top:2px solid #eee;font-size:.66rem;color:#999;display:flex;justify-content:space-between}@media print{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>');w.document.write('<div class="hdr"><div class="h1">PASTEF France — Rapport d\'activite</div><div class="sub">'+p.scope+' &bull; Mars 2025</div></div>');w.document.write('<div class="sec"><div class="sec-t">Militants</div><div class="ob"><div class="of" style="width:'+p.objW+'"></div></div><div style="font-size:.72rem;color:#555;margin-bottom:9px">'+p.milTotal+' militants &bull; '+p.objSub+'</div><div class="kg"><div class="kb"><div class="kv">'+p.milTotal+'</div><div class="kl">Total</div></div><div class="kb"><div class="kv">+142</div><div class="kl">Ce mois</div></div><div class="kb"><div class="kv">'+p.obj+'</div><div class="kl">Obj. atteint</div></div></div></div>');w.document.write('<div class="sec"><div class="sec-t" style="color:#8B0000;border-bottom-color:#8B0000">Finances</div><div class="kg"><div class="kb"><div class="kv">'+p.finIn+'</div><div class="kl">Entrees</div></div><div class="kb" style="border-left-color:#8B0000"><div class="kv" style="color:#8B0000">'+p.finOut+'</div><div class="kl">Depenses</div></div><div class="kb"><div class="kv">'+p.recouv+'</div><div class="kl">Recouvrement</div></div></div><div class="row"><span>A jour</span><strong style="color:#1B4D1B">'+p.recouvAj+' militants</strong></div><div class="row"><span>En retard</span><strong style="color:#C8950A">'+p.recouvRet+'</strong></div><div class="row"><span>Inactifs</span><strong style="color:#8B0000">'+p.recouvIn+'</strong></div></div>');w.document.write('<div class="sec"><div class="sec-t" style="color:#1a4a8a;border-bottom-color:#1a4a8a">Prospects</div><div class="kg"><div class="kb" style="border-left-color:#1a4a8a"><div class="kv" style="color:#1a4a8a">1 840</div><div class="kl">Actifs</div></div><div class="kb" style="border-left-color:#1a4a8a"><div class="kv" style="color:#1a4a8a">18,6%</div><div class="kl">Conversion</div></div><div class="kb" style="border-left-color:#1a4a8a"><div class="kv" style="color:#1a4a8a">142</div><div class="kl">Via QR</div></div></div></div>');w.document.write('<div class="sec"><div class="sec-t" style="color:#C8950A;border-bottom-color:#C8950A">Evenements</div><div class="row"><span>Tenus ce mois</span><strong>3</strong></div><div class="row"><span>Participants</span><strong>1 127</strong></div><div class="row"><span>Prospects QR</span><strong>142</strong></div></div>');w.document.write('<div class="sec"><div class="sec-t" style="color:#5B2D8B;border-bottom-color:#5B2D8B">Reunions & Decisions</div><div class="row"><span>Reunions tenues</span><strong>4</strong></div><div class="row"><span>Decisions prises</span><strong>9</strong></div><div class="row"><span>CR activite recus</span><strong>31/38</strong></div></div>');w.document.write('<div class="ft"><span>PASTEF France — Confidentiel</span><span>Mars 2025</span></div>');w.document.write('<scr'+'ipt>window.onload=function(){window.print();}<\/scr'+'ipt></body></html>');w.document.close();}
+</script>
+
+<!-- RAPPORT ACTIVITE PDF -->
+<div class="ov" id="ov-genRapport" onclick="CS('genRapport')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Generer un rapport d'activite</div>
+
+  <div class="fg"><label class="fl">Perimetre du rapport</label><select class="fi fsel" id="rapportScope">
+    <option>Section France — Global</option>
+    <option>Sous-section 93 — Seine-Saint-Denis</option>
+    <option>Sous-section 75 — Paris</option>
+    <option>PACA</option>
+    <option>Mouvement des Jeunes (JPS)</option>
+    <option>Mouvement des Femmes (MOJIP)</option>
+    <option>Cellule Lyon-Villeurbanne</option>
+  </select></div>
+
+  <div class="fg"><label class="fl">Periode</label><select class="fi fsel" id="rapportPeriode">
+    <option>Mars 2025</option>
+    <option>Fevrier 2025</option>
+    <option>Janvier 2025</option>
+    <option>T1 2025 (Jan-Mar)</option>
+    <option>Annee 2024</option>
+  </select></div>
+
+  <div class="fg"><label class="fl">Sections a inclure</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+      <label style="display:flex;align-items:center;gap:7px;font-size:.78rem;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--v)"> Militants</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:.78rem;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--v)"> Finances</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:.78rem;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--v)"> Prospects</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:.78rem;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--v)"> Evenements</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:.78rem;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--v)"> Reunions</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:.78rem;cursor:pointer"><input type="checkbox" style="accent-color:var(--v)"> Bureau</label>
+    </div>
+  </div>
+
+  <div class="fg"><label class="fl">Format</label><select class="fi fsel">
+    <option>PDF standard</option>
+    <option>PDF detaille (avec graphiques)</option>
+    <option>PDF resume (1 page)</option>
+  </select></div>
+
+  <button class="bp" onclick="CS('genRapport');OS('rapportPreview')">Generer le rapport</button>
+</div></div>
+
+<!-- RAPPORT PREVIEW -->
+<div class="ov" id="ov-rapportPreview" onclick="CS('rapportPreview')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Rapport d'activite — Mars 2025</div>
+
+  <!-- En-tete du rapport -->
+  <div style="background:linear-gradient(135deg,#1B4D1B,#8B0000);border-radius:12px;padding:16px;color:#fff;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="display:flex;gap:3px"><div style="width:10px;height:20px;border-radius:2px;background:#1B4D1B;border:1px solid rgba(255,255,255,.3)"></div><div style="width:10px;height:20px;border-radius:2px;background:#FFD700;border:1px solid rgba(255,255,255,.3)"></div><div style="width:10px;height:20px;border-radius:2px;background:#8B0000;border:1px solid rgba(255,255,255,.3)"></div></div>
+      <div><div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;letter-spacing:.05em">PASTEF France</div><div style="font-size:.6rem;opacity:.7;text-transform:uppercase;letter-spacing:.1em">Rapport d'activite mensuel</div></div>
+    </div>
+    <div style="font-size:.72rem;opacity:.85">Section France · Mars 2025 · Genere le 22 Mar. 2025</div>
+  </div>
+
+  <!-- Section Militants -->
+  <div style="margin-bottom:12px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span>🫂</span> Militants</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div style="background:var(--vb);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--v)">3 420</div><div style="font-size:.6rem;color:var(--t2)">Total</div></div>
+      <div style="background:var(--vb);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--v)">+142</div><div style="font-size:.6rem;color:var(--t2)">Ce mois</div></div>
+      <div style="background:var(--vb);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--v)">34%</div><div style="font-size:.6rem;color:var(--t2)">Obj. France</div></div>
+    </div>
+  </div>
+
+  <!-- Section Finances -->
+  <div style="margin-bottom:12px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--r);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span>💰</span> Finances</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div style="background:var(--vb);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:var(--v)">5 150€</div><div style="font-size:.6rem;color:var(--t2)">Entrees</div></div>
+      <div style="background:var(--rb);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:var(--r)">1 610€</div><div style="font-size:.6rem;color:var(--t2)">Depenses</div></div>
+      <div style="background:var(--ob);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:var(--or)">71%</div><div style="font-size:.6rem;color:var(--t2)">Recouvrement</div></div>
+    </div>
+  </div>
+
+  <!-- Section Prospects -->
+  <div style="margin-bottom:12px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--b);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span>📋</span> Prospects & Conversion</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:var(--bb);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--b)">142</div><div style="font-size:.6rem;color:var(--t2)">Via QR Code</div></div>
+      <div style="background:var(--bb);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--b)">18,6%</div><div style="font-size:.6rem;color:var(--t2)">Taux conversion</div></div>
+    </div>
+  </div>
+
+  <!-- Section Evenements -->
+  <div style="margin-bottom:12px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span>📅</span> Evenements</div>
+    <div class="sr"><span class="sl">Evenements tenus ce mois</span><span class="sv">3</span></div>
+    <div class="sr"><span class="sl">Participants total</span><span class="sv">1 127</span></div>
+    <div class="sr"><span class="sl">Prospects generes via QR</span><span class="sv">142</span></div>
+  </div>
+
+  <!-- Section Reunions -->
+  <div style="margin-bottom:16px">
+    <div style="font-size:.72rem;font-weight:700;color:var(--vi);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span>🏛️</span> Reunions & Decisions</div>
+    <div class="sr"><span class="sl">Reunions tenues</span><span class="sv">4</span></div>
+    <div class="sr"><span class="sl">Decisions prises</span><span class="sv">9</span></div>
+    <div class="sr"><span class="sl">Decisions executees</span><span class="sv">6 / 9</span></div>
+    <div class="sr"><span class="sl">CR d'activite recus</span><span class="sv">31 / 38</span></div>
+  </div>
+
+  <div style="display:flex;gap:8px">
+    <button class="bp" onclick="printRapport()" style="margin-bottom:0">📥 Telecharger PDF</button>
+    <button class="bp bp-r" onclick="CS('rapportPreview')" style="margin-bottom:0">📤 Partager</button>
+  </div>
+</div></div>
+
+</body>
+</html>

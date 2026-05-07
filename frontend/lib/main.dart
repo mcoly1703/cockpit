@@ -8,6 +8,7 @@ import 'core/constants/app_colors.dart';
 import 'core/constants/app_routes.dart';
 import 'core/constants/app_strings.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'features/dashboard/presentation/pages/dashboard_page.dart';
 
 
 /// Point d'entrée de l'application.
@@ -92,10 +93,7 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.dashboard,
-      // TODO : remplacer par DashboardPage (module dashboard)
-      builder: (context, state) => const Scaffold(
-        body: Center(child: Text('Tableau de bord — à venir')),
-      ),
+      builder: (context, state) => const DashboardPage(),
     ),
   ],
 );
