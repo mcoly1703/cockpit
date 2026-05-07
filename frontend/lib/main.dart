@@ -7,6 +7,7 @@ import 'core/config/app_config.dart';
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_routes.dart';
 import 'core/constants/app_strings.dart';
+import 'core/widgets/app_shell.dart';
 import 'features/auth/presentation/pages/landing_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
@@ -93,15 +94,51 @@ final _router = GoRouter(
   routes: [
     GoRoute(
       path: AppRoutes.landing,
-      builder: (context, state) => const LandingPage(),
+      builder: (_, __) => const LandingPage(),
     ),
     GoRoute(
       path: AppRoutes.login,
-      builder: (context, state) => const LoginPage(),
+      builder: (_, __) => const LoginPage(),
     ),
-    GoRoute(
-      path: AppRoutes.dashboard,
-      builder: (context, state) => const DashboardPage(),
+    ShellRoute(
+      builder: (context, state, child) => AppShell(child: child),
+      routes: [
+        GoRoute(
+          path: AppRoutes.dashboard,
+          builder: (_, __) => const DashboardPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.militants,
+          builder: (_, __) => const _PlaceholderPage(titre: 'Militants'),
+        ),
+        GoRoute(
+          path: AppRoutes.finances,
+          builder: (_, __) => const _PlaceholderPage(titre: 'Finances'),
+        ),
+        GoRoute(
+          path: AppRoutes.prospects,
+          builder: (_, __) => const _PlaceholderPage(titre: 'Prospects'),
+        ),
+        GoRoute(
+          path: AppRoutes.modules,
+          builder: (_, __) => const _PlaceholderPage(titre: 'Modules'),
+        ),
+      ],
     ),
   ],
 );
+
+class _PlaceholderPage extends StatelessWidget {
+  const _PlaceholderPage({required this.titre});
+  final String titre;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        titre,
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}

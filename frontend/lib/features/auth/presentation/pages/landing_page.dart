@@ -70,7 +70,7 @@ class _LandingPageState extends ConsumerState<LandingPage> {
                   ),
                 ),
                 const Text(
-                  'Plateforme Militante',
+                  'Cockpit · Gestion & Pilotage',
                   style: TextStyle(
                     color: Colors.white60,
                     fontSize: 13,
