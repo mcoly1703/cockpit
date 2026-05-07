@@ -18,6 +18,16 @@ class AppColors {
     end: Alignment.centerRight,
   );
 
+  // MonCap Diaspora
+  static const Color moncapPrimary   = Color(0xFF1A4A8A); // Bleu marine
+  static const Color moncapSecondary = Color(0xFF5B2D8B); // Violet
+
+  static const LinearGradient moncapGradient = LinearGradient(
+    colors: [Color(0xFF0A1F4A), Color(0xFF1A4A8A), Color(0xFF5B2D8B)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   // Gradients KPI
   static const LinearGradient kpiVertGradient = LinearGradient(
     colors: [Color(0xFF1B4D1B), Color(0xFF2E7D32)],

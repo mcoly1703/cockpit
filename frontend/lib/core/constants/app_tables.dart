@@ -21,6 +21,7 @@ class AppTables {
 
   // Colonnes profiles
   static const String colUniteOrganisationnelleId = 'unite_organisationnelle_id';
+  static const String colEntite                   = 'entite';
 
   // Colonnes militants
   static const String colSexe         = 'sexe';
@@ -47,6 +48,12 @@ class AppRoles {
   static const String responsableSecretariat = 'responsable_secretariat';
   static const String coordinateurCellule    = 'coordinateur_cellule';
   static const String adminTechnique         = 'admin_technique';
+}
+
+/// Identifiants des deux entités de la plateforme.
+class AppEntites {
+  static const String pastef  = 'pastef_france';
+  static const String moncap  = 'moncap_diaspora';
 }
 
 /// Valeurs des enums Supabase.

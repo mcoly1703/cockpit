@@ -8,6 +8,7 @@ class UtilisateurModel {
   final String prenom;
   final String role;
   final String? uniteOrganisationnelleId;
+  final String? entite;
 
   const UtilisateurModel({
     required this.id,
@@ -16,6 +17,7 @@ class UtilisateurModel {
     required this.prenom,
     required this.role,
     this.uniteOrganisationnelleId,
+    this.entite,
   });
 
   factory UtilisateurModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class UtilisateurModel {
       prenom:                   json[AppTables.colPrenom]                   as String,
       role:                     json[AppTables.colRole]                     as String,
       uniteOrganisationnelleId: json[AppTables.colUniteOrganisationnelleId] as String?,
+      entite:                   json[AppTables.colEntite]                   as String?,
     );
   }
 
@@ -38,6 +41,7 @@ class UtilisateurModel {
       prenom:                   prenom,
       role:                     role,
       uniteOrganisationnelleId: uniteOrganisationnelleId,
+      entite:                   entite,
     );
   }
 }

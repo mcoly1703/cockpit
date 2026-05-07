@@ -2,6 +2,13 @@ class AppStrings {
   static const String appName     = 'PASTEF France';
   static const String appSubtitle = 'Cockpit';
 
+  // Landing — sélection d'entité
+  static const String choisirEntite      = 'Choisir votre organisation';
+  static const String continuer          = 'Continuer →';
+  static const String pastefsub          = 'Section France · Plateforme Militante';
+  static const String moncapNom          = 'MonCap Diaspora';
+  static const String moncapSub          = 'Communauté Diaspora Sénégalaise';
+
   // Auth
   static const String connexion   = 'Connexion';
   static const String email       = 'Email';

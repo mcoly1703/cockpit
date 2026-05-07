@@ -23,6 +23,7 @@ mixin _$Utilisateur {
   String get prenom => throw _privateConstructorUsedError;
   String get role => throw _privateConstructorUsedError;
   String? get uniteOrganisationnelleId => throw _privateConstructorUsedError;
+  String? get entite => throw _privateConstructorUsedError;
 
   /// Create a copy of Utilisateur
   /// with the given fields replaced by the non-null parameter values.
@@ -45,6 +46,7 @@ abstract class $UtilisateurCopyWith<$Res> {
     String prenom,
     String role,
     String? uniteOrganisationnelleId,
+    String? entite,
   });
 }
 
@@ -69,6 +71,7 @@ class _$UtilisateurCopyWithImpl<$Res, $Val extends Utilisateur>
     Object? prenom = null,
     Object? role = null,
     Object? uniteOrganisationnelleId = freezed,
+    Object? entite = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -96,6 +99,10 @@ class _$UtilisateurCopyWithImpl<$Res, $Val extends Utilisateur>
                 ? _value.uniteOrganisationnelleId
                 : uniteOrganisationnelleId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            entite: freezed == entite
+                ? _value.entite
+                : entite // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -118,6 +125,7 @@ abstract class _$$UtilisateurImplCopyWith<$Res>
     String prenom,
     String role,
     String? uniteOrganisationnelleId,
+    String? entite,
   });
 }
 
@@ -141,6 +149,7 @@ class __$$UtilisateurImplCopyWithImpl<$Res>
     Object? prenom = null,
     Object? role = null,
     Object? uniteOrganisationnelleId = freezed,
+    Object? entite = freezed,
   }) {
     return _then(
       _$UtilisateurImpl(
@@ -168,6 +177,10 @@ class __$$UtilisateurImplCopyWithImpl<$Res>
             ? _value.uniteOrganisationnelleId
             : uniteOrganisationnelleId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        entite: freezed == entite
+            ? _value.entite
+            : entite // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -183,6 +196,7 @@ class _$UtilisateurImpl implements _Utilisateur {
     required this.prenom,
     required this.role,
     this.uniteOrganisationnelleId,
+    this.entite,
   });
 
   @override
@@ -197,10 +211,12 @@ class _$UtilisateurImpl implements _Utilisateur {
   final String role;
   @override
   final String? uniteOrganisationnelleId;
+  @override
+  final String? entite;
 
   @override
   String toString() {
-    return 'Utilisateur(id: $id, email: $email, nom: $nom, prenom: $prenom, role: $role, uniteOrganisationnelleId: $uniteOrganisationnelleId)';
+    return 'Utilisateur(id: $id, email: $email, nom: $nom, prenom: $prenom, role: $role, uniteOrganisationnelleId: $uniteOrganisationnelleId, entite: $entite)';
   }
 
   @override
@@ -217,7 +233,8 @@ class _$UtilisateurImpl implements _Utilisateur {
                   other.uniteOrganisationnelleId,
                   uniteOrganisationnelleId,
                 ) ||
-                other.uniteOrganisationnelleId == uniteOrganisationnelleId));
+                other.uniteOrganisationnelleId == uniteOrganisationnelleId) &&
+            (identical(other.entite, entite) || other.entite == entite));
   }
 
   @override
@@ -229,6 +246,7 @@ class _$UtilisateurImpl implements _Utilisateur {
     prenom,
     role,
     uniteOrganisationnelleId,
+    entite,
   );
 
   /// Create a copy of Utilisateur
@@ -248,6 +266,7 @@ abstract class _Utilisateur implements Utilisateur {
     required final String prenom,
     required final String role,
     final String? uniteOrganisationnelleId,
+    final String? entite,
   }) = _$UtilisateurImpl;
 
   @override
@@ -262,6 +281,8 @@ abstract class _Utilisateur implements Utilisateur {
   String get role;
   @override
   String? get uniteOrganisationnelleId;
+  @override
+  String? get entite;
 
   /// Create a copy of Utilisateur
   /// with the given fields replaced by the non-null parameter values.

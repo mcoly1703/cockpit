@@ -7,6 +7,7 @@ import 'core/config/app_config.dart';
 import 'core/constants/app_colors.dart';
 import 'core/constants/app_routes.dart';
 import 'core/constants/app_strings.dart';
+import 'features/auth/presentation/pages/landing_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 
@@ -76,17 +77,24 @@ class CockpitApp extends StatelessWidget {
 /// Au fil du développement des modules, remplacer les placeholders
 /// par les vraies pages (LoginPage, DashboardPage, etc.)
 final _router = GoRouter(
-  initialLocation: AppRoutes.login,
+  initialLocation: AppRoutes.landing,
   redirect: (context, state) {
-    final session = Supabase.instance.client.auth.currentSession;
+    final session     = Supabase.instance.client.auth.currentSession;
     final estConnecte = session != null;
-    final versLogin = state.matchedLocation == AppRoutes.login;
+    final location    = state.matchedLocation;
 
-    if (!estConnecte && !versLogin) return AppRoutes.login;
-    if (estConnecte && versLogin) return AppRoutes.dashboard;
+    final versLanding = location == AppRoutes.landing;
+    final versLogin   = location == AppRoutes.login;
+
+    if (!estConnecte && !versLanding && !versLogin) return AppRoutes.landing;
+    if (estConnecte && (versLanding || versLogin))  return AppRoutes.dashboard;
     return null;
   },
   routes: [
+    GoRoute(
+      path: AppRoutes.landing,
+      builder: (context, state) => const LandingPage(),
+    ),
     GoRoute(
       path: AppRoutes.login,
       builder: (context, state) => const LoginPage(),

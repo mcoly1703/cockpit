@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_tables.dart';
 import '../../../../core/widgets/cockpit_button.dart';
 import '../providers/auth_provider.dart';
 
@@ -38,6 +39,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final entite    = ref.watch(selectedEntiteProvider);
+    final estMoncap = entite == AppEntites.moncap;
+
+    final gradient = estMoncap ? AppColors.moncapGradient : AppColors.topbarGradient;
+    final nom      = estMoncap ? AppStrings.moncapNom  : AppStrings.appName;
+    final sousTitre = estMoncap ? AppStrings.moncapSub  : AppStrings.pastefsub;
 
     // Navigation automatique après connexion réussie
     ref.listen(authProvider, (_, next) {
@@ -48,22 +55,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.topbarGradient),
+        decoration: BoxDecoration(gradient: gradient),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                // Logo / titre
-                const Text(
-                  AppStrings.appName,
-                  style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                // Bouton retour vers landing
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.go(AppRoutes.landing),
+                    icon: const Icon(Icons.arrow_back, color: Colors.white70, size: 18),
+                    label: const Text('Retour', style: TextStyle(color: Colors.white70)),
+                  ),
                 ),
-                const Text(
-                  AppStrings.appSubtitle,
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                const SizedBox(height: 8),
+
+                // Logo / titre selon entité
+                Text(
+                  nom,
+                  style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
+                Text(
+                  sousTitre,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 36),
 
                 // Formulaire
                 Card(
