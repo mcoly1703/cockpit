@@ -1,3 +1,4 @@
+import '../../../../core/constants/app_tables.dart';
 import '../../domain/entities/utilisateur.dart';
 
 class UtilisateurModel {
@@ -19,12 +20,12 @@ class UtilisateurModel {
 
   factory UtilisateurModel.fromJson(Map<String, dynamic> json) {
     return UtilisateurModel(
-      id:                       json['id'] as String,
-      email:                    json['email'] as String,
-      nom:                      json['nom'] as String,
-      prenom:                   json['prenom'] as String,
-      role:                     json['role'] as String,
-      uniteOrganisationnelleId: json['unite_organisationnelle_id'] as String?,
+      id:                       json[AppTables.colId]                       as String,
+      email:                    json[AppTables.colEmail]                    as String,
+      nom:                      json[AppTables.colNom]                      as String,
+      prenom:                   json[AppTables.colPrenom]                   as String,
+      role:                     json[AppTables.colRole]                     as String,
+      uniteOrganisationnelleId: json[AppTables.colUniteOrganisationnelleId] as String?,
     );
   }
 

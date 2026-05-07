@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/constants/app_tables.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/utilisateur_model.dart';
 import 'auth_remote_datasource.dart';
@@ -66,27 +67,27 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     required String email,
   }) async {
     final profil = await supabase
-        .from('profiles')
+        .from(AppTables.profiles)
         .select()
-        .eq('id', userId)
+        .eq(AppTables.colId, userId)
         .maybeSingle();
 
     if (profil != null) {
-      return UtilisateurModel.fromJson({...profil, 'email': email});
+      return UtilisateurModel.fromJson({...profil, AppTables.colEmail: email});
     }
 
     final admin = await supabase
-        .from('admins_techniques')
+        .from(AppTables.adminsTechniques)
         .select()
-        .eq('id', userId)
+        .eq(AppTables.colId, userId)
         .maybeSingle();
 
     if (admin != null) {
       return UtilisateurModel.fromJson({
         ...admin,
-        'email': email,
-        'role': 'admin_technique',
-        'unite_organisationnelle_id': null,
+        AppTables.colEmail:                    email,
+        AppTables.colRole:                     AppRoles.adminTechnique,
+        AppTables.colUniteOrganisationnelleId: null,
       });
     }
 

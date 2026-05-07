@@ -1,6 +1,6 @@
 class AppStrings {
   static const String appName     = 'PASTEF France';
-  static const String appSubtitle = 'Plateforme Militante';
+  static const String appSubtitle = 'Cockpit';
 
   // Auth
   static const String connexion   = 'Connexion';
