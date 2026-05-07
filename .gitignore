@@ -1,0 +1,14 @@
+# Notes personnelles
+docs/APPRENTISSAGE.md
+
+# IDE
+.idea/
+
+# Supabase local temp
+backend/supabase/.temp/
+
+# Flutter
+frontend/.dart_tool/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
