@@ -20,20 +20,16 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       );
       if (response.user == null) throw const UnauthorizedException();
 
-      final profil = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', response.user!.id)
-          .single();
-
-      return UtilisateurModel.fromJson({
-        ...profil,
-        'email': response.user!.email,
-      });
+      return await _chargerProfil(
+        userId: response.user!.id,
+        email: response.user!.email!,
+      );
     } on AuthException catch (e) {
       throw ServerException(message: e.message);
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
+    } on NotFoundException {
+      rethrow;
     } catch (e) {
       throw const NetworkException();
     }
@@ -54,20 +50,46 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       final user = supabase.auth.currentUser;
       if (user == null) return null;
 
-      final profil = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .single();
-
-      return UtilisateurModel.fromJson({
-        ...profil,
-        'email': user.email,
-      });
+      return await _chargerProfil(userId: user.id, email: user.email!);
+    } on NotFoundException {
+      return null;
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
     } catch (e) {
       throw const NetworkException();
     }
+  }
+
+  // Cherche d'abord dans profiles (militants), puis dans admins_techniques
+  Future<UtilisateurModel> _chargerProfil({
+    required String userId,
+    required String email,
+  }) async {
+    final profil = await supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (profil != null) {
+      return UtilisateurModel.fromJson({...profil, 'email': email});
+    }
+
+    final admin = await supabase
+        .from('admins_techniques')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (admin != null) {
+      return UtilisateurModel.fromJson({
+        ...admin,
+        'email': email,
+        'role': 'admin_technique',
+        'unite_organisationnelle_id': null,
+      });
+    }
+
+    throw const NotFoundException();
   }
 }

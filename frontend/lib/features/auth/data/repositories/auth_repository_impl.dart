@@ -16,13 +16,15 @@ class AuthRepositoryImpl implements AuthRepository {
     required String motDePasse,
   }) async {
     try {
-      final utilisateur = await datasource.seConnecter(
+      final model = await datasource.seConnecter(
         email: email,
         motDePasse: motDePasse,
       );
-      return Right(utilisateur);
+      return Right(model.toEntity());
     } on UnauthorizedException {
       return const Left(Failure.nonAutorise());
+    } on NotFoundException {
+      return const Left(Failure.nonTrouve());
     } on ServerException catch (e) {
       return Left(Failure.serveur(message: e.message));
     } on NetworkException {
@@ -43,8 +45,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, Utilisateur?>> getUtilisateurCourant() async {
     try {
-      final utilisateur = await datasource.getUtilisateurCourant();
-      return Right(utilisateur);
+      final model = await datasource.getUtilisateurCourant();
+      return Right(model?.toEntity());
     } on ServerException catch (e) {
       return Left(Failure.serveur(message: e.message));
     } on NetworkException {
