@@ -46,4 +46,32 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  static const LinearGradient kpiBleuGradient = LinearGradient(
+    colors: [Color(0xFF1A4A8A), Color(0xFF2563EB)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient kpiVioletGradient = LinearGradient(
+    colors: [Color(0xFF5B2D8B), Color(0xFF7C3AED)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient kpiDarkGradient = LinearGradient(
+    colors: [Color(0xFF2D2D2D), Color(0xFF4A4A4A)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // Fond des alertes
+  static const Color alerteRougeBg  = Color(0xFFF5E8E8);
+  static const Color alerteOrangeBg = Color(0xFFFFF8E1);
+  static const Color alerteVertBg   = Color(0xFFE8F0E8);
+
+  // Ombre standard des cards
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(color: Color(0x1A1B4D1B), blurRadius: 12, offset: Offset(0, 2)),
+  ];
 }
