@@ -100,6 +100,7 @@ class _WelcomeBanner extends StatelessWidget {
     final date   = _formaterDate(DateTime.now());
 
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.secondary],
@@ -107,18 +108,20 @@ class _WelcomeBanner extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(14),
+        boxShadow: AppColors.cardShadow,
       ),
       padding: const EdgeInsets.all(15),
       child: Stack(
         children: [
-          // Filigrane étoile
+          // Filigrane cercle décoratif
           Positioned(
-            right: -10,
-            top: -10,
-            child: Text(
-              '★',
-              style: TextStyle(
-                fontSize: 80,
+            right: -20,
+            top: -20,
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
                 color: Colors.white.withValues(alpha: 0.06),
               ),
             ),
@@ -180,7 +183,7 @@ class _ObjectifBar extends StatelessWidget {
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
         border: const Border(left: BorderSide(color: AppColors.primary, width: 4)),
-        boxShadow: const [BoxShadow(color: Color(0x1A1B4D1B), blurRadius: 12, offset: Offset(0, 2))],
+        boxShadow: AppColors.cardShadow,
       ),
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -190,7 +193,7 @@ class _ObjectifBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                '🎯 Objectif 10 000 Militants France',
+                'Objectif 10 000 Militants France',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.text2),
               ),
               Text(
@@ -285,11 +288,7 @@ class _KpiGrid extends StatelessWidget {
           icone:     Icons.person_add_rounded,
           evolution: 'Conv. ${FormatHelper.formaterPourcentage(stats.tauxConversion)}',
           emoji:     '📋',
-          gradient:  const LinearGradient(
-            colors: [Color(0xFF1A4A8A), Color(0xFF2563EB)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient:  AppColors.kpiBleuGradient,
         ),
         KpiCard(
           titre:     'Événements',
@@ -305,11 +304,7 @@ class _KpiGrid extends StatelessWidget {
           icone:     Icons.location_city_rounded,
           evolution: 'Actives',
           emoji:     '🏘️',
-          gradient:  const LinearGradient(
-            colors: [Color(0xFF5B2D8B), Color(0xFF7C3AED)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient:  AppColors.kpiVioletGradient,
         ),
         KpiCard(
           titre:     'Actions retard',
@@ -317,11 +312,7 @@ class _KpiGrid extends StatelessWidget {
           icone:     Icons.warning_rounded,
           evolution: 'À traiter',
           emoji:     '⚡',
-          gradient:  const LinearGradient(
-            colors: [Color(0xFF2D2D2D), Color(0xFF4A4A4A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient:  AppColors.kpiDarkGradient,
         ),
       ],
     );
@@ -349,7 +340,7 @@ class _GraphiqueCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: const [BoxShadow(color: Color(0x1A1B4D1B), blurRadius: 12, offset: Offset(0, 2))],
+        boxShadow: AppColors.cardShadow,
       ),
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
       child: Column(
@@ -396,8 +387,10 @@ class _GraphiqueCard extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 22,
+                      interval: 1,
                       getTitlesWidget: (value, meta) {
                         final idx = value.toInt();
+                        if (value != idx.toDouble()) return const SizedBox.shrink();
                         if (idx < 0 || idx >= points.length) return const SizedBox.shrink();
                         final mois = (points[idx].mois as DateTime).month;
                         const labels = ['', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
@@ -423,37 +416,42 @@ class _Alertes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<_AlerteData> alertes = [];
+    // Actions en retard — rouge si > 0, vert si aucune
+    final actionsOk = stats.actionsEnRetard == 0;
+    final alerteActions = _AlerteData(
+      type:    actionsOk ? 'vert' : 'rouge',
+      message: actionsOk
+          ? 'Aucune action en retard'
+          : '${stats.actionsEnRetard} action(s) en retard — à traiter',
+      detail:  actionsOk
+          ? 'Toutes les décisions sont à jour'
+          : 'Vérifiez les décisions en attente',
+    );
 
-    if (stats.actionsEnRetard > 0) {
-      alertes.add(_AlerteData(
-        type:    'rouge',
-        message: '${stats.actionsEnRetard} action(s) en retard — à traiter',
-        detail:  'Vérifiez les décisions en attente',
-      ));
-    }
+    // Taux de recouvrement — orange si sous objectif, vert si atteint
+    final tauxOk = stats.tauxRecouvrement >= stats.objectifRecouvrement;
+    final alerteRecouvrement = _AlerteData(
+      type:    tauxOk ? 'vert' : 'orange',
+      message: tauxOk
+          ? 'Recouvrement ${FormatHelper.formaterPourcentage(stats.tauxRecouvrement)} — objectif atteint'
+          : 'Recouvrement ${FormatHelper.formaterPourcentage(stats.tauxRecouvrement)} — en dessous de l\'objectif',
+      detail:  'Objectif : ${stats.objectifRecouvrement.toInt()}%',
+    );
 
-    if (stats.tauxRecouvrement < stats.objectifRecouvrement) {
-      alertes.add(_AlerteData(
-        type:    'orange',
-        message: 'Taux de recouvrement ${FormatHelper.formaterPourcentage(stats.tauxRecouvrement)} — en dessous de l\'objectif',
-        detail:  'Objectif : ${stats.objectifRecouvrement.toInt()}% · Relance à prévoir',
-      ));
-    }
-
-    if (stats.nouveauxCeMois > 0) {
-      alertes.add(_AlerteData(
-        type:    'vert',
-        message: '+${stats.nouveauxCeMois} nouveaux militants ce mois',
-        detail:  'Continuez la mobilisation',
-      ));
-    }
-
-    if (alertes.isEmpty) return const SizedBox.shrink();
+    // Nouveaux militants — toujours affiché
+    final alerteMilitants = _AlerteData(
+      type:    stats.nouveauxCeMois > 0 ? 'vert' : 'orange',
+      message: stats.nouveauxCeMois > 0
+          ? '+${stats.nouveauxCeMois} nouveaux militants ce mois'
+          : 'Aucun nouveau militant ce mois',
+      detail:  '+${stats.nouveauxCetteAnnee} cette année · Objectif ${stats.objectifMilitants}',
+    );
 
     return Column(
       children: [
-        ...alertes.map((a) => _AlerteItem(data: a)),
+        _AlerteItem(data: alerteActions),
+        _AlerteItem(data: alerteRecouvrement),
+        _AlerteItem(data: alerteMilitants),
         const SizedBox(height: 11),
       ],
     );
@@ -473,10 +471,10 @@ class _AlerteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (couleur, bg, icone) = switch (data.type) {
-      'rouge'  => (AppColors.secondary,       const Color(0xFFF5E8E8), '🔴'),
-      'orange' => (AppColors.accent,           const Color(0xFFFFF8E1), '🟡'),
-      _        => (AppColors.primary,          const Color(0xFFE8F0E8), '🟢'),
+    final (couleur, bg) = switch (data.type) {
+      'rouge'  => (AppColors.secondary, AppColors.alerteRougeBg),
+      'orange' => (AppColors.accent,    AppColors.alerteOrangeBg),
+      _        => (AppColors.primary,   AppColors.alerteVertBg),
     };
 
     return Container(
@@ -490,7 +488,12 @@ class _AlerteItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(icone, style: const TextStyle(fontSize: 15)),
+          Container(
+            width: 10,
+            height: 10,
+            margin: const EdgeInsets.only(top: 2),
+            decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
+          ),
           const SizedBox(width: 9),
           Expanded(
             child: Column(
@@ -519,7 +522,7 @@ class _ProchainEvenementsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: const [BoxShadow(color: Color(0x1A1B4D1B), blurRadius: 12, offset: Offset(0, 2))],
+        boxShadow: AppColors.cardShadow,
       ),
       padding: const EdgeInsets.all(14),
       child: Column(
