@@ -181,11 +181,19 @@ mixin _$DashboardStats {
   double get tauxRecouvrement => throw _privateConstructorUsedError;
   double get objectifRecouvrement => throw _privateConstructorUsedError;
   List<PointGraphique> get evolutionFinances =>
+      throw _privateConstructorUsedError; // --- Militants (complément) ---
+  int get nouveauxCetteAnnee =>
+      throw _privateConstructorUsedError; // --- Finances (complément) ---
+  double get totalEntrees =>
       throw _privateConstructorUsedError; // --- Activité ---
   int get prospectsActifs => throw _privateConstructorUsedError;
   double get tauxConversion => throw _privateConstructorUsedError;
   int get evenementsCeMois => throw _privateConstructorUsedError;
+  int get evenementsAVenir => throw _privateConstructorUsedError;
   int get decisionsEnAttente => throw _privateConstructorUsedError;
+  int get actionsEnRetard =>
+      throw _privateConstructorUsedError; // --- Structure ---
+  int get nombreCellules => throw _privateConstructorUsedError;
 
   /// Create a copy of DashboardStats
   /// with the given fields replaced by the non-null parameter values.
@@ -212,10 +220,15 @@ abstract class $DashboardStatsCopyWith<$Res> {
     double tauxRecouvrement,
     double objectifRecouvrement,
     List<PointGraphique> evolutionFinances,
+    int nouveauxCetteAnnee,
+    double totalEntrees,
     int prospectsActifs,
     double tauxConversion,
     int evenementsCeMois,
+    int evenementsAVenir,
     int decisionsEnAttente,
+    int actionsEnRetard,
+    int nombreCellules,
   });
 }
 
@@ -244,10 +257,15 @@ class _$DashboardStatsCopyWithImpl<$Res, $Val extends DashboardStats>
     Object? tauxRecouvrement = null,
     Object? objectifRecouvrement = null,
     Object? evolutionFinances = null,
+    Object? nouveauxCetteAnnee = null,
+    Object? totalEntrees = null,
     Object? prospectsActifs = null,
     Object? tauxConversion = null,
     Object? evenementsCeMois = null,
+    Object? evenementsAVenir = null,
     Object? decisionsEnAttente = null,
+    Object? actionsEnRetard = null,
+    Object? nombreCellules = null,
   }) {
     return _then(
       _value.copyWith(
@@ -291,6 +309,14 @@ class _$DashboardStatsCopyWithImpl<$Res, $Val extends DashboardStats>
                 ? _value.evolutionFinances
                 : evolutionFinances // ignore: cast_nullable_to_non_nullable
                       as List<PointGraphique>,
+            nouveauxCetteAnnee: null == nouveauxCetteAnnee
+                ? _value.nouveauxCetteAnnee
+                : nouveauxCetteAnnee // ignore: cast_nullable_to_non_nullable
+                      as int,
+            totalEntrees: null == totalEntrees
+                ? _value.totalEntrees
+                : totalEntrees // ignore: cast_nullable_to_non_nullable
+                      as double,
             prospectsActifs: null == prospectsActifs
                 ? _value.prospectsActifs
                 : prospectsActifs // ignore: cast_nullable_to_non_nullable
@@ -303,9 +329,21 @@ class _$DashboardStatsCopyWithImpl<$Res, $Val extends DashboardStats>
                 ? _value.evenementsCeMois
                 : evenementsCeMois // ignore: cast_nullable_to_non_nullable
                       as int,
+            evenementsAVenir: null == evenementsAVenir
+                ? _value.evenementsAVenir
+                : evenementsAVenir // ignore: cast_nullable_to_non_nullable
+                      as int,
             decisionsEnAttente: null == decisionsEnAttente
                 ? _value.decisionsEnAttente
                 : decisionsEnAttente // ignore: cast_nullable_to_non_nullable
+                      as int,
+            actionsEnRetard: null == actionsEnRetard
+                ? _value.actionsEnRetard
+                : actionsEnRetard // ignore: cast_nullable_to_non_nullable
+                      as int,
+            nombreCellules: null == nombreCellules
+                ? _value.nombreCellules
+                : nombreCellules // ignore: cast_nullable_to_non_nullable
                       as int,
           )
           as $Val,
@@ -333,10 +371,15 @@ abstract class _$$DashboardStatsImplCopyWith<$Res>
     double tauxRecouvrement,
     double objectifRecouvrement,
     List<PointGraphique> evolutionFinances,
+    int nouveauxCetteAnnee,
+    double totalEntrees,
     int prospectsActifs,
     double tauxConversion,
     int evenementsCeMois,
+    int evenementsAVenir,
     int decisionsEnAttente,
+    int actionsEnRetard,
+    int nombreCellules,
   });
 }
 
@@ -364,10 +407,15 @@ class __$$DashboardStatsImplCopyWithImpl<$Res>
     Object? tauxRecouvrement = null,
     Object? objectifRecouvrement = null,
     Object? evolutionFinances = null,
+    Object? nouveauxCetteAnnee = null,
+    Object? totalEntrees = null,
     Object? prospectsActifs = null,
     Object? tauxConversion = null,
     Object? evenementsCeMois = null,
+    Object? evenementsAVenir = null,
     Object? decisionsEnAttente = null,
+    Object? actionsEnRetard = null,
+    Object? nombreCellules = null,
   }) {
     return _then(
       _$DashboardStatsImpl(
@@ -411,6 +459,14 @@ class __$$DashboardStatsImplCopyWithImpl<$Res>
             ? _value._evolutionFinances
             : evolutionFinances // ignore: cast_nullable_to_non_nullable
                   as List<PointGraphique>,
+        nouveauxCetteAnnee: null == nouveauxCetteAnnee
+            ? _value.nouveauxCetteAnnee
+            : nouveauxCetteAnnee // ignore: cast_nullable_to_non_nullable
+                  as int,
+        totalEntrees: null == totalEntrees
+            ? _value.totalEntrees
+            : totalEntrees // ignore: cast_nullable_to_non_nullable
+                  as double,
         prospectsActifs: null == prospectsActifs
             ? _value.prospectsActifs
             : prospectsActifs // ignore: cast_nullable_to_non_nullable
@@ -423,9 +479,21 @@ class __$$DashboardStatsImplCopyWithImpl<$Res>
             ? _value.evenementsCeMois
             : evenementsCeMois // ignore: cast_nullable_to_non_nullable
                   as int,
+        evenementsAVenir: null == evenementsAVenir
+            ? _value.evenementsAVenir
+            : evenementsAVenir // ignore: cast_nullable_to_non_nullable
+                  as int,
         decisionsEnAttente: null == decisionsEnAttente
             ? _value.decisionsEnAttente
             : decisionsEnAttente // ignore: cast_nullable_to_non_nullable
+                  as int,
+        actionsEnRetard: null == actionsEnRetard
+            ? _value.actionsEnRetard
+            : actionsEnRetard // ignore: cast_nullable_to_non_nullable
+                  as int,
+        nombreCellules: null == nombreCellules
+            ? _value.nombreCellules
+            : nombreCellules // ignore: cast_nullable_to_non_nullable
                   as int,
       ),
     );
@@ -446,10 +514,15 @@ class _$DashboardStatsImpl implements _DashboardStats {
     required this.tauxRecouvrement,
     required this.objectifRecouvrement,
     required final List<PointGraphique> evolutionFinances,
+    required this.nouveauxCetteAnnee,
+    required this.totalEntrees,
     required this.prospectsActifs,
     required this.tauxConversion,
     required this.evenementsCeMois,
+    required this.evenementsAVenir,
     required this.decisionsEnAttente,
+    required this.actionsEnRetard,
+    required this.nombreCellules,
   }) : _evolutionMilitants = evolutionMilitants,
        _evolutionFinances = evolutionFinances;
 
@@ -489,6 +562,12 @@ class _$DashboardStatsImpl implements _DashboardStats {
     return EqualUnmodifiableListView(_evolutionFinances);
   }
 
+  // --- Militants (complément) ---
+  @override
+  final int nouveauxCetteAnnee;
+  // --- Finances (complément) ---
+  @override
+  final double totalEntrees;
   // --- Activité ---
   @override
   final int prospectsActifs;
@@ -497,11 +576,18 @@ class _$DashboardStatsImpl implements _DashboardStats {
   @override
   final int evenementsCeMois;
   @override
+  final int evenementsAVenir;
+  @override
   final int decisionsEnAttente;
+  @override
+  final int actionsEnRetard;
+  // --- Structure ---
+  @override
+  final int nombreCellules;
 
   @override
   String toString() {
-    return 'DashboardStats(totalMilitants: $totalMilitants, nouveauxCeMois: $nouveauxCeMois, objectifMilitants: $objectifMilitants, pourcentageHommes: $pourcentageHommes, pourcentageFemmes: $pourcentageFemmes, evolutionMilitants: $evolutionMilitants, soldeGlobal: $soldeGlobal, tauxRecouvrement: $tauxRecouvrement, objectifRecouvrement: $objectifRecouvrement, evolutionFinances: $evolutionFinances, prospectsActifs: $prospectsActifs, tauxConversion: $tauxConversion, evenementsCeMois: $evenementsCeMois, decisionsEnAttente: $decisionsEnAttente)';
+    return 'DashboardStats(totalMilitants: $totalMilitants, nouveauxCeMois: $nouveauxCeMois, objectifMilitants: $objectifMilitants, pourcentageHommes: $pourcentageHommes, pourcentageFemmes: $pourcentageFemmes, evolutionMilitants: $evolutionMilitants, soldeGlobal: $soldeGlobal, tauxRecouvrement: $tauxRecouvrement, objectifRecouvrement: $objectifRecouvrement, evolutionFinances: $evolutionFinances, nouveauxCetteAnnee: $nouveauxCetteAnnee, totalEntrees: $totalEntrees, prospectsActifs: $prospectsActifs, tauxConversion: $tauxConversion, evenementsCeMois: $evenementsCeMois, evenementsAVenir: $evenementsAVenir, decisionsEnAttente: $decisionsEnAttente, actionsEnRetard: $actionsEnRetard, nombreCellules: $nombreCellules)';
   }
 
   @override
@@ -533,18 +619,28 @@ class _$DashboardStatsImpl implements _DashboardStats {
               other._evolutionFinances,
               _evolutionFinances,
             ) &&
+            (identical(other.nouveauxCetteAnnee, nouveauxCetteAnnee) ||
+                other.nouveauxCetteAnnee == nouveauxCetteAnnee) &&
+            (identical(other.totalEntrees, totalEntrees) ||
+                other.totalEntrees == totalEntrees) &&
             (identical(other.prospectsActifs, prospectsActifs) ||
                 other.prospectsActifs == prospectsActifs) &&
             (identical(other.tauxConversion, tauxConversion) ||
                 other.tauxConversion == tauxConversion) &&
             (identical(other.evenementsCeMois, evenementsCeMois) ||
                 other.evenementsCeMois == evenementsCeMois) &&
+            (identical(other.evenementsAVenir, evenementsAVenir) ||
+                other.evenementsAVenir == evenementsAVenir) &&
             (identical(other.decisionsEnAttente, decisionsEnAttente) ||
-                other.decisionsEnAttente == decisionsEnAttente));
+                other.decisionsEnAttente == decisionsEnAttente) &&
+            (identical(other.actionsEnRetard, actionsEnRetard) ||
+                other.actionsEnRetard == actionsEnRetard) &&
+            (identical(other.nombreCellules, nombreCellules) ||
+                other.nombreCellules == nombreCellules));
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     totalMilitants,
     nouveauxCeMois,
@@ -556,11 +652,16 @@ class _$DashboardStatsImpl implements _DashboardStats {
     tauxRecouvrement,
     objectifRecouvrement,
     const DeepCollectionEquality().hash(_evolutionFinances),
+    nouveauxCetteAnnee,
+    totalEntrees,
     prospectsActifs,
     tauxConversion,
     evenementsCeMois,
+    evenementsAVenir,
     decisionsEnAttente,
-  );
+    actionsEnRetard,
+    nombreCellules,
+  ]);
 
   /// Create a copy of DashboardStats
   /// with the given fields replaced by the non-null parameter values.
@@ -586,10 +687,15 @@ abstract class _DashboardStats implements DashboardStats {
     required final double tauxRecouvrement,
     required final double objectifRecouvrement,
     required final List<PointGraphique> evolutionFinances,
+    required final int nouveauxCetteAnnee,
+    required final double totalEntrees,
     required final int prospectsActifs,
     required final double tauxConversion,
     required final int evenementsCeMois,
+    required final int evenementsAVenir,
     required final int decisionsEnAttente,
+    required final int actionsEnRetard,
+    required final int nombreCellules,
   }) = _$DashboardStatsImpl;
 
   // --- Militants ---
@@ -612,7 +718,11 @@ abstract class _DashboardStats implements DashboardStats {
   @override
   double get objectifRecouvrement;
   @override
-  List<PointGraphique> get evolutionFinances; // --- Activité ---
+  List<PointGraphique> get evolutionFinances; // --- Militants (complément) ---
+  @override
+  int get nouveauxCetteAnnee; // --- Finances (complément) ---
+  @override
+  double get totalEntrees; // --- Activité ---
   @override
   int get prospectsActifs;
   @override
@@ -620,7 +730,13 @@ abstract class _DashboardStats implements DashboardStats {
   @override
   int get evenementsCeMois;
   @override
+  int get evenementsAVenir;
+  @override
   int get decisionsEnAttente;
+  @override
+  int get actionsEnRetard; // --- Structure ---
+  @override
+  int get nombreCellules;
 
   /// Create a copy of DashboardStats
   /// with the given fields replaced by the non-null parameter values.

@@ -34,11 +34,22 @@ class DashboardStatsModel {
               ))
           .toList(),
 
+      // Militants (complément)
+      nouveauxCetteAnnee: militants['nouveaux_cette_annee'] as int? ?? 0,
+
+      // Finances (complément)
+      totalEntrees: (finances['total_entrees'] as num?)?.toDouble() ?? 0,
+
       // Activité
       prospectsActifs:    activite['prospects_actifs'] as int? ?? 0,
       tauxConversion:     (activite['taux_conversion'] as num?)?.toDouble() ?? 0,
       evenementsCeMois:   activite['evenements_ce_mois'] as int? ?? 0,
+      evenementsAVenir:   activite['evenements_a_venir'] as int? ?? 0,
       decisionsEnAttente: activite['decisions_en_attente'] as int? ?? 0,
+      actionsEnRetard:    activite['actions_en_retard'] as int? ?? 0,
+
+      // Structure
+      nombreCellules: activite['nombre_cellules'] as int? ?? 0,
     );
   }
 }

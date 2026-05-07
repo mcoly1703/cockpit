@@ -58,18 +58,24 @@ class DashboardDatasourceImpl implements DashboardDatasource {
     final data        = await query;
     final total       = data.length;
     final debutMoisDt = DateTime.parse(debutMois);
+    final debutAnnee  = DateTime(now.year, 1, 1);
     final nouveaux    = data.where((m) {
       final d = m[AppTables.colDateAdhesion] as String?;
       return d != null && !DateTime.parse(d).isBefore(debutMoisDt);
+    }).length;
+    final nouveauxAnnee = data.where((m) {
+      final d = m[AppTables.colDateAdhesion] as String?;
+      return d != null && !DateTime.parse(d).isBefore(debutAnnee);
     }).length;
     final hommes  = data.where((m) => m[AppTables.colSexe] == AppEnums.sexeHomme).length;
     final femmes  = data.where((m) => m[AppTables.colSexe] == AppEnums.sexeFemme).length;
 
     return {
-      'total':            total,
-      'nouveaux_ce_mois': nouveaux,
-      'pct_hommes':       total > 0 ? hommes / total * 100 : 0.0,
-      'pct_femmes':       total > 0 ? femmes / total * 100 : 0.0,
+      'total':                total,
+      'nouveaux_ce_mois':     nouveaux,
+      'nouveaux_cette_annee': nouveauxAnnee,
+      'pct_hommes':           total > 0 ? hommes / total * 100 : 0.0,
+      'pct_femmes':           total > 0 ? femmes / total * 100 : 0.0,
     };
   }
 
@@ -101,6 +107,7 @@ class DashboardDatasourceImpl implements DashboardDatasource {
     return {
       'solde':             entrees - depenses,
       'taux_recouvrement': tauxRecouvrement,
+      'total_entrees':     entrees,
     };
   }
 
@@ -172,6 +179,9 @@ class DashboardDatasourceImpl implements DashboardDatasource {
     'prospects_actifs':     0,
     'taux_conversion':      0.0,
     'evenements_ce_mois':   0,
+    'evenements_a_venir':   0,
     'decisions_en_attente': 0,
+    'actions_en_retard':    0,
+    'nombre_cellules':      0,
   };
 }

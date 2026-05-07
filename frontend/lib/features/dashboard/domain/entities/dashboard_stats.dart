@@ -29,10 +29,21 @@ class DashboardStats with _$DashboardStats {
     required double objectifRecouvrement,
     required List<PointGraphique> evolutionFinances,
 
+    // --- Militants (complément) ---
+    required int nouveauxCetteAnnee,
+
+    // --- Finances (complément) ---
+    required double totalEntrees,
+
     // --- Activité ---
     required int prospectsActifs,
     required double tauxConversion,
     required int evenementsCeMois,
+    required int evenementsAVenir,
     required int decisionsEnAttente,
+    required int actionsEnRetard,
+
+    // --- Structure ---
+    required int nombreCellules,
   }) = _DashboardStats;
 }

@@ -41,85 +41,93 @@ class _LandingPageState extends ConsumerState<LandingPage> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Column(
-              children: [
-                // Drapeau tricolore sénégalais
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _barreFlag(AppColors.primary),
-                    const SizedBox(width: 6),
-                    _barreFlag(const Color(0xFFFFD700)),
-                    const SizedBox(width: 6),
-                    _barreFlag(AppColors.secondary),
-                  ],
-                ),
+          child: Column(
+            children: [
+              // Zone scrollable : drapeau + titre + cartes
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+                  child: Column(
+                    children: [
+                      // Drapeau tricolore sénégalais
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _barreFlag(AppColors.primary),
+                          const SizedBox(width: 6),
+                          _barreFlag(const Color(0xFFFFD700)),
+                          const SizedBox(width: 6),
+                          _barreFlag(AppColors.secondary),
+                        ],
+                      ),
 
-                const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                // Titre principal
-                const Text(
-                  'PASTEF',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 3,
+                      // Titre principal
+                      const Text(
+                        'PASTEF',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      const Text(
+                        'Cockpit · Gestion & Pilotage',
+                        style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 13,
+                          letterSpacing: 2,
+                        ),
+                      ),
+
+                      const SizedBox(height: 36),
+
+                      // Sous-titre
+                      const Text(
+                        AppStrings.choisirEntite,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Carte Pastef France
+                      _EntiteCard(
+                        entite:       AppEntites.pastef,
+                        emoji:        '🌿',
+                        nom:          AppStrings.appName,
+                        description:  AppStrings.pastefsub,
+                        couleur:      AppColors.primary,
+                        selectionnee: _entiteSelectionnee == AppEntites.pastef,
+                        onTap:        () => _selectionner(AppEntites.pastef),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Carte MonCap Diaspora
+                      _EntiteCard(
+                        entite:       AppEntites.moncap,
+                        emoji:        '🌍',
+                        nom:          AppStrings.moncapNom,
+                        description:  AppStrings.moncapSub,
+                        couleur:      AppColors.moncapPrimary,
+                        selectionnee: _entiteSelectionnee == AppEntites.moncap,
+                        onTap:        () => _selectionner(AppEntites.moncap),
+                      ),
+                    ],
                   ),
                 ),
-                const Text(
-                  'Cockpit · Gestion & Pilotage',
-                  style: TextStyle(
-                    color: Colors.white60,
-                    fontSize: 13,
-                    letterSpacing: 2,
-                  ),
-                ),
+              ),
 
-                const SizedBox(height: 40),
-
-                // Sous-titre
-                const Text(
-                  AppStrings.choisirEntite,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Carte Pastef France
-                _EntiteCard(
-                  entite:      AppEntites.pastef,
-                  emoji:       '🌿',
-                  nom:         AppStrings.appName,
-                  description: AppStrings.pastefsub,
-                  couleur:     AppColors.primary,
-                  selectionnee: _entiteSelectionnee == AppEntites.pastef,
-                  onTap:       () => _selectionner(AppEntites.pastef),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Carte MonCap Diaspora
-                _EntiteCard(
-                  entite:      AppEntites.moncap,
-                  emoji:       '🌍',
-                  nom:         AppStrings.moncapNom,
-                  description: AppStrings.moncapSub,
-                  couleur:     AppColors.moncapPrimary,
-                  selectionnee: _entiteSelectionnee == AppEntites.moncap,
-                  onTap:       () => _selectionner(AppEntites.moncap),
-                ),
-
-                const Spacer(),
-
-                // Bouton continuer
-                SizedBox(
+              // Bouton ancré en bas, toujours visible
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _entiteSelectionnee != null ? _continuer : null,
@@ -139,8 +147,8 @@ class _LandingPageState extends ConsumerState<LandingPage> {
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

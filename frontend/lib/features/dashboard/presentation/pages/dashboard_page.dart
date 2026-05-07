@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,157 +15,566 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(dashboardProvider);
+    final state       = ref.watch(dashboardProvider);
+    final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
 
-    return Scaffold(
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.topbarGradient),
+    return state.when(
+      initial:    () => const LoadingWidget(),
+      chargement: () => const LoadingWidget(),
+      erreur: (failure) => _ErreurView(
+        message: failure.when(
+          serveur:     (msg) => msg,
+          reseau:      ()    => AppStrings.erreurReseau,
+          nonAutorise: ()    => 'Accès non autorisé',
+          nonTrouve:   ()    => 'Données introuvables',
+          validation:  (msg) => msg,
         ),
-        title: const Text('Cockpit — Tableau de bord',
-            style: TextStyle(color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () => ref.read(dashboardProvider.notifier).charger(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => ref.read(authProvider.notifier).seDeconnecter(),
-          ),
-        ],
+        onRetry: () => ref.read(dashboardProvider.notifier).charger(),
       ),
-      body: state.when(
-        initial:    () => const LoadingWidget(),
-        chargement: () => const LoadingWidget(),
-        erreur: (failure) => Center(
+      charge: (stats) => RefreshIndicator(
+        onRefresh: () => ref.read(dashboardProvider.notifier).charger(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(13, 13, 13, 80),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.error_outline, color: AppColors.secondary, size: 48),
-              const SizedBox(height: 16),
-              Text(
-                failure.when(
-                  serveur:     (msg) => msg,
-                  reseau:      ()    => AppStrings.erreurReseau,
-                  nonAutorise: ()    => 'Accès non autorisé',
-                  nonTrouve:   ()    => 'Données introuvables',
-                  validation:  (msg) => msg,
+              // Bannière de bienvenue
+              _WelcomeBanner(utilisateur: utilisateur),
+              const SizedBox(height: 11),
+
+              // Barre objectif 10 000
+              _ObjectifBar(stats: stats),
+              const SizedBox(height: 11),
+
+              // 6 KPI cards
+              _KpiGrid(stats: stats),
+              const SizedBox(height: 11),
+
+              // Graphique évolution militants
+              _GraphiqueCard(stats: stats),
+              const SizedBox(height: 11),
+
+              // Alertes dynamiques
+              _Alertes(stats: stats),
+
+              // Bouton rapport PDF
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                  label: const Text("Rapport d'activité PDF"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.read(dashboardProvider.notifier).charger(),
-                child: const Text('Réessayer'),
-              ),
+              const SizedBox(height: 11),
+
+              // Prochains événements (placeholder)
+              _ProchainEvenementsCard(),
             ],
           ),
         ),
-        charge: (stats) => RefreshIndicator(
-          onRefresh: () => ref.read(dashboardProvider.notifier).charger(),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+    );
+  }
+}
+
+// ---------- WELCOME BANNER ----------
+
+class _WelcomeBanner extends StatelessWidget {
+  const _WelcomeBanner({required this.utilisateur});
+  final utilisateur;
+
+  @override
+  Widget build(BuildContext context) {
+    final nom    = utilisateur != null
+        ? '${utilisateur.prenom} ${utilisateur.nom}'
+        : '—';
+    final role   = utilisateur?.role ?? '';
+    final date   = _formaterDate(DateTime.now());
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.secondary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.all(15),
+      child: Stack(
+        children: [
+          // Filigrane étoile
+          Positioned(
+            right: -10,
+            top: -10,
+            child: Text(
+              '★',
+              style: TextStyle(
+                fontSize: 80,
+                color: Colors.white.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'BONJOUR',
+                style: TextStyle(color: Colors.white70, fontSize: 10, letterSpacing: 1.5),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                nom,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                role,
+                style: const TextStyle(color: Colors.white70, fontSize: 11),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                date,
+                style: const TextStyle(color: Colors.white60, fontSize: 10),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formaterDate(DateTime d) {
+    const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    const mois  = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    return '${jours[d.weekday - 1]} ${d.day} ${mois[d.month - 1]} ${d.year}';
+  }
+}
+
+// ---------- BARRE OBJECTIF ----------
+
+class _ObjectifBar extends StatelessWidget {
+  const _ObjectifBar({required this.stats});
+  final stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct      = stats.objectifMilitants > 0
+        ? (stats.totalMilitants / stats.objectifMilitants).clamp(0.0, 1.0)
+        : 0.0;
+    final pctLabel = '${(pct * 100).toStringAsFixed(0)}%';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: const Border(left: BorderSide(color: AppColors.primary, width: 4)),
+        boxShadow: const [BoxShadow(color: Color(0x1A1B4D1B), blurRadius: 12, offset: Offset(0, 2))],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                '🎯 Objectif 10 000 Militants France',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.text2),
+              ),
+              Text(
+                pctLabel,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${stats.totalMilitants} / ${stats.objectifMilitants}',
+            style: const TextStyle(fontSize: 11, color: AppColors.text2),
+          ),
+          const SizedBox(height: 6),
+          // Barre de progression dégradée
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Stack(
               children: [
-                // --- Militants ---
-                const Text('Militants',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.4,
-                  children: [
-                    KpiCard(
-                      titre:     'Total militants',
-                      valeur:    '${stats.totalMilitants}',
-                      icone:     Icons.people,
-                      sousTitre: 'Objectif ${stats.objectifMilitants}',
-                      evolution: '+${stats.nouveauxCeMois} ce mois',
+                Container(height: 8, color: AppColors.border),
+                FractionallySizedBox(
+                  widthFactor: pct,
+                  child: Container(
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      gradient: AppColors.topbarGradient,
                     ),
-                    KpiCard(
-                      titre:    'Répartition',
-                      valeur:   '${FormatHelper.formaterPourcentage(stats.pourcentageHommes)} H',
-                      icone:    Icons.bar_chart,
-                      sousTitre: '${FormatHelper.formaterPourcentage(stats.pourcentageFemmes)} F',
-                      gradient: AppColors.kpiOrGradient,
-                    ),
-                  ],
+                  ),
                 ),
-
-                const SizedBox(height: 24),
-
-                // --- Finances ---
-                const Text('Finances',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.4,
-                  children: [
-                    KpiCard(
-                      titre:    'Solde global',
-                      valeur:   FormatHelper.formaterMontant(stats.soldeGlobal),
-                      icone:    Icons.account_balance_wallet,
-                      gradient: stats.soldeGlobal >= 0
-                          ? AppColors.kpiVertGradient
-                          : AppColors.kpiRougeGradient,
-                    ),
-                    KpiCard(
-                      titre:     'Recouvrement',
-                      valeur:    FormatHelper.formaterPourcentage(stats.tauxRecouvrement),
-                      icone:     Icons.payments,
-                      sousTitre: 'Objectif ${stats.objectifRecouvrement.toInt()} %',
-                      gradient:  stats.tauxRecouvrement >= stats.objectifRecouvrement
-                          ? AppColors.kpiVertGradient
-                          : AppColors.kpiRougeGradient,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // --- Activité (à compléter avec les modules suivants) ---
-                const Text('Activité',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.4,
-                  children: [
-                    KpiCard(
-                      titre:   'Prospects actifs',
-                      valeur:  '${stats.prospectsActifs}',
-                      icone:   Icons.person_add,
-                      gradient: AppColors.kpiOrGradient,
-                    ),
-                    KpiCard(
-                      titre:   'Événements ce mois',
-                      valeur:  '${stats.evenementsCeMois}',
-                      icone:   Icons.event,
-                      gradient: AppColors.kpiOrGradient,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
               ],
             ),
           ),
+          const SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '+${stats.nouveauxCeMois} ce mois',
+                style: const TextStyle(fontSize: 10, color: AppColors.text2),
+              ),
+              Text(
+                '+${stats.nouveauxCetteAnnee} cette année',
+                style: const TextStyle(fontSize: 10, color: AppColors.text2),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------- KPI GRID (2×3) ----------
+
+class _KpiGrid extends StatelessWidget {
+  const _KpiGrid({required this.stats});
+  final stats;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 9,
+      mainAxisSpacing: 9,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 1.5,
+      children: [
+        KpiCard(
+          titre:     'Militants',
+          valeur:    '${stats.totalMilitants}',
+          icone:     Icons.people_rounded,
+          evolution: '+${stats.nouveauxCeMois} ce mois',
+          emoji:     '🫂',
+          gradient:  AppColors.kpiVertGradient,
+        ),
+        KpiCard(
+          titre:     'Taux recouvrement',
+          valeur:    FormatHelper.formaterPourcentage(stats.tauxRecouvrement),
+          icone:     Icons.payments_rounded,
+          evolution: '${FormatHelper.formaterMontant(stats.totalEntrees)} entrées',
+          emoji:     '💰',
+          gradient:  AppColors.kpiRougeGradient,
+        ),
+        KpiCard(
+          titre:     'Prospects',
+          valeur:    '${stats.prospectsActifs}',
+          icone:     Icons.person_add_rounded,
+          evolution: 'Conv. ${FormatHelper.formaterPourcentage(stats.tauxConversion)}',
+          emoji:     '📋',
+          gradient:  const LinearGradient(
+            colors: [Color(0xFF1A4A8A), Color(0xFF2563EB)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        KpiCard(
+          titre:     'Événements',
+          valeur:    '${stats.evenementsCeMois}',
+          icone:     Icons.event_rounded,
+          evolution: '${stats.evenementsAVenir} à venir',
+          emoji:     '📅',
+          gradient:  AppColors.kpiOrGradient,
+        ),
+        KpiCard(
+          titre:     'Cellules',
+          valeur:    '${stats.nombreCellules}',
+          icone:     Icons.location_city_rounded,
+          evolution: 'Actives',
+          emoji:     '🏘️',
+          gradient:  const LinearGradient(
+            colors: [Color(0xFF5B2D8B), Color(0xFF7C3AED)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        KpiCard(
+          titre:     'Actions retard',
+          valeur:    '${stats.actionsEnRetard}',
+          icone:     Icons.warning_rounded,
+          evolution: 'À traiter',
+          emoji:     '⚡',
+          gradient:  const LinearGradient(
+            colors: [Color(0xFF2D2D2D), Color(0xFF4A4A4A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------- GRAPHIQUE ----------
+
+class _GraphiqueCard extends StatelessWidget {
+  const _GraphiqueCard({required this.stats});
+  final stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final points = stats.evolutionMilitants as List;
+    if (points.isEmpty) return const SizedBox.shrink();
+
+    final spots = points.asMap().entries.map((e) {
+      return FlSpot(e.key.toDouble(), e.value.valeur);
+    }).toList();
+
+    final maxY = points.fold(0.0, (m, p) => p.valeur > m ? p.valeur : m) * 1.2;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [BoxShadow(color: Color(0x1A1B4D1B), blurRadius: 12, offset: Offset(0, 2))],
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'ÉVOLUTION MILITANTS — 6 MOIS',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1, color: AppColors.text2),
+          ),
+          const SizedBox(height: 11),
+          SizedBox(
+            height: 140,
+            child: LineChart(
+              LineChartData(
+                minY: 0,
+                maxY: maxY > 0 ? maxY : 10,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    color: AppColors.primary,
+                    barWidth: 2.5,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary.withValues(alpha: 0.15),
+                          AppColors.primary.withValues(alpha: 0.0),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ],
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                titlesData: FlTitlesData(
+                  leftTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles:  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles:    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 22,
+                      getTitlesWidget: (value, meta) {
+                        final idx = value.toInt();
+                        if (idx < 0 || idx >= points.length) return const SizedBox.shrink();
+                        final mois = (points[idx].mois as DateTime).month;
+                        const labels = ['', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+                        return Text(labels[mois], style: const TextStyle(fontSize: 9, color: AppColors.text2));
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------- ALERTES DYNAMIQUES ----------
+
+class _Alertes extends StatelessWidget {
+  const _Alertes({required this.stats});
+  final stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<_AlerteData> alertes = [];
+
+    if (stats.actionsEnRetard > 0) {
+      alertes.add(_AlerteData(
+        type:    'rouge',
+        message: '${stats.actionsEnRetard} action(s) en retard — à traiter',
+        detail:  'Vérifiez les décisions en attente',
+      ));
+    }
+
+    if (stats.tauxRecouvrement < stats.objectifRecouvrement) {
+      alertes.add(_AlerteData(
+        type:    'orange',
+        message: 'Taux de recouvrement ${FormatHelper.formaterPourcentage(stats.tauxRecouvrement)} — en dessous de l\'objectif',
+        detail:  'Objectif : ${stats.objectifRecouvrement.toInt()}% · Relance à prévoir',
+      ));
+    }
+
+    if (stats.nouveauxCeMois > 0) {
+      alertes.add(_AlerteData(
+        type:    'vert',
+        message: '+${stats.nouveauxCeMois} nouveaux militants ce mois',
+        detail:  'Continuez la mobilisation',
+      ));
+    }
+
+    if (alertes.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      children: [
+        ...alertes.map((a) => _AlerteItem(data: a)),
+        const SizedBox(height: 11),
+      ],
+    );
+  }
+}
+
+class _AlerteData {
+  const _AlerteData({required this.type, required this.message, required this.detail});
+  final String type;
+  final String message;
+  final String detail;
+}
+
+class _AlerteItem extends StatelessWidget {
+  const _AlerteItem({required this.data});
+  final _AlerteData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final (couleur, bg, icone) = switch (data.type) {
+      'rouge'  => (AppColors.secondary,       const Color(0xFFF5E8E8), '🔴'),
+      'orange' => (AppColors.accent,           const Color(0xFFFFF8E1), '🟡'),
+      _        => (AppColors.primary,          const Color(0xFFE8F0E8), '🟢'),
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(11),
+        border: Border(left: BorderSide(color: couleur, width: 3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(icone, style: const TextStyle(fontSize: 15)),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(data.message, style: const TextStyle(fontSize: 12, color: AppColors.text, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 2),
+                Text(data.detail, style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------- PROCHAINS ÉVÉNEMENTS ----------
+
+class _ProchainEvenementsCard extends StatelessWidget {
+  const _ProchainEvenementsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [BoxShadow(color: Color(0x1A1B4D1B), blurRadius: 12, offset: Offset(0, 2))],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'PROCHAINS ÉVÉNEMENTS',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1, color: AppColors.text2),
+              ),
+              Text(
+                'Voir →',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 11),
+          const Center(
+            child: Text(
+              'Module événements à venir',
+              style: TextStyle(fontSize: 12, color: AppColors.text2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------- VUE ERREUR ----------
+
+class _ErreurView extends StatelessWidget {
+  const _ErreurView({required this.message, required this.onRetry});
+  final String   message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.secondary, size: 48),
+            const SizedBox(height: 16),
+            Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.text2)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Réessayer'),
+            ),
+          ],
         ),
       ),
     );
