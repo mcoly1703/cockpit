@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,6 +12,7 @@ import 'core/widgets/app_shell.dart';
 import 'features/auth/presentation/pages/landing_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
+import 'features/militants/presentation/pages/militants_page.dart';
 
 
 /// Point d'entrée de l'application.
@@ -21,6 +23,7 @@ import 'features/dashboard/presentation/pages/dashboard_page.dart';
 /// 3. ProviderScope          → active Riverpod pour toute l'arborescence
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('fr', null);
 
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
@@ -109,7 +112,7 @@ final _router = GoRouter(
         ),
         GoRoute(
           path: AppRoutes.militants,
-          builder: (_, __) => const _PlaceholderPage(titre: 'Militants'),
+          builder: (_, __) => const MilitantsPage(),
         ),
         GoRoute(
           path: AppRoutes.finances,

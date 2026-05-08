@@ -23,10 +23,22 @@ class AppTables {
   static const String colUniteOrganisationnelleId = 'unite_organisationnelle_id';
   static const String colEntite                   = 'entite';
 
+  // Table unites_organisationnelles
+  static const String unitesOrganisationnelles = 'unites_organisationnelles';
+  static const String colCode      = 'code';
+  static const String colParentId  = 'parent_id';
+
   // Colonnes militants
   static const String colSexe         = 'sexe';
   static const String colStatut       = 'statut';
   static const String colDateAdhesion = 'date_adhesion';
+  static const String colNumeroCarte  = 'numero_carte';
+  static const String colDateNaissance = 'date_naissance';
+  static const String colTelephone    = 'telephone';
+  static const String colVille        = 'ville';
+  static const String colCodePostal   = 'code_postal';
+  static const String colPhotoUrl     = 'photo_url';
+  static const String colCreatedBy    = 'created_by';
 
   // Colonnes transactions
   static const String colType             = 'type';
@@ -37,6 +49,15 @@ class AppTables {
   static const String colAnnee          = 'annee';
   static const String colStatutCotis    = 'statut';
   static const String colMilitantId     = 'militant_id';
+}
+
+/// Types d'unités organisationnelles (enum unite_type en base).
+class AppUniteTypes {
+  static const String bureauExecutif = 'bureau_executif';
+  static const String sousSection    = 'sous_section';
+  static const String mouvement      = 'mouvement';
+  static const String secretariat    = 'secretariat';
+  static const String cellule        = 'cellule';
 }
 
 /// Rôles Pastef France (enum user_role en base).
