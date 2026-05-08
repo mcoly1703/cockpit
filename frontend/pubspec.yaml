@@ -46,6 +46,15 @@ dependencies:
   # Supabase
   supabase_flutter: ^2.8.4
 
+  # Internationalisation (formatage dates)
+  intl: ^0.20.2
+
+  # Import de fichiers (CSV)
+  file_picker: ^8.1.6
+
+  # Export / partage de fichiers
+  share_plus: ^10.1.4
+
   # Graphiques KPIs
   fl_chart: ^0.70.2
 

@@ -12,6 +12,7 @@ import 'core/widgets/app_shell.dart';
 import 'features/auth/presentation/pages/landing_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
+import 'features/finances/presentation/pages/finances_page.dart';
 import 'features/militants/presentation/pages/militants_page.dart';
 
 
@@ -116,7 +117,7 @@ final _router = GoRouter(
         ),
         GoRoute(
           path: AppRoutes.finances,
-          builder: (_, __) => const _PlaceholderPage(titre: 'Finances'),
+          builder: (_, __) => const FinancesPage(),
         ),
         GoRoute(
           path: AppRoutes.prospects,

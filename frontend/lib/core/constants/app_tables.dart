@@ -41,14 +41,20 @@ class AppTables {
   static const String colCreatedBy    = 'created_by';
 
   // Colonnes transactions
-  static const String colType             = 'type';
-  static const String colMontant          = 'montant';
-  static const String colDateTransaction  = 'date_transaction';
+  static const String colType                   = 'type';
+  static const String colMontant                = 'montant';
+  static const String colDateTransaction        = 'date_transaction';
+  static const String colCategorie              = 'categorie';
+  static const String colDescription            = 'description';
+  static const String colBeneficiaire           = 'beneficiaire';
+  static const String colPieceJustificativeUrl  = 'piece_justificative_url';
 
   // Colonnes cotisations
   static const String colAnnee          = 'annee';
   static const String colStatutCotis    = 'statut';
   static const String colMilitantId     = 'militant_id';
+  static const String colDatePaiement   = 'date_paiement';
+  static const String colTransactionId  = 'transaction_id';
 }
 
 /// Types d'unités organisationnelles (enum unite_type en base).
@@ -116,10 +122,46 @@ class AppEnums {
 
   // transaction_type
   static const String transactionEntree  = 'entree';
-  static const String transactionSortie  = 'sortie';
+  static const String transactionDepense = 'depense';
 
   // statut_cotisation
-  static const String cotisationPayee      = 'payee';
-  static const String cotisationEnAttente  = 'en_attente';
-  static const String cotisationAnnulee    = 'annulee';
+  static const String cotisationPayee     = 'payee';
+  static const String cotisationEnAttente = 'en_attente';
+  static const String cotisationEnRetard  = 'en_retard';
+}
+
+/// Catégories financières (enum categorie_finance en base).
+class AppCategories {
+  // Entrées
+  static const String cotisation    = 'cotisation';
+  static const String don           = 'don';
+  static const String beneficeEvent = 'benefice_event';
+  static const String goodiesVente  = 'goodies_vente';
+
+  // Dépenses
+  static const String logistique    = 'logistique';
+  static const String communication = 'communication';
+  static const String materiel      = 'materiel';
+  static const String deplacements  = 'deplacements';
+  static const String goodiesAchat  = 'goodies_achat';
+  static const String administration = 'administration';
+  static const String formation     = 'formation';
+
+  static const List<String> entrees = [cotisation, don, beneficeEvent, goodiesVente];
+  static const List<String> depenses = [logistique, communication, materiel, deplacements, goodiesAchat, administration, formation];
+
+  static String label(String cat) => switch (cat) {
+    cotisation    => 'Cotisations',
+    don           => 'Dons',
+    beneficeEvent => 'Bénéfices événements',
+    goodiesVente  => 'Vente goodies',
+    logistique    => 'Logistique',
+    communication => 'Communication',
+    materiel      => 'Matériel',
+    deplacements  => 'Déplacements',
+    goodiesAchat  => 'Achat goodies',
+    administration => 'Administration',
+    formation     => 'Formation',
+    _             => cat,
+  };
 }
