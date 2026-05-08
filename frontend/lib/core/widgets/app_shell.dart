@@ -20,6 +20,21 @@ class AppShell extends ConsumerWidget {
     AppRoutes.modules,
   ];
 
+  void _showMenuUtilisateur(
+      BuildContext context, WidgetRef ref, Utilisateur? utilisateur) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _MenuUtilisateur(
+        utilisateur: utilisateur,
+        onDeconnexion: () async {
+          Navigator.of(context).pop();
+          await ref.read(authProvider.notifier).seDeconnecter();
+        },
+      ),
+    );
+  }
+
   int _tabIndex(String location) {
     for (int i = 0; i < _tabRoutes.length; i++) {
       if (location.startsWith(_tabRoutes[i])) return i;
@@ -38,7 +53,12 @@ class AppShell extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          _Topbar(utilisateur: utilisateur, estMoncap: estMoncap),
+          _Topbar(
+            utilisateur:  utilisateur,
+            estMoncap:    estMoncap,
+            onScanTap:    () => context.go(AppRoutes.scan),
+            onAvatarTap:  () => _showMenuUtilisateur(context, ref, utilisateur),
+          ),
           _RoleBanner(utilisateur: utilisateur, estMoncap: estMoncap),
           Expanded(child: child),
         ],
@@ -55,9 +75,16 @@ class AppShell extends ConsumerWidget {
 // ---------- TOPBAR ----------
 
 class _Topbar extends StatelessWidget {
-  const _Topbar({required this.utilisateur, required this.estMoncap});
+  const _Topbar({
+    required this.utilisateur,
+    required this.estMoncap,
+    required this.onScanTap,
+    required this.onAvatarTap,
+  });
   final Utilisateur? utilisateur;
-  final bool estMoncap;
+  final bool         estMoncap;
+  final VoidCallback onScanTap;
+  final VoidCallback onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
@@ -114,8 +141,8 @@ class _Topbar extends StatelessWidget {
 
                     // Bouton scan
                     _TopbarBtn(
-                      icon: Icons.qr_code_scanner_rounded,
-                      onTap: () {},
+                      icon:  Icons.qr_code_scanner_rounded,
+                      onTap: onScanTap,
                     ),
                     const SizedBox(width: 8),
 
@@ -139,25 +166,28 @@ class _Topbar extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
 
-                    // Avatar
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          width: 2,
+                    // Avatar (tappable → menu utilisateur)
+                    GestureDetector(
+                      onTap: onAvatarTap,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            width: 2,
+                          ),
                         ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          initiales,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
+                        child: Center(
+                          child: Text(
+                            initiales,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
@@ -374,6 +404,123 @@ class _BottomNav extends StatelessWidget {
             ),
           );
         }),
+      ),
+    );
+  }
+}
+
+// ---------- MENU UTILISATEUR ----------
+
+class _MenuUtilisateur extends StatelessWidget {
+  const _MenuUtilisateur({
+    required this.utilisateur,
+    required this.onDeconnexion,
+  });
+  final Utilisateur? utilisateur;
+  final VoidCallback onDeconnexion;
+
+  String _labelRole(String? role) {
+    if (role == null) return '—';
+    return switch (role) {
+      AppRoles.bureauExecutif         => 'Bureau Exécutif',
+      AppRoles.coordinateur           => 'Coordinateur',
+      AppRoles.responsableSousSection => 'Resp. Sous-section',
+      AppRoles.responsableMouvement   => 'Resp. Mouvement',
+      AppRoles.responsableSecretariat => 'Resp. Secrétariat',
+      AppRoles.coordinateurCellule    => 'Coord. Cellule',
+      AppRoles.adminTechnique         => 'Admin Technique',
+      _ when role.startsWith('moncap_') => 'MonCap Diaspora',
+      _ => role,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nom       = utilisateur != null
+        ? '${utilisateur!.prenom} ${utilisateur!.nom}'
+        : 'Utilisateur';
+    final initiales = utilisateur != null
+        ? '${utilisateur!.prenom[0]}${utilisateur!.nom[0]}'.toUpperCase()
+        : '?';
+    final role  = _labelRole(utilisateur?.role);
+    final email = utilisateur?.email ?? '';
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Avatar grand format
+          Container(
+            width: 64, height: 64,
+            decoration: const BoxDecoration(
+              gradient: AppColors.kpiVertGradient,
+              shape:    BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                initiales,
+                style: const TextStyle(
+                  color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Text(nom,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(role,
+                style: const TextStyle(color: AppColors.primary, fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(height: 4),
+
+          if (email.isNotEmpty)
+            Text(email,
+                style: const TextStyle(color: Colors.black45, fontSize: 12)),
+
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 8),
+
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: onDeconnexion,
+              icon:  const Icon(Icons.logout_rounded, size: 18),
+              label: const Text('Se déconnecter'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.secondary,
+                side:    const BorderSide(color: AppColors.secondary),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -22,6 +22,7 @@ import 'features/rapports/presentation/pages/rapports_page.dart';
 import 'features/scan/presentation/pages/scan_page.dart';
 import 'features/elections/presentation/pages/elections_page.dart';
 import 'features/cra/presentation/pages/cra_page.dart';
+import 'core/widgets/modules_page.dart';
 
 
 /// Point d'entrée de l'application.
@@ -161,24 +162,9 @@ final _router = GoRouter(
         ),
         GoRoute(
           path: AppRoutes.modules,
-          builder: (_, __) => const _PlaceholderPage(titre: 'Modules'),
+          builder: (_, __) => const ModulesPage(),
         ),
       ],
     ),
   ],
 );
-
-class _PlaceholderPage extends StatelessWidget {
-  const _PlaceholderPage({required this.titre});
-  final String titre;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        titre,
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-}
