@@ -92,22 +92,24 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
           final ss = getSSId(m.uniteId);
           if (ss != null) milToSS[m.id] = ss;
         }
-        // Compter cotisations payées / total par SS
-        final payees = <String, int>{};
-        final totaux = <String, int>{};
+        // Compter militants distincts ayant au moins 1 mois payé, par SS
+        final payeesSet = <String, Set<String>>{};
+        final totauxSet = <String, Set<String>>{};
         widget.state.maybeWhen(
           charge: (_, cotisations) {
             for (final c in cotisations) {
               final ss = milToSS[c.militantId];
               if (ss == null) continue;
-              totaux[ss] = (totaux[ss] ?? 0) + 1;
+              (totauxSet[ss] ??= {}).add(c.militantId);
               if (c.statut == AppEnums.cotisationPayee) {
-                payees[ss] = (payees[ss] ?? 0) + 1;
+                (payeesSet[ss] ??= {}).add(c.militantId);
               }
             }
           },
           orElse: () {},
         );
+        final payees = payeesSet.map((k, v) => MapEntry(k, v.length));
+        final totaux = totauxSet.map((k, v) => MapEntry(k, v.length));
         final sousSections =
             unites.where((u) => u.type == AppUniteTypes.sousSection).toList();
         final result = sousSections
@@ -180,9 +182,9 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
                 if (unites.any((u) => u.id == m.uniteId && u.type == AppUniteTypes.cellule))
                   m.id: m.uniteId,
             };
-            // compter militants et cotisations payées par cellule
+            // compter militants distincts et ceux ayant au moins 1 mois payé, par cellule
             final totaux = <String, int>{};
-            final payees = <String, int>{};
+            final payeesSet = <String, Set<String>>{};
             for (final m in militants) {
               if (milCel.containsKey(m.id)) totaux[m.uniteId] = (totaux[m.uniteId] ?? 0) + 1;
             }
@@ -190,9 +192,10 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
               final celId = milCel[c.militantId];
               if (celId == null) continue;
               if (c.statut == AppEnums.cotisationPayee) {
-                payees[celId] = (payees[celId] ?? 0) + 1;
+                (payeesSet[celId] ??= {}).add(c.militantId);
               }
             }
+            final payees = payeesSet.map((k, v) => MapEntry(k, v.length));
             // grouper par SS — inclure toutes les cellules même sans militants
             final groupes = <String, List<(String, String?, int, int, double)>>{
               for (final ss in unites.where((u) => u.type == AppUniteTypes.sousSection))

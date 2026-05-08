@@ -18,6 +18,9 @@ class MilitantModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  final String? mouvementId;
+  final String  statutCarte;
+
   const MilitantModel({
     required this.id,
     required this.numeroCarte,
@@ -30,7 +33,9 @@ class MilitantModel {
     this.ville,
     this.codePostal,
     required this.uniteId,
+    this.mouvementId,
     required this.statut,
+    this.statutCarte = 'en_attente',
     required this.dateAdhesion,
     this.photoUrl,
     required this.createdAt,
@@ -51,7 +56,9 @@ class MilitantModel {
         ville:         json['ville'] as String?,
         codePostal:    json['code_postal'] as String?,
         uniteId:       json['unite_id'] as String,
+        mouvementId:   json['mouvement_id'] as String?,
         statut:        json['statut'] as String,
+        statutCarte:   json['statut_carte'] as String? ?? 'en_attente',
         dateAdhesion:  DateTime.parse(json['date_adhesion'] as String),
         photoUrl:      json['photo_url'] as String?,
         createdAt:     DateTime.parse(json['created_at'] as String),
@@ -70,7 +77,9 @@ class MilitantModel {
         ville:         ville,
         codePostal:    codePostal,
         uniteId:       uniteId,
+        mouvementId:   mouvementId,
         statut:        statut,
+        statutCarte:   statutCarte,
         dateAdhesion:  dateAdhesion,
         photoUrl:      photoUrl,
         createdAt:     createdAt,

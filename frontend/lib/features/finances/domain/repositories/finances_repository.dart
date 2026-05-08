@@ -34,17 +34,25 @@ class ParamsAjouterTransaction {
 }
 
 class ParamsEnregistrerCotisation {
-  final String   militantId;
-  final int      annee;
-  final double   montant;
-  final String   statut;
+  final String    militantId;
+  final int       annee;
+  final int?      mois;
+  final double    montantPaye;
+  final double?   montantDu;
+  final String    statut;
+  final String?   uniteId;
+  final String?   modePaiement;
   final DateTime? datePaiement;
 
   const ParamsEnregistrerCotisation({
     required this.militantId,
     required this.annee,
-    required this.montant,
+    this.mois,
+    required this.montantPaye,
+    this.montantDu,
     required this.statut,
+    this.uniteId,
+    this.modePaiement,
     this.datePaiement,
   });
 }

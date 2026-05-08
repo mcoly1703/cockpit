@@ -73,11 +73,15 @@ class FinancesDatasourceImpl implements FinancesDatasource {
       final data = await supabase.from(AppTables.cotisations).upsert({
         AppTables.colMilitantId:    params.militantId,
         AppTables.colAnnee:         params.annee,
-        AppTables.colMontant:       params.montant,
+        if (params.mois != null)    AppTables.colMois: params.mois,
+        AppTables.colMontantPaye:   params.montantPaye,
+        if (params.montantDu != null) AppTables.colMontantDu: params.montantDu,
         AppTables.colStatutCotis:   params.statut,
+        if (params.uniteId != null)  AppTables.colUniteId: params.uniteId,
+        if (params.modePaiement != null) AppTables.colModePaiement: params.modePaiement,
         AppTables.colDatePaiement:  params.datePaiement?.toIso8601String().substring(0, 10),
         AppTables.colCreatedBy:     userId,
-      }, onConflict: 'militant_id,annee').select().single();
+      }, onConflict: 'militant_id,annee,mois').select().single();
       return CotisationModel.fromJson(data).toEntity();
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);

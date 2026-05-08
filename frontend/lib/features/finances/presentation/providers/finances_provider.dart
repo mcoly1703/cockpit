@@ -52,38 +52,67 @@ class FinancesState with _$FinancesState {
 
   // ── Stats cotisations (année courante) ──────────────────────────
 
+  // Nombre de militants distincts ayant au moins un mois payé (année courante)
   int get cotisationsAJour => maybeWhen(
-    charge: (_, cotisations) =>
-        cotisations.where((c) => c.statut == AppEnums.cotisationPayee).length,
+    charge: (_, cotisations) {
+      final annee = DateTime.now().year;
+      return cotisations
+          .where((c) => c.annee == annee && c.statut == AppEnums.cotisationPayee)
+          .map((c) => c.militantId)
+          .toSet()
+          .length;
+    },
     orElse: () => 0,
   );
 
   int get cotisationsEnRetard => maybeWhen(
-    charge: (_, cotisations) =>
-        cotisations.where((c) => c.statut == AppEnums.cotisationEnRetard).length,
+    charge: (_, cotisations) {
+      final annee = DateTime.now().year;
+      return cotisations
+          .where((c) => c.annee == annee && c.statut == AppEnums.cotisationEnRetard)
+          .map((c) => c.militantId)
+          .toSet()
+          .length;
+    },
     orElse: () => 0,
   );
 
+  // Inclut les statuts 'en_attente' et 'partiel'
   int get cotisationsEnAttente => maybeWhen(
-    charge: (_, cotisations) =>
-        cotisations.where((c) => c.statut == AppEnums.cotisationEnAttente).length,
+    charge: (_, cotisations) {
+      final annee = DateTime.now().year;
+      return cotisations
+          .where((c) => c.annee == annee &&
+              (c.statut == AppEnums.cotisationEnAttente ||
+               c.statut == AppEnums.cotisationPartiel))
+          .map((c) => c.militantId)
+          .toSet()
+          .length;
+    },
     orElse: () => 0,
   );
 
   int get totalCotisations => maybeWhen(
-    charge: (_, cotisations) => cotisations.length,
+    charge: (_, cotisations) {
+      final annee = DateTime.now().year;
+      return cotisations.where((c) => c.annee == annee).map((c) => c.militantId).toSet().length;
+    },
     orElse: () => 0,
   );
 
   // ── Taux de recouvrement cotisations (année courante) ────────────
+  // Modèle mensuel : sum(montant_paye) / sum(montant_du) * 100
+  // Si montant_du est null (ancien enregistrement), on utilise montant_paye.
 
   double get tauxRecouvrement => maybeWhen(
     charge: (_, cotisations) {
-      final annee = DateTime.now().year;
+      final annee     = DateTime.now().year;
       final annuelles = cotisations.where((c) => c.annee == annee).toList();
       if (annuelles.isEmpty) return 0.0;
-      final payees = annuelles.where((c) => c.statut == AppEnums.cotisationPayee).length;
-      return payees / annuelles.length * 100;
+      final totalDu   = annuelles.fold(0.0, (s, c) => s + (c.montantDu ?? c.montantPaye));
+      final totalPaye = annuelles.fold(0.0, (s, c) => s + c.montantPaye);
+      if (totalDu == 0) return 0.0;
+      return totalPaye / totalDu * 100;
     },
     orElse: () => 0.0,
   );

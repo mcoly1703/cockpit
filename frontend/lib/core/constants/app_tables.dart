@@ -51,10 +51,18 @@ class AppTables {
 
   // Colonnes cotisations
   static const String colAnnee          = 'annee';
+  static const String colMois           = 'mois';
+  static const String colMontantPaye    = 'montant_paye';
+  static const String colMontantDu      = 'montant_du';
+  static const String colModePaiement   = 'mode_paiement';
   static const String colStatutCotis    = 'statut';
   static const String colMilitantId     = 'militant_id';
   static const String colDatePaiement   = 'date_paiement';
   static const String colTransactionId  = 'transaction_id';
+
+  // Colonnes militants (nouvelles)
+  static const String colMouvementId    = 'mouvement_id';
+  static const String colStatutCarte    = 'statut_carte';
 }
 
 /// Types d'unités organisationnelles (enum unite_type en base).
@@ -126,8 +134,15 @@ class AppEnums {
 
   // statut_cotisation
   static const String cotisationPayee     = 'payee';
+  static const String cotisationPartiel   = 'partiel';
   static const String cotisationEnAttente = 'en_attente';
   static const String cotisationEnRetard  = 'en_retard';
+
+  // statut_carte
+  static const String carteActive    = 'active';
+  static const String carteExpiree   = 'expiree';
+  static const String cartePerdue    = 'perdue';
+  static const String carteEnAttente = 'en_attente';
 }
 
 /// Catégories financières (enum categorie_finance en base).
