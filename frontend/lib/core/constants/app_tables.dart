@@ -91,6 +91,13 @@ class AppTables {
   static const String colMouvementInteret    = 'mouvement_interet';
   static const String colNotes               = 'notes';
   static const String colConvertiMilitantId  = 'converti_en_militant_id';
+
+  // Table postes_bureau
+  static const String postesBureau      = 'postes_bureau';
+  static const String colIntitule       = 'intitule';
+  static const String colDateNomination = 'date_nomination';
+  static const String colMilitantNom    = 'militant_nom';
+  static const String colMilitantPrenom = 'militant_prenom';
 }
 
 /// Types d'unités organisationnelles (enum unite_type en base).
@@ -223,6 +230,48 @@ class AppEnums {
     etapeSympathisant,
     etapeAdherent,
     etapeConverti,
+  ];
+
+  // Postes Bureau Exécutif (16 postes)
+  static const List<(String, String)> postesExecutif = [
+    ('coordinateur',         'Coordinateur/trice'),
+    ('coordinateur_adj',     'Adjoint(e) Coordinateur'),
+    ('resp_finances',        'Resp. Finances'),
+    ('vice_finances',        'Vice-Resp. Finances'),
+    ('resp_massification',   'Resp. Massification'),
+    ('vice_massification',   'Vice-Resp. Massification'),
+    ('resp_it',              'Resp. IT'),
+    ('vice_it',              'Vice-Resp. IT'),
+    ('resp_communication',   'Resp. Communication'),
+    ('vice_communication',   'Vice-Resp. Communication'),
+    ('resp_veille',          'Resp. Veille Électorale'),
+    ('vice_veille',          'Vice-Resp. Veille Électorale'),
+    ('resp_formation',       'Resp. Formation'),
+    ('vice_formation',       'Vice-Resp. Formation'),
+    ('resp_organisation',    'Resp. Organisation'),
+    ('vice_organisation',    'Vice-Resp. Organisation'),
+  ];
+
+  // Postes bureaux locaux : Sous-sections, Mouvements, Cellules (18 postes)
+  static const List<(String, String)> postesLocaux = [
+    ('coordinateur',         'Coordinateur/trice'),
+    ('vice_coordinateur',    'Vice-Coordinateur/trice'),
+    ('resp_communication',   'Resp. Communication'),
+    ('vice_communication',   'Vice-Resp. Communication'),
+    ('resp_finances',        'Resp. Finances'),
+    ('vice_finances',        'Vice-Resp. Finances'),
+    ('resp_massification',   'Resp. Massification'),
+    ('vice_massification',   'Vice-Resp. Massification'),
+    ('resp_veille',          'Resp. Veille Électorale'),
+    ('vice_veille',          'Vice-Resp. Veille Électorale'),
+    ('resp_organisation',    'Resp. Organisation'),
+    ('vice_organisation',    'Vice-Resp. Organisation'),
+    ('resp_formation',       'Resp. Formation'),
+    ('vice_formation',       'Vice-Resp. Formation'),
+    ('resp_mojip',           'Resp. MOJIP'),
+    ('resp_jps',             'Resp. JPS'),
+    ('resp_maggi',           'Resp. Maggi Pastef'),
+    ('resp_foyer',           'Resp. Foyer'),
   ];
 }
 
