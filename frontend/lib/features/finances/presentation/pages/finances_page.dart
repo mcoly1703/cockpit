@@ -74,7 +74,7 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
   // Calcule le taux de recouvrement par SS en croisant finances + militants
   List<(String, int, int, double, String?)> _tauxParSS() {
     return widget.milState.maybeWhen(
-      charge: (militants, unites, _, __) {
+      charge: (militants, unites, statsParSS, statsParCellule) {
         // Construire militant → SS
         final celSS = <String, String>{};
         for (final u in unites.where((u) => u.type == AppUniteTypes.cellule)) {
@@ -122,6 +122,99 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
         return result;
       },
       orElse: () => <(String, int, int, double, String?)>[],
+    );
+  }
+
+  // (nom, code, entrees, depenses) — toutes les SS, même sans transactions
+  List<(String, String?, double, double)> _comparatifSS() {
+    return widget.milState.maybeWhen(
+      charge: (militants, unites, statsParSS, statsParCellule) {
+        return widget.state.maybeWhen(
+          charge: (txs, _) {
+            final celSS = <String, String>{};
+            for (final u in unites.where((u) => u.type == AppUniteTypes.cellule)) {
+              if (u.parentId != null) celSS[u.id] = u.parentId!;
+            }
+            final result = unites
+                .where((u) => u.type == AppUniteTypes.sousSection)
+                .map((ss) {
+                  final ids = <String>{
+                    ss.id,
+                    ...unites
+                        .where((u) => u.type == AppUniteTypes.cellule && celSS[u.id] == ss.id)
+                        .map((u) => u.id),
+                  };
+                  final e = txs
+                      .where((t) => ids.contains(t.uniteId) && t.type == AppEnums.transactionEntree)
+                      .fold(0.0, (s, t) => s + t.montant);
+                  final d = txs
+                      .where((t) => ids.contains(t.uniteId) && t.type == AppEnums.transactionDepense)
+                      .fold(0.0, (s, t) => s + t.montant);
+                  return (ss.nom, ss.code, e, d);
+                })
+                .toList()
+              ..sort((a, b) => (b.$3 - b.$4).compareTo(a.$3 - a.$4));
+            return result;
+          },
+          orElse: () => <(String, String?, double, double)>[],
+        );
+      },
+      orElse: () => <(String, String?, double, double)>[],
+    );
+  }
+
+  // (ssNom, ssCode, [(celNom, celCode, payees, total, taux%)]) — taux recouvrement par cellule
+  List<(String, String?, List<(String, String?, int, int, double)>)> _tauxCotisParCellule() {
+    return widget.milState.maybeWhen(
+      charge: (militants, unites, statsParSS, statsParCellule) {
+        return widget.state.maybeWhen(
+          charge: (txs, cotisations) {
+            final annee = DateTime.now().year;
+            final ssMap = <String, (String, String?)>{
+              for (final u in unites.where((u) => u.type == AppUniteTypes.sousSection))
+                u.id: (u.nom, u.code),
+            };
+            // militant → cellule
+            final milCel = <String, String>{
+              for (final m in militants)
+                if (unites.any((u) => u.id == m.uniteId && u.type == AppUniteTypes.cellule))
+                  m.id: m.uniteId,
+            };
+            // compter militants et cotisations payées par cellule
+            final totaux = <String, int>{};
+            final payees = <String, int>{};
+            for (final m in militants) {
+              if (milCel.containsKey(m.id)) totaux[m.uniteId] = (totaux[m.uniteId] ?? 0) + 1;
+            }
+            for (final c in cotisations.where((c) => c.annee == annee)) {
+              final celId = milCel[c.militantId];
+              if (celId == null) continue;
+              if (c.statut == AppEnums.cotisationPayee) {
+                payees[celId] = (payees[celId] ?? 0) + 1;
+              }
+            }
+            // grouper par SS — inclure toutes les cellules même sans militants
+            final groupes = <String, List<(String, String?, int, int, double)>>{
+              for (final ss in unites.where((u) => u.type == AppUniteTypes.sousSection))
+                ss.id: [],
+            };
+            for (final cel in unites.where((u) => u.type == AppUniteTypes.cellule)) {
+              final ssId = cel.parentId;
+              if (ssId == null || !ssMap.containsKey(ssId)) continue;
+              final t = totaux[cel.id] ?? 0;
+              final p = payees[cel.id] ?? 0;
+              final taux = t > 0 ? p / t * 100 : 0.0;
+              (groupes[ssId] ??= []).add((cel.nom, cel.code, p, t, taux));
+            }
+            return groupes.entries
+                .map((e) => (ssMap[e.key]!.$1, ssMap[e.key]!.$2, e.value))
+                .toList()
+              ..sort((a, b) => a.$1.compareTo(b.$1));
+          },
+          orElse: () => <(String, String?, List<(String, String?, int, int, double)>)>[],
+        );
+      },
+      orElse: () => <(String, String?, List<(String, String?, int, int, double)>)>[],
     );
   }
 
@@ -189,6 +282,12 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
               stats:    state.statsDepenses,
               isEntree: false,
             )),
+
+          // ── Taux recouvrement par cellule ──────────────────────────
+          SliverToBoxAdapter(child: _ComparatifCellules(groupes: _tauxCotisParCellule())),
+
+          // ── Comparatif par SS ─────────────────────────────────────
+          SliverToBoxAdapter(child: _ComparatifSS(items: _comparatifSS())),
 
           // ── Bouton ajouter ─────────────────────────────────────────
           SliverToBoxAdapter(child: _BarreActions(
@@ -672,7 +771,6 @@ class _FiltreChips extends StatelessWidget {
   static const _items = [
     (AppEnums.transactionEntree,  'Entrées',  Icons.arrow_downward_rounded),
     (AppEnums.transactionDepense, 'Dépenses', Icons.arrow_upward_rounded),
-    ('ss',                        'Par SS',   Icons.account_tree_outlined),
   ];
 
   @override
@@ -856,6 +954,276 @@ class _BarreActions extends StatelessWidget {
         ),
       );
 }
+
+// ─── Comparatif financier par sous-section ────────────────────────────────────
+
+class _ComparatifSS extends StatelessWidget {
+  const _ComparatifSS({required this.items});
+  // (nom, code, entrees, depenses)
+  final List<(String, String?, double, double)> items;
+
+  static const _palette = [
+    AppColors.primary,
+    Color(0xFF0D7377),
+    Color(0xFF5B2D8B),
+    AppColors.accent,
+    Color(0xFF1976D2),
+    AppColors.secondary,
+  ];
+
+  static String _badge(String? code) {
+    if (code == null) return '?';
+    final suffix = code.split('-').last;
+    final n = int.tryParse(suffix);
+    if (n != null) return n.toString();
+    return suffix.length > 4 ? suffix.substring(0, 4) : suffix;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt    = NumberFormat.currency(locale: 'fr', symbol: '€', decimalDigits: 0);
+    final maxVal = items.isEmpty
+        ? 1.0
+        : items.fold(0.0, (m, e) => [m, e.$3, e.$4].reduce((a, b) => a > b ? a : b));
+    final toutVide = items.isNotEmpty && items.every((e) => e.$3 == 0 && e.$4 == 0);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 4, 14, 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('COMPARATIF PAR SOUS-SECTION',
+            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                color: AppColors.text2, letterSpacing: 0.8)),
+        const SizedBox(height: 14),
+
+        if (items.isEmpty)
+          _etatVide('Aucune sous-section enregistrée')
+        else ...[
+          if (toutVide)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text('Aucune transaction enregistrée pour le moment',
+                  style: TextStyle(fontSize: 11, color: AppColors.text2)),
+            ),
+          ...items.asMap().entries.map((e) {
+            final (nom, code, entrees, depenses) = e.value;
+            final solde   = entrees - depenses;
+            final couleur = _palette[e.key % _palette.length];
+            final badge   = _badge(code);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
+                  child: Center(child: Text(badge,
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
+                          fontSize: badge.length > 3 ? 9 : 13),
+                      textAlign: TextAlign.center)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: Text(nom,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                            color: AppColors.text),
+                        overflow: TextOverflow.ellipsis)),
+                    Text(
+                      '${solde >= 0 ? '+' : ''}${fmt.format(solde)}',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800,
+                          color: solde >= 0 ? AppColors.primary : AppColors.secondary),
+                    ),
+                  ]),
+                  const SizedBox(height: 6),
+                  _MiniBar(label: 'E', valeur: entrees, max: maxVal,
+                      couleur: AppColors.primary, fmt: fmt),
+                  const SizedBox(height: 4),
+                  _MiniBar(label: 'D', valeur: depenses, max: maxVal,
+                      couleur: AppColors.secondary, fmt: fmt),
+                ])),
+              ]),
+            );
+          }),
+        ],
+      ]),
+    );
+  }
+}
+
+class _MiniBar extends StatelessWidget {
+  const _MiniBar({
+    required this.label,
+    required this.valeur,
+    required this.max,
+    required this.couleur,
+    required this.fmt,
+  });
+  final String       label;
+  final double       valeur;
+  final double       max;
+  final Color        couleur;
+  final NumberFormat fmt;
+
+  @override
+  Widget build(BuildContext context) => Row(children: [
+        Text(label,
+            style: TextStyle(fontSize: 9, color: AppColors.text2,
+                fontWeight: FontWeight.w700)),
+        const SizedBox(width: 4),
+        Expanded(child: ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: Stack(children: [
+            Container(height: 6, color: AppColors.border),
+            FractionallySizedBox(
+              widthFactor: max > 0 ? (valeur / max).clamp(0.0, 1.0) : 0.0,
+              child: Container(height: 6, color: couleur),
+            ),
+          ]),
+        )),
+        const SizedBox(width: 6),
+        SizedBox(
+          width: 56,
+          child: Text(fmt.format(valeur),
+              style: TextStyle(fontSize: 9, color: AppColors.text2),
+              textAlign: TextAlign.right),
+        ),
+      ]);
+}
+
+// ─── Comparatif financier par cellule ────────────────────────────────────────
+
+class _ComparatifCellules extends StatelessWidget {
+  const _ComparatifCellules({required this.groupes});
+  // (ssNom, ssCode, [(celNom, celCode, payees, total, taux%)])
+  final List<(String, String?, List<(String, String?, int, int, double)>)> groupes;
+
+  static String _badge(String? code) {
+    if (code == null) return '?';
+    final suffix = code.split('-').last;
+    final n = int.tryParse(suffix);
+    if (n != null) return n.toString();
+    return suffix.length > 4 ? suffix.substring(0, 4) : suffix;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 4, 14, 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('TAUX DE RECOUVREMENT PAR CELLULE',
+            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                color: AppColors.text2, letterSpacing: 0.8)),
+        const SizedBox(height: 14),
+
+        if (groupes.isEmpty)
+          _etatVide('Aucune cellule enregistrée')
+        else
+          ...groupes.expand((groupe) {
+            final (ssNom, ssCode, cellules) = groupe;
+            return [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10, top: 2),
+                child: Row(children: [
+                  Expanded(child: Divider(color: AppColors.border, height: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(ssNom,
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                            color: AppColors.text2)),
+                  ),
+                  Expanded(child: Divider(color: AppColors.border, height: 1)),
+                ]),
+              ),
+              if (cellules.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text('Aucune cellule dans cette sous-section',
+                      style: TextStyle(fontSize: 11, color: AppColors.text2)),
+                )
+              else
+                ...cellules.map((cel) {
+                  final (nom, code, payees, total, taux) = cel;
+                  final enRetard = taux < AppConstants.objectifRecouvrement;
+                  final badge    = _badge(code);
+                  final couleur  = enRetard ? AppColors.secondary : AppColors.primary;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(children: [
+                      Container(
+                        width: 36, height: 36,
+                        decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
+                        child: Center(child: Text(badge,
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
+                                fontSize: badge.length > 3 ? 8 : 11),
+                            textAlign: TextAlign.center)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(nom,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+                                color: AppColors.text),
+                            overflow: TextOverflow.ellipsis),
+                        Text('$payees / $total militants',
+                            style: TextStyle(fontSize: 10, color: AppColors.text2)),
+                        const SizedBox(height: 4),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(3),
+                          child: Stack(children: [
+                            Container(height: 5, color: AppColors.border),
+                            FractionallySizedBox(
+                              widthFactor: (taux / 100).clamp(0.0, 1.0),
+                              child: Container(height: 5, color: couleur),
+                            ),
+                          ]),
+                        ),
+                      ])),
+                      const SizedBox(width: 10),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                        Text('${taux.toStringAsFixed(0)}%',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900,
+                                color: couleur)),
+                        if (enRetard)
+                          Text('△ Bas',
+                              style: TextStyle(fontSize: 9, color: AppColors.accent,
+                                  fontWeight: FontWeight.w700)),
+                      ]),
+                    ]),
+                  );
+                }),
+            ];
+          }),
+      ]),
+    );
+  }
+}
+
+Widget _etatVide(String message) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 22),
+      child: Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.bar_chart_outlined, size: 34, color: AppColors.border),
+          const SizedBox(height: 8),
+          Text(message,
+              style: TextStyle(fontSize: 13, color: AppColors.text2),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 4),
+          Text('Enregistrez des transactions pour voir les données',
+              style: TextStyle(fontSize: 11, color: AppColors.text2),
+              textAlign: TextAlign.center),
+        ]),
+      ),
+    );
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
