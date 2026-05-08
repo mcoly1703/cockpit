@@ -64,6 +64,16 @@ class AppTables {
   static const String colMouvementId    = 'mouvement_id';
   static const String colStatutCarte    = 'statut_carte';
 
+  // Table reunions
+  static const String reunions         = 'reunions';
+  static const String decisions        = 'decisions';
+  static const String colDate           = 'date';
+  static const String colOrdreJour     = 'ordre_du_jour';
+  static const String colReunionId     = 'reunion_id';
+  static const String colTexte         = 'texte';
+  static const String colResponsable   = 'responsable';
+  static const String colEcheance      = 'echeance';
+
   // Table evenements
   static const String evenements             = 'evenements';
   static const String presences              = 'presences';
@@ -161,6 +171,29 @@ class AppEnums {
   static const String carteExpiree   = 'expiree';
   static const String cartePerdue    = 'perdue';
   static const String carteEnAttente = 'en_attente';
+
+  // type_reunion
+  static const String typeReunionBureau           = 'bureau';
+  static const String typeReunionCellule          = 'cellule';
+  static const String typeReunionSousSection      = 'sous_section';
+  static const String typeReunionCommission       = 'commission';
+  static const String typeReunionAssembleeGen     = 'assemblee_generale';
+  static const String typeReunionAutre            = 'autre';
+
+  static const List<(String, String)> typesReunion = [
+    (typeReunionBureau,       'Bureau'),
+    (typeReunionCellule,      'Cellule'),
+    (typeReunionSousSection,  'Sous-section'),
+    (typeReunionCommission,   'Commission'),
+    (typeReunionAssembleeGen, 'Assemblée générale'),
+    (typeReunionAutre,        'Autre'),
+  ];
+
+  // statut_decision
+  static const String decisionEnAttente = 'en_attente';
+  static const String decisionEnCours   = 'en_cours';
+  static const String decisionTerminee  = 'terminee';
+  static const String decisionAbandon   = 'abandonnee';
 
   // type_evenement
   static const String typeReunionPublique = 'reunion_publique';
