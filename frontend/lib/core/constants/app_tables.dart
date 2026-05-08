@@ -98,6 +98,15 @@ class AppTables {
   static const String colDateNomination = 'date_nomination';
   static const String colMilitantNom    = 'militant_nom';
   static const String colMilitantPrenom = 'militant_prenom';
+
+  // Tables élections
+  static const String scrutins          = 'scrutins';
+  static const String candidatsElection = 'candidats_election';
+  static const String colScrutinId      = 'scrutin_id';
+  static const String colDateScrutin    = 'date_scrutin';
+  static const String colPoste          = 'poste';
+  static const String colVoix           = 'voix';
+  static const String colElu            = 'elu';
 }
 
 /// Types d'unités organisationnelles (enum unite_type en base).
@@ -251,6 +260,26 @@ class AppEnums {
     ('resp_organisation',    'Resp. Organisation'),
     ('vice_organisation',    'Vice-Resp. Organisation'),
   ];
+
+  // type_scrutin
+  static const String scrutinInterne    = 'interne';
+  static const String scrutinMunicipal  = 'municipal';
+  static const String scrutinLegislatif = 'legislatif';
+  static const String scrutinEuropeen   = 'europeen';
+  static const String scrutinAutre      = 'autre';
+
+  static const List<(String, String)> typesScrutin = [
+    (scrutinInterne,    'Interne'),
+    (scrutinMunicipal,  'Municipal'),
+    (scrutinLegislatif, 'Législatif'),
+    (scrutinEuropeen,   'Européen'),
+    (scrutinAutre,      'Autre'),
+  ];
+
+  // statut_scrutin
+  static const String scrutinEnPreparation = 'en_preparation';
+  static const String scrutinOuvert        = 'ouvert';
+  static const String scrutinClos          = 'clos';
 
   // Postes bureaux locaux : Sous-sections, Mouvements, Cellules (18 postes)
   static const List<(String, String)> postesLocaux = [

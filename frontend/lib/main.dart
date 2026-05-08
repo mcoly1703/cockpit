@@ -20,6 +20,7 @@ import 'features/reunions/presentation/pages/reunions_page.dart';
 import 'features/bureau/presentation/pages/bureau_page.dart';
 import 'features/rapports/presentation/pages/rapports_page.dart';
 import 'features/scan/presentation/pages/scan_page.dart';
+import 'features/elections/presentation/pages/elections_page.dart';
 
 
 /// Point d'entrée de l'application.
@@ -148,6 +149,10 @@ final _router = GoRouter(
         GoRoute(
           path: AppRoutes.scan,
           builder: (_, __) => const ScanPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.elections,
+          builder: (_, __) => const ElectionsPage(),
         ),
         GoRoute(
           path: AppRoutes.modules,
