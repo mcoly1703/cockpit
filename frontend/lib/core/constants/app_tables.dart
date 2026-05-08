@@ -107,6 +107,18 @@ class AppTables {
   static const String colPoste          = 'poste';
   static const String colVoix           = 'voix';
   static const String colElu            = 'elu';
+
+  // Table CRA
+  static const String compteRendus               = 'comptes_rendus';
+  static const String colDescriptionActivites    = 'description_activites';
+  static const String colNouveauxContacts        = 'nouveaux_contacts';
+  static const String colEvenementsTenus         = 'evenements_tenus';
+  static const String colPresencesTotal          = 'presences_total';
+  static const String colCotisationsCollectees   = 'cotisations_collectees';
+  static const String colDifficultes             = 'difficultes';
+  static const String colObservationsCoord       = 'observations_coordinateur';
+  static const String colSoumisAt               = 'soumis_at';
+  static const String colValideAt               = 'valide_at';
 }
 
 /// Types d'unités organisationnelles (enum unite_type en base).
@@ -260,6 +272,12 @@ class AppEnums {
     ('resp_organisation',    'Resp. Organisation'),
     ('vice_organisation',    'Vice-Resp. Organisation'),
   ];
+
+  // statut_cra
+  static const String craBrouillon = 'brouillon';
+  static const String craSoumis    = 'soumis';
+  static const String craValide    = 'valide';
+  static const String craRetourne  = 'retourne';
 
   // type_scrutin
   static const String scrutinInterne    = 'interne';
