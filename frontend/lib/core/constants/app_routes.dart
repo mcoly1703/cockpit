@@ -5,7 +5,8 @@ class AppRoutes {
   static const String militants  = '/militants';
   static const String prospects  = '/prospects';
   static const String modules    = '/modules';
-  static const String militantDetail = '/militants/:id';
+  static const String militantDetail   = '/militants/:id';
+  static const String evenementDetail  = '/evenements/:id';
   static const String finances   = '/finances';
   static const String evenements = '/evenements';
   static const String reunions   = '/reunions';

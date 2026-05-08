@@ -58,7 +58,8 @@ dependencies:
   # Graphiques KPIs
   fl_chart: ^0.70.2
 
-  # Scan QR
+  # QR Code génération + scan
+  qr_flutter: ^4.1.0
   mobile_scanner: ^6.0.4
 
   # PDF

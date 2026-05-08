@@ -14,6 +14,7 @@ import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/finances/presentation/pages/finances_page.dart';
 import 'features/militants/presentation/pages/militants_page.dart';
+import 'features/evenements/presentation/pages/evenements_page.dart';
 import 'features/prospects/presentation/pages/prospects_page.dart';
 
 
@@ -119,6 +120,10 @@ final _router = GoRouter(
         GoRoute(
           path: AppRoutes.finances,
           builder: (_, __) => const FinancesPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.evenements,
+          builder: (_, __) => const EvenementsPage(),
         ),
         GoRoute(
           path: AppRoutes.prospects,

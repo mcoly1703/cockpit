@@ -64,6 +64,16 @@ class AppTables {
   static const String colMouvementId    = 'mouvement_id';
   static const String colStatutCarte    = 'statut_carte';
 
+  // Table evenements
+  static const String evenements             = 'evenements';
+  static const String presences              = 'presences';
+  static const String colTitre              = 'titre';
+  static const String colDateDebut          = 'date_debut';
+  static const String colDateFin            = 'date_fin';
+  static const String colLieu               = 'lieu';
+  static const String colEvenementId        = 'evenement_id';
+  static const String colCheckedAt          = 'checked_at';
+
   // Table prospects
   static const String prospects               = 'prospects';
   static const String colEtape               = 'etape';
@@ -151,6 +161,23 @@ class AppEnums {
   static const String carteExpiree   = 'expiree';
   static const String cartePerdue    = 'perdue';
   static const String carteEnAttente = 'en_attente';
+
+  // type_evenement
+  static const String typeReunionPublique = 'reunion_publique';
+  static const String typeMeeting         = 'meeting';
+  static const String typeMarche          = 'marche';
+  static const String typeFormation       = 'formation';
+  static const String typePorteAPorte     = 'porte_a_porte';
+  static const String typeAutre           = 'autre';
+
+  static const List<(String, String)> typesEvenement = [
+    (typeReunionPublique, 'Réunion publique'),
+    (typeMeeting,         'Meeting'),
+    (typeMarche,          'Marche'),
+    (typeFormation,       'Formation'),
+    (typePorteAPorte,     'Porte à porte'),
+    (typeAutre,           'Autre'),
+  ];
 
   // etape_prospect
   static const String etapeContact      = 'contact';
