@@ -28,7 +28,9 @@ mixin _$Militant {
   String? get ville => throw _privateConstructorUsedError;
   String? get codePostal => throw _privateConstructorUsedError;
   String get uniteId => throw _privateConstructorUsedError;
+  String? get mouvementId => throw _privateConstructorUsedError;
   String get statut => throw _privateConstructorUsedError;
+  String get statutCarte => throw _privateConstructorUsedError;
   DateTime get dateAdhesion => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -58,7 +60,9 @@ abstract class $MilitantCopyWith<$Res> {
     String? ville,
     String? codePostal,
     String uniteId,
+    String? mouvementId,
     String statut,
+    String statutCarte,
     DateTime dateAdhesion,
     String? photoUrl,
     DateTime createdAt,
@@ -92,7 +96,9 @@ class _$MilitantCopyWithImpl<$Res, $Val extends Militant>
     Object? ville = freezed,
     Object? codePostal = freezed,
     Object? uniteId = null,
+    Object? mouvementId = freezed,
     Object? statut = null,
+    Object? statutCarte = null,
     Object? dateAdhesion = null,
     Object? photoUrl = freezed,
     Object? createdAt = null,
@@ -144,9 +150,17 @@ class _$MilitantCopyWithImpl<$Res, $Val extends Militant>
                 ? _value.uniteId
                 : uniteId // ignore: cast_nullable_to_non_nullable
                       as String,
+            mouvementId: freezed == mouvementId
+                ? _value.mouvementId
+                : mouvementId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             statut: null == statut
                 ? _value.statut
                 : statut // ignore: cast_nullable_to_non_nullable
+                      as String,
+            statutCarte: null == statutCarte
+                ? _value.statutCarte
+                : statutCarte // ignore: cast_nullable_to_non_nullable
                       as String,
             dateAdhesion: null == dateAdhesion
                 ? _value.dateAdhesion
@@ -191,7 +205,9 @@ abstract class _$$MilitantImplCopyWith<$Res>
     String? ville,
     String? codePostal,
     String uniteId,
+    String? mouvementId,
     String statut,
+    String statutCarte,
     DateTime dateAdhesion,
     String? photoUrl,
     DateTime createdAt,
@@ -224,7 +240,9 @@ class __$$MilitantImplCopyWithImpl<$Res>
     Object? ville = freezed,
     Object? codePostal = freezed,
     Object? uniteId = null,
+    Object? mouvementId = freezed,
     Object? statut = null,
+    Object? statutCarte = null,
     Object? dateAdhesion = null,
     Object? photoUrl = freezed,
     Object? createdAt = null,
@@ -276,9 +294,17 @@ class __$$MilitantImplCopyWithImpl<$Res>
             ? _value.uniteId
             : uniteId // ignore: cast_nullable_to_non_nullable
                   as String,
+        mouvementId: freezed == mouvementId
+            ? _value.mouvementId
+            : mouvementId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         statut: null == statut
             ? _value.statut
             : statut // ignore: cast_nullable_to_non_nullable
+                  as String,
+        statutCarte: null == statutCarte
+            ? _value.statutCarte
+            : statutCarte // ignore: cast_nullable_to_non_nullable
                   as String,
         dateAdhesion: null == dateAdhesion
             ? _value.dateAdhesion
@@ -316,7 +342,9 @@ class _$MilitantImpl implements _Militant {
     this.ville,
     this.codePostal,
     required this.uniteId,
+    this.mouvementId,
     required this.statut,
+    this.statutCarte = 'en_attente',
     required this.dateAdhesion,
     this.photoUrl,
     required this.createdAt,
@@ -346,7 +374,12 @@ class _$MilitantImpl implements _Militant {
   @override
   final String uniteId;
   @override
+  final String? mouvementId;
+  @override
   final String statut;
+  @override
+  @JsonKey()
+  final String statutCarte;
   @override
   final DateTime dateAdhesion;
   @override
@@ -358,7 +391,7 @@ class _$MilitantImpl implements _Militant {
 
   @override
   String toString() {
-    return 'Militant(id: $id, numeroCarte: $numeroCarte, nom: $nom, prenom: $prenom, dateNaissance: $dateNaissance, sexe: $sexe, telephone: $telephone, email: $email, ville: $ville, codePostal: $codePostal, uniteId: $uniteId, statut: $statut, dateAdhesion: $dateAdhesion, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Militant(id: $id, numeroCarte: $numeroCarte, nom: $nom, prenom: $prenom, dateNaissance: $dateNaissance, sexe: $sexe, telephone: $telephone, email: $email, ville: $ville, codePostal: $codePostal, uniteId: $uniteId, mouvementId: $mouvementId, statut: $statut, statutCarte: $statutCarte, dateAdhesion: $dateAdhesion, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -381,7 +414,11 @@ class _$MilitantImpl implements _Militant {
             (identical(other.codePostal, codePostal) ||
                 other.codePostal == codePostal) &&
             (identical(other.uniteId, uniteId) || other.uniteId == uniteId) &&
+            (identical(other.mouvementId, mouvementId) ||
+                other.mouvementId == mouvementId) &&
             (identical(other.statut, statut) || other.statut == statut) &&
+            (identical(other.statutCarte, statutCarte) ||
+                other.statutCarte == statutCarte) &&
             (identical(other.dateAdhesion, dateAdhesion) ||
                 other.dateAdhesion == dateAdhesion) &&
             (identical(other.photoUrl, photoUrl) ||
@@ -406,7 +443,9 @@ class _$MilitantImpl implements _Militant {
     ville,
     codePostal,
     uniteId,
+    mouvementId,
     statut,
+    statutCarte,
     dateAdhesion,
     photoUrl,
     createdAt,
@@ -435,7 +474,9 @@ abstract class _Militant implements Militant {
     final String? ville,
     final String? codePostal,
     required final String uniteId,
+    final String? mouvementId,
     required final String statut,
+    final String statutCarte,
     required final DateTime dateAdhesion,
     final String? photoUrl,
     required final DateTime createdAt,
@@ -465,7 +506,11 @@ abstract class _Militant implements Militant {
   @override
   String get uniteId;
   @override
+  String? get mouvementId;
+  @override
   String get statut;
+  @override
+  String get statutCarte;
   @override
   DateTime get dateAdhesion;
   @override

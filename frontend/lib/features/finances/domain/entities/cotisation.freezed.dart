@@ -20,9 +20,18 @@ mixin _$Cotisation {
   String get id => throw _privateConstructorUsedError;
   String get militantId => throw _privateConstructorUsedError;
   int get annee => throw _privateConstructorUsedError;
-  double get montant => throw _privateConstructorUsedError;
-  String get statut => throw _privateConstructorUsedError;
+  int? get mois =>
+      throw _privateConstructorUsedError; // 1-12 ; null = enregistrement annuel (legacy)
+  double get montantPaye => throw _privateConstructorUsedError;
+  double? get montantDu =>
+      throw _privateConstructorUsedError; // montant attendu pour ce mois (ex. 10 €)
+  String get statut =>
+      throw _privateConstructorUsedError; // payee | partiel | en_retard | en_attente
   String get createdBy => throw _privateConstructorUsedError;
+  String? get uniteId =>
+      throw _privateConstructorUsedError; // dénormalisé depuis militants.unite_id
+  String? get modePaiement =>
+      throw _privateConstructorUsedError; // espèces | virement | paypal | lydia...
   DateTime? get datePaiement => throw _privateConstructorUsedError;
   String? get transactionId => throw _privateConstructorUsedError;
 
@@ -44,9 +53,13 @@ abstract class $CotisationCopyWith<$Res> {
     String id,
     String militantId,
     int annee,
-    double montant,
+    int? mois,
+    double montantPaye,
+    double? montantDu,
     String statut,
     String createdBy,
+    String? uniteId,
+    String? modePaiement,
     DateTime? datePaiement,
     String? transactionId,
   });
@@ -70,9 +83,13 @@ class _$CotisationCopyWithImpl<$Res, $Val extends Cotisation>
     Object? id = null,
     Object? militantId = null,
     Object? annee = null,
-    Object? montant = null,
+    Object? mois = freezed,
+    Object? montantPaye = null,
+    Object? montantDu = freezed,
     Object? statut = null,
     Object? createdBy = null,
+    Object? uniteId = freezed,
+    Object? modePaiement = freezed,
     Object? datePaiement = freezed,
     Object? transactionId = freezed,
   }) {
@@ -90,10 +107,18 @@ class _$CotisationCopyWithImpl<$Res, $Val extends Cotisation>
                 ? _value.annee
                 : annee // ignore: cast_nullable_to_non_nullable
                       as int,
-            montant: null == montant
-                ? _value.montant
-                : montant // ignore: cast_nullable_to_non_nullable
+            mois: freezed == mois
+                ? _value.mois
+                : mois // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            montantPaye: null == montantPaye
+                ? _value.montantPaye
+                : montantPaye // ignore: cast_nullable_to_non_nullable
                       as double,
+            montantDu: freezed == montantDu
+                ? _value.montantDu
+                : montantDu // ignore: cast_nullable_to_non_nullable
+                      as double?,
             statut: null == statut
                 ? _value.statut
                 : statut // ignore: cast_nullable_to_non_nullable
@@ -102,6 +127,14 @@ class _$CotisationCopyWithImpl<$Res, $Val extends Cotisation>
                 ? _value.createdBy
                 : createdBy // ignore: cast_nullable_to_non_nullable
                       as String,
+            uniteId: freezed == uniteId
+                ? _value.uniteId
+                : uniteId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            modePaiement: freezed == modePaiement
+                ? _value.modePaiement
+                : modePaiement // ignore: cast_nullable_to_non_nullable
+                      as String?,
             datePaiement: freezed == datePaiement
                 ? _value.datePaiement
                 : datePaiement // ignore: cast_nullable_to_non_nullable
@@ -129,9 +162,13 @@ abstract class _$$CotisationImplCopyWith<$Res>
     String id,
     String militantId,
     int annee,
-    double montant,
+    int? mois,
+    double montantPaye,
+    double? montantDu,
     String statut,
     String createdBy,
+    String? uniteId,
+    String? modePaiement,
     DateTime? datePaiement,
     String? transactionId,
   });
@@ -154,9 +191,13 @@ class __$$CotisationImplCopyWithImpl<$Res>
     Object? id = null,
     Object? militantId = null,
     Object? annee = null,
-    Object? montant = null,
+    Object? mois = freezed,
+    Object? montantPaye = null,
+    Object? montantDu = freezed,
     Object? statut = null,
     Object? createdBy = null,
+    Object? uniteId = freezed,
+    Object? modePaiement = freezed,
     Object? datePaiement = freezed,
     Object? transactionId = freezed,
   }) {
@@ -174,10 +215,18 @@ class __$$CotisationImplCopyWithImpl<$Res>
             ? _value.annee
             : annee // ignore: cast_nullable_to_non_nullable
                   as int,
-        montant: null == montant
-            ? _value.montant
-            : montant // ignore: cast_nullable_to_non_nullable
+        mois: freezed == mois
+            ? _value.mois
+            : mois // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        montantPaye: null == montantPaye
+            ? _value.montantPaye
+            : montantPaye // ignore: cast_nullable_to_non_nullable
                   as double,
+        montantDu: freezed == montantDu
+            ? _value.montantDu
+            : montantDu // ignore: cast_nullable_to_non_nullable
+                  as double?,
         statut: null == statut
             ? _value.statut
             : statut // ignore: cast_nullable_to_non_nullable
@@ -186,6 +235,14 @@ class __$$CotisationImplCopyWithImpl<$Res>
             ? _value.createdBy
             : createdBy // ignore: cast_nullable_to_non_nullable
                   as String,
+        uniteId: freezed == uniteId
+            ? _value.uniteId
+            : uniteId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        modePaiement: freezed == modePaiement
+            ? _value.modePaiement
+            : modePaiement // ignore: cast_nullable_to_non_nullable
+                  as String?,
         datePaiement: freezed == datePaiement
             ? _value.datePaiement
             : datePaiement // ignore: cast_nullable_to_non_nullable
@@ -206,9 +263,13 @@ class _$CotisationImpl implements _Cotisation {
     required this.id,
     required this.militantId,
     required this.annee,
-    required this.montant,
+    this.mois,
+    required this.montantPaye,
+    this.montantDu,
     required this.statut,
     required this.createdBy,
+    this.uniteId,
+    this.modePaiement,
     this.datePaiement,
     this.transactionId,
   });
@@ -220,11 +281,24 @@ class _$CotisationImpl implements _Cotisation {
   @override
   final int annee;
   @override
-  final double montant;
+  final int? mois;
+  // 1-12 ; null = enregistrement annuel (legacy)
+  @override
+  final double montantPaye;
+  @override
+  final double? montantDu;
+  // montant attendu pour ce mois (ex. 10 €)
   @override
   final String statut;
+  // payee | partiel | en_retard | en_attente
   @override
   final String createdBy;
+  @override
+  final String? uniteId;
+  // dénormalisé depuis militants.unite_id
+  @override
+  final String? modePaiement;
+  // espèces | virement | paypal | lydia...
   @override
   final DateTime? datePaiement;
   @override
@@ -232,7 +306,7 @@ class _$CotisationImpl implements _Cotisation {
 
   @override
   String toString() {
-    return 'Cotisation(id: $id, militantId: $militantId, annee: $annee, montant: $montant, statut: $statut, createdBy: $createdBy, datePaiement: $datePaiement, transactionId: $transactionId)';
+    return 'Cotisation(id: $id, militantId: $militantId, annee: $annee, mois: $mois, montantPaye: $montantPaye, montantDu: $montantDu, statut: $statut, createdBy: $createdBy, uniteId: $uniteId, modePaiement: $modePaiement, datePaiement: $datePaiement, transactionId: $transactionId)';
   }
 
   @override
@@ -244,10 +318,17 @@ class _$CotisationImpl implements _Cotisation {
             (identical(other.militantId, militantId) ||
                 other.militantId == militantId) &&
             (identical(other.annee, annee) || other.annee == annee) &&
-            (identical(other.montant, montant) || other.montant == montant) &&
+            (identical(other.mois, mois) || other.mois == mois) &&
+            (identical(other.montantPaye, montantPaye) ||
+                other.montantPaye == montantPaye) &&
+            (identical(other.montantDu, montantDu) ||
+                other.montantDu == montantDu) &&
             (identical(other.statut, statut) || other.statut == statut) &&
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy) &&
+            (identical(other.uniteId, uniteId) || other.uniteId == uniteId) &&
+            (identical(other.modePaiement, modePaiement) ||
+                other.modePaiement == modePaiement) &&
             (identical(other.datePaiement, datePaiement) ||
                 other.datePaiement == datePaiement) &&
             (identical(other.transactionId, transactionId) ||
@@ -260,9 +341,13 @@ class _$CotisationImpl implements _Cotisation {
     id,
     militantId,
     annee,
-    montant,
+    mois,
+    montantPaye,
+    montantDu,
     statut,
     createdBy,
+    uniteId,
+    modePaiement,
     datePaiement,
     transactionId,
   );
@@ -281,9 +366,13 @@ abstract class _Cotisation implements Cotisation {
     required final String id,
     required final String militantId,
     required final int annee,
-    required final double montant,
+    final int? mois,
+    required final double montantPaye,
+    final double? montantDu,
     required final String statut,
     required final String createdBy,
+    final String? uniteId,
+    final String? modePaiement,
     final DateTime? datePaiement,
     final String? transactionId,
   }) = _$CotisationImpl;
@@ -295,11 +384,19 @@ abstract class _Cotisation implements Cotisation {
   @override
   int get annee;
   @override
-  double get montant;
+  int? get mois; // 1-12 ; null = enregistrement annuel (legacy)
   @override
-  String get statut;
+  double get montantPaye;
+  @override
+  double? get montantDu; // montant attendu pour ce mois (ex. 10 €)
+  @override
+  String get statut; // payee | partiel | en_retard | en_attente
   @override
   String get createdBy;
+  @override
+  String? get uniteId; // dénormalisé depuis militants.unite_id
+  @override
+  String? get modePaiement; // espèces | virement | paypal | lydia...
   @override
   DateTime? get datePaiement;
   @override

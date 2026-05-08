@@ -63,6 +63,14 @@ class AppTables {
   // Colonnes militants (nouvelles)
   static const String colMouvementId    = 'mouvement_id';
   static const String colStatutCarte    = 'statut_carte';
+
+  // Table prospects
+  static const String prospects               = 'prospects';
+  static const String colEtape               = 'etape';
+  static const String colDateContact         = 'date_contact';
+  static const String colMouvementInteret    = 'mouvement_interet';
+  static const String colNotes               = 'notes';
+  static const String colConvertiMilitantId  = 'converti_en_militant_id';
 }
 
 /// Types d'unités organisationnelles (enum unite_type en base).
@@ -143,6 +151,19 @@ class AppEnums {
   static const String carteExpiree   = 'expiree';
   static const String cartePerdue    = 'perdue';
   static const String carteEnAttente = 'en_attente';
+
+  // etape_prospect
+  static const String etapeContact      = 'contact';
+  static const String etapeSympathisant = 'sympathisant';
+  static const String etapeAdherent     = 'adherent';
+  static const String etapeConverti     = 'converti';
+
+  static const List<String> etapesProspect = [
+    etapeContact,
+    etapeSympathisant,
+    etapeAdherent,
+    etapeConverti,
+  ];
 }
 
 /// Catégories financières (enum categorie_finance en base).

@@ -40,7 +40,9 @@ class DashboardDatasourceImpl implements DashboardDatasource {
       );
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
-    } catch (_) {
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('[Dashboard] Erreur inattendue: $e\n$stack');
       throw const NetworkException();
     }
   }

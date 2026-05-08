@@ -14,6 +14,7 @@ import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/finances/presentation/pages/finances_page.dart';
 import 'features/militants/presentation/pages/militants_page.dart';
+import 'features/prospects/presentation/pages/prospects_page.dart';
 
 
 /// Point d'entrée de l'application.
@@ -121,7 +122,7 @@ final _router = GoRouter(
         ),
         GoRoute(
           path: AppRoutes.prospects,
-          builder: (_, __) => const _PlaceholderPage(titre: 'Prospects'),
+          builder: (_, __) => const ProspectsPage(),
         ),
         GoRoute(
           path: AppRoutes.modules,
