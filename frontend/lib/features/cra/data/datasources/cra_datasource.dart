@@ -4,6 +4,7 @@ import '../../../../core/constants/app_tables.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/compte_rendu.dart';
 import '../../domain/repositories/cra_repository.dart';
+import '../models/compte_rendu_model.dart';
 
 class CraDatasource {
   final SupabaseClient supabase;
@@ -119,27 +120,6 @@ class CraDatasource {
     }
   }
 
-  static CompteRendu _fromMap(Map<String, dynamic> e) {
-    final uniteData = e['unites_organisationnelles'] as Map<String, dynamic>?;
-    return CompteRendu(
-      id:                    e[AppTables.colId]                    as String,
-      uniteId:               e[AppTables.colUniteId]               as String,
-      uniteCode:             uniteData?['code']                    as String?,
-      mois:                  e[AppTables.colMois]                  as int,
-      annee:                 e[AppTables.colAnnee]                 as int,
-      statut:                e[AppTables.colStatut]                as String,
-      descriptionActivites:  e[AppTables.colDescriptionActivites]  as String,
-      nouveauxContacts:      e[AppTables.colNouveauxContacts]      as int,
-      evenementsTenus:       e[AppTables.colEvenementsTenus]       as int,
-      presencesTotal:        e[AppTables.colPresencesTotal]        as int,
-      cotisationsCollectees: (e[AppTables.colCotisationsCollectees] as num).toDouble(),
-      difficultes:           e[AppTables.colDifficultes]           as String?,
-      observationsCoord:     e[AppTables.colObservationsCoord]     as String?,
-      soumisAt:    e[AppTables.colSoumisAt]  != null
-          ? DateTime.parse(e[AppTables.colSoumisAt] as String) : null,
-      valideAt:    e[AppTables.colValideAt]  != null
-          ? DateTime.parse(e[AppTables.colValideAt]  as String) : null,
-      createdAt: DateTime.parse(e[AppTables.colCreatedAt] as String),
-    );
-  }
+  static CompteRendu _fromMap(Map<String, dynamic> e) =>
+      CompteRenduModel.fromJson(e).toEntity();
 }

@@ -87,7 +87,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         ...admin,
         AppTables.colEmail:                    email,
         AppTables.colRole:                     AppRoles.adminTechnique,
-        AppTables.colUniteOrganisationnelleId: null,
+        AppTables.colUniteId: null,
       });
     }
 

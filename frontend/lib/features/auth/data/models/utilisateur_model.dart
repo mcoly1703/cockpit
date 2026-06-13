@@ -27,7 +27,7 @@ class UtilisateurModel {
       nom:                      json[AppTables.colNom]                      as String,
       prenom:                   json[AppTables.colPrenom]                   as String,
       role:                     json[AppTables.colRole]                     as String,
-      uniteOrganisationnelleId: json[AppTables.colUniteOrganisationnelleId] as String?,
+      uniteOrganisationnelleId: json[AppTables.colUniteId] as String?,
       entite:                   json[AppTables.colEntite]                   as String?,
     );
   }

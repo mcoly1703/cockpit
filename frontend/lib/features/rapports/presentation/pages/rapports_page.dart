@@ -253,7 +253,7 @@ class _SelecteurReunion extends ConsumerWidget {
 
     return state.maybeWhen(
       charge: (_) {
-        final reunions = state.passees..addAll(state.aVenir);
+        final reunions = state.toutes;
         if (reunions.isEmpty) {
           return const Text('Aucune réunion disponible',
               style: TextStyle(fontSize: 13, color: AppColors.text2));
@@ -296,7 +296,7 @@ class _SelecteurEvenement extends ConsumerWidget {
 
     return state.maybeWhen(
       charge: (_) {
-        final evs = [...state.passes, ...state.aVenir];
+        final evs = state.tous;
         if (evs.isEmpty) {
           return const Text('Aucun événement disponible',
               style: TextStyle(fontSize: 13, color: AppColors.text2));
@@ -309,7 +309,7 @@ class _SelecteurEvenement extends ConsumerWidget {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             filled: true, fillColor: AppColors.card,
           ),
-          items: evs.map((e) => DropdownMenuItem(
+          items: evs.map((e) => DropdownMenuItem<String>(
             value: e.id,
             child: Text('${DateFormat('dd/MM/yy', 'fr').format(e.dateDebut)} — ${e.titre}',
                 overflow: TextOverflow.ellipsis),

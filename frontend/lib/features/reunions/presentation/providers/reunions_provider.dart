@@ -28,14 +28,21 @@ class ReunionsState with _$ReunionsState {
   const factory ReunionsState.charge({required List<Reunion> reunions}) = _Charge;
   const factory ReunionsState.erreur({required Failure failure})      = _Erreur;
 
+  List<Reunion> get toutes => maybeWhen(
+        charge: (r) => List<Reunion>.from(r)
+          ..sort((a, b) => b.date.compareTo(a.date)),
+        orElse: () => [],
+      );
+
   List<Reunion> get aVenir => maybeWhen(
         charge: (r) => r.where((re) => re.date.isAfter(DateTime.now())).toList()
           ..sort((a, b) => a.date.compareTo(b.date)),
         orElse: () => [],
       );
 
-  List<Reunion> get passees => maybeWhen(
-        charge: (r) => r.where((re) => !re.date.isAfter(DateTime.now())).toList(),
+  List<Reunion> get terminees => maybeWhen(
+        charge: (r) => r.where((re) => !re.date.isAfter(DateTime.now())).toList()
+          ..sort((a, b) => b.date.compareTo(a.date)),
         orElse: () => [],
       );
 

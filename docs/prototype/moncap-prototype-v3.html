@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cockpit — Moncap Diaspora Authentique</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  /* Moncap : Bleu nuit + Or + Blanc */
+  --v:#0A2463;--v2:#1E3A8A;--vb:#EEF2FF;
+  --or:#C8950A;--ob:#FFF8E1;--or2:#E8A820;
+  --r:#8B0000;--rb:#F5E8E8;
+  --g:#1B4D1B;--gb:#E8F4EC;
+  --bg:#F4F6FA;--card:#fff;--bd:#DDE2EE;
+  --t:#0A0E1A;--t2:#4A5480;--t3:#8A90B0;
+  --nh:64px;--th:60px;
+  --sh:0 2px 12px rgba(10,36,99,.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:'Sora',sans-serif;background:#060D1F;overflow:hidden;color:var(--t)}
+
+/* LOGIN */
+#LS{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#040810,#0A2463 50%,#1E3A8A);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;transition:opacity .3s}
+.ll{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;color:#fff;text-align:center;letter-spacing:.06em}
+.ll-sub{font-size:.82rem;color:var(--or2);font-weight:600;letter-spacing:.15em;text-transform:uppercase;margin:4px 0 6px;text-align:center}
+.ll-tag{font-size:.62rem;color:rgba(255,255,255,.5);letter-spacing:.2em;text-transform:uppercase;margin-bottom:28px;text-align:center}
+.lbox{background:#fff;border-radius:22px;padding:20px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.lbox h2{font-size:.88rem;font-weight:700;margin-bottom:2px;color:var(--t)}
+.lbox p{font-size:.68rem;color:var(--t2);margin-bottom:14px}
+.plist{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.pb{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:12px;border:2px solid var(--bd);background:#fff;cursor:pointer;text-align:left;transition:all .15s;width:100%}
+.pb:hover,.pb.sel{border-color:var(--v);background:var(--vb)}
+.pav{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.pn{font-size:.8rem;font-weight:700;color:var(--t);display:block}
+.pr{font-size:.6rem;color:var(--t2);display:block}
+.bgo{width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--v),var(--v2));color:#fff;font-family:'Sora',sans-serif;font-size:.86rem;font-weight:700;border:none;cursor:pointer;transition:opacity .15s}
+.bgo:disabled{opacity:.35;cursor:not-allowed}
+.bgo:not(:disabled):active{opacity:.8}
+
+/* APP */
+#app{display:none;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;background:var(--bg);box-shadow:0 0 80px rgba(0,0,0,.4)}
+
+/* TOPBAR */
+#TB{height:var(--th);background:linear-gradient(135deg,var(--v),var(--v2));display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;z-index:10}
+.tblo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:.04em}
+.tbsu{font-size:.52rem;color:var(--or2);text-transform:uppercase;letter-spacing:.12em;font-weight:600}
+.tbr{display:flex;align-items:center;gap:8px}
+.tbbt{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;position:relative}
+.nd{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--or2);border:2px solid var(--v)}
+.av{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;cursor:pointer}
+
+/* ROLE BANNER */
+#RB{background:var(--or);padding:5px 14px;font-size:.62rem;color:#fff;display:flex;align-items:center;gap:6px;flex-shrink:0;font-weight:600}
+.rbp{background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;font-size:.58rem}
+
+/* PAGES */
+#PG{flex:1;overflow:hidden;position:relative}
+.pg{position:absolute;inset:0;overflow-y:auto;padding:13px 13px 76px;display:none}
+.pg.act{display:block;animation:fu .18s ease}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pg::-webkit-scrollbar{width:3px}.pg::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+
+/* BOTTOM NAV */
+#BN{height:var(--nh);background:var(--card);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;box-shadow:0 -4px 20px rgba(10,36,99,.08);z-index:10}
+.ni{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:6px 0;border:none;background:none;position:relative}
+.ni-ic{font-size:1.2rem;transition:transform .15s}
+.ni-lb{font-size:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--t3)}
+.ni.act .ni-lb{color:var(--v)}.ni.act .ni-ic{transform:scale(1.1)}
+.ni.act::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:3px;background:linear-gradient(90deg,var(--v),var(--or));border-radius:0 0 4px 4px}
+
+/* CARDS */
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:11px;box-shadow:var(--sh)}
+.ct{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
+.ct a{font-size:.68rem;font-weight:600;color:var(--v);cursor:pointer;text-transform:none;letter-spacing:0}
+
+/* KPI GRID */
+.kg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.kpi{border-radius:13px;padding:13px;position:relative;overflow:hidden;cursor:pointer}
+.kpi.b{background:linear-gradient(135deg,#0A2463,#1E3A8A)}
+.kpi.o{background:linear-gradient(135deg,#C8950A,#E8A820)}
+.kpi.g{background:linear-gradient(135deg,#1B4D1B,#2D6E2D)}
+.kpi.r{background:linear-gradient(135deg,#8B0000,#A52020)}
+.kpi.vi{background:linear-gradient(135deg,#5B2D8B,#7c3aed)}
+.kpi.tl{background:linear-gradient(135deg,#0D7377,#14A7AB)}
+.kv{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:900;color:#fff;line-height:1}
+.kl{font-size:.56rem;font-weight:500;color:rgba(255,255,255,.8);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+.kt{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.9);margin-top:5px}
+.kb{position:absolute;right:-6px;bottom:-6px;font-size:2.8rem;opacity:.15}
+
+/* WELCOME */
+.wl{background:linear-gradient(135deg,#0A2463,#1E3A8A);border-radius:14px;padding:15px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden}
+.wl::after{content:'★';position:absolute;right:-10px;top:-10px;font-size:5rem;opacity:.05}
+.wl-tag{font-size:.6rem;color:var(--or2);font-weight:700;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px}
+.wn{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900}
+.wr{font-size:.64rem;opacity:.7;margin-top:1px}
+.wd{font-size:.6rem;opacity:.6;margin-top:6px}
+
+/* COMMISSION CARD */
+.cc{background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);cursor:pointer;border-left:4px solid var(--v);transition:transform .1s}
+.cc:active{transform:scale(.98)}
+.cc-title{font-size:.84rem;font-weight:700;color:var(--t)}
+.cc-meta{font-size:.68rem;color:var(--t2);margin-top:3px}
+.cc-footer{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;align-items:center}
+
+/* BLOC THEMATIQUE */
+.bloc-hdr{background:linear-gradient(135deg,var(--v),var(--v2));color:#fff;padding:8px 12px;border-radius:10px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+
+/* TRAVAUX */
+.travail-card{background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);cursor:pointer}
+.trav-title{font-size:.84rem;font-weight:700;color:var(--t)}
+.trav-meta{font-size:.68rem;color:var(--t2);margin-top:3px}
+.trav-footer{display:flex;gap:6px;margin-top:9px;align-items:center;flex-wrap:wrap}
+
+/* MEMBRES */
+.membre-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
+.membre-row:last-child{border-bottom:none}
+.m-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.m-info{flex:1}
+.m-name{font-size:.8rem;font-weight:600;color:var(--t)}
+.m-exp{font-size:.65rem;color:var(--t2);margin-top:1px}
+
+/* DOCS */
+.doc-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.doc-row:last-child{border-bottom:none}
+.doc-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+
+/* STAT ROW */
+.sr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bd)}
+.sr:last-child{border-bottom:none}
+.sl{font-size:.74rem;color:var(--t2)}.sv{font-size:.78rem;font-weight:700;color:var(--t)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 7px;border-radius:6px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.bb{background:var(--vb);color:var(--v)}
+.bo{background:var(--ob);color:var(--or)}
+.bg{background:var(--gb);color:var(--g)}
+.br{background:var(--rb);color:var(--r)}
+.bx{background:#f0f0f0;color:#666}
+.bvi{background:#f5f0ff;color:#5B2D8B}
+
+/* PILLS */
+.pills{display:flex;gap:5px;margin-bottom:13px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.pill{padding:5px 13px;border-radius:20px;font-size:.66rem;font-weight:600;cursor:pointer;white-space:nowrap;border:none;background:var(--bd);color:var(--t2);transition:all .15s}
+.pill.act{background:var(--v);color:#fff}
+
+/* LIST */
+.li{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.li:last-child{border-bottom:none;padding-bottom:0}
+.la{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.lm{flex:1;min-width:0}
+.ln{font-size:.82rem;font-weight:600;color:var(--t)}
+.ls2{font-size:.67rem;color:var(--t2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr{text-align:right;flex-shrink:0}
+
+/* FORM */
+.fg{margin-bottom:13px}
+.fl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);margin-bottom:5px;display:block}
+.fi{width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:10px;font-family:'Sora',sans-serif;font-size:.82rem;color:var(--t);background:var(--card);outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--v)}
+.fsel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238A90B0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:32px}
+.bp{width:100%;padding:12px;border-radius:11px;background:var(--v);color:#fff;font-family:'Sora',sans-serif;font-size:.86rem;font-weight:700;border:none;cursor:pointer;margin-bottom:8px;transition:opacity .15s}
+.bp:active{opacity:.85}
+.bp-or{background:var(--or)}
+.bp-g{background:var(--g)}
+.bp-dk{background:#555}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;align-items:flex-end;justify-content:center;max-width:430px;margin:0 auto;left:50%;transform:translateX(-50%)}
+.ov.open{display:flex}
+.sh3{background:var(--card);border-radius:20px 20px 0 0;padding:18px 18px 36px;width:100%;max-height:90vh;overflow-y:auto;animation:su .22s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh3::-webkit-scrollbar{width:3px}
+.hd{width:34px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 14px}
+.st{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:var(--t);margin-bottom:14px}
+
+/* SECTION HEADER */
+.sh2{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.sh2 h1{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--t)}
+.bk{background:none;border:none;font-size:1.1rem;cursor:pointer;padding:4px;color:var(--t2)}
+.ph{margin-bottom:14px}
+.ph h1{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--t)}
+.ph p{font-size:.72rem;color:var(--t2);margin-top:2px}
+.cw{position:relative;height:170px}
+
+/* PROGRESS */
+.pt{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:4px}
+.pf{height:100%;border-radius:3px;transition:width 1.2s ease}
+.pt2{height:5px;background:var(--bd);border-radius:3px;overflow:hidden;margin-top:3px}
+.pf2{height:100%;border-radius:3px}
+
+/* ALERTS */
+.al{border-radius:11px;padding:11px 13px;margin-bottom:9px;display:flex;gap:9px;align-items:flex-start}
+.al-o{background:var(--ob);border-left:3px solid var(--or)}
+.al-b{background:var(--vb);border-left:3px solid var(--v)}
+.al-g{background:var(--gb);border-left:3px solid var(--g)}
+.al-ic{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.al-t{font-size:.74rem;color:var(--t);font-weight:500}
+.al-s{font-size:.64rem;color:var(--t2);margin-top:2px}
+
+/* GRID 2 */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.mc2{background:var(--card);border-radius:13px;padding:14px 10px;text-align:center;cursor:pointer;box-shadow:var(--sh);transition:transform .1s}
+.mc2:active{transform:scale(.97)}
+
+/* VISIBILITE */
+.vis-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.6rem;font-weight:700}
+.vis-int{background:#f0f4ff;color:var(--v)}
+.vis-mc{background:var(--ob);color:var(--or)}
+.vis-pub{background:var(--gb);color:var(--g)}
+
+/* STATS COMMISSIONS */
+.comm-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
+.cs{background:var(--bg);border-radius:10px;padding:10px;text-align:center}
+.cs-val{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--v)}
+.cs-lbl{font-size:.58rem;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="LS">
+  <div style="font-size:1.5rem;margin-bottom:4px">🎓</div>
+  <div class="ll">MONCAP</div>
+  <div class="ll-sub">Diaspora Authentique</div>
+  <div class="ll-tag">Cadres patriotes de la diaspora senegalaise</div>
+  <div class="lbox">
+    <h2>Choisir un profil</h2>
+    <p>Prototype demo Moncap — selectionnez votre role</p>
+    <div class="plist">
+      <button class="pb" onclick="selP(this,'bureau')"><div class="pav" style="background:var(--vb)">👑</div><div><span class="pn">Bureau Moncap</span><span class="pr">Coordinateur · Vue globale</span></div></button>
+      <button class="pb" onclick="selP(this,'pole_sci')"><div class="pav" style="background:var(--ob)">🔬</div><div><span class="pn">Pole Scientifique</span><span class="pr">Coordinateur scientifique · Toutes commissions</span></div></button>
+      <button class="pb" onclick="selP(this,'resp_comm')"><div class="pav" style="background:var(--gb)">⚕️</div><div><span class="pn">Resp. Commission Sante</span><span class="pr">Commission Sante et Protection Sociale</span></div></button>
+      <button class="pb" onclick="selP(this,'membre_comm')"><div class="pav" style="background:#f5f0ff)">👤</div><div><span class="pn">Membre Commission</span><span class="pr">Commission Economie, Finances et Budget</span></div></button>
+      <button class="pb" onclick="selP(this,'resp_finance')"><div class="pav" style="background:var(--ob)">💰</div><div><span class="pn">Resp. Pole Finance</span><span class="pr">Gestion financiere Moncap</span></div></button>
+    </div>
+    <button class="bgo" id="btnGo" disabled onclick="enterApp()">Acceder a Cockpit Moncap →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="TB">
+    <div>
+      <div class="tblo">MONCAP <span style="color:var(--or2);font-size:.85rem">✦</span></div>
+      <div class="tbsu" id="tbSub">Diaspora Authentique</div>
+    </div>
+    <div class="tbr">
+      <button class="tbbt" onclick="OS('notif')">🔔<div class="nd"></div></button>
+      <div class="av" id="avLbl" onclick="OS('profil')">BM</div>
+    </div>
+  </div>
+  <div id="RB"><span id="rbRole">Bureau Moncap</span>&nbsp;<span class="rbp" id="rbScope">Vue globale</span></div>
+
+  <div id="PG">
+
+    <!-- DASHBOARD -->
+    <div class="pg act" id="p-dash">
+      <div class="wl">
+        <div class="wl-tag">🎓 Moncap Diaspora Authentique</div>
+        <div class="wn" id="wName">Coordinateur Moncap</div>
+        <div class="wr" id="wRole">Bureau · Vue globale diaspora</div>
+        <div class="wd" id="wDate"></div>
+      </div>
+
+      <div class="kg">
+        <div class="kpi b" onclick="navTo('p-membres',1)"><div class="kv" id="kMem">450</div><div class="kl">Membres</div><div class="kt">+18 ce mois</div><div class="kb">👥</div></div>
+        <div class="kpi o" onclick="navTo('p-commissions',2)"><div class="kv">20</div><div class="kl">Commissions</div><div class="kt">16 actives</div><div class="kb">🔬</div></div>
+        <div class="kpi g" onclick="navTo('p-commissions',2)"><div class="kv" id="kTrav">47</div><div class="kl">Travaux produits</div><div class="kt">Ce trimestre</div><div class="kb">📄</div></div>
+        <div class="kpi r" onclick="navTo('p-finances',3)"><div class="kv">71%</div><div class="kl">Recouvrement</div><div class="kt">Cotisations</div><div class="kb">💰</div></div>
+        <div class="kpi vi" onclick="navTo('p-commissions',2)"><div class="kv">12</div><div class="kl">En cours</div><div class="kt">Travaux actifs</div><div class="kb">✍️</div></div>
+        <div class="kpi tl"><div class="kv">8</div><div class="kl">Pays</div><div class="kt">Diaspora mondiale</div><div class="kb">🌍</div></div>
+      </div>
+
+      <!-- Activite commissions -->
+      <div class="card">
+        <div class="ct">Activite des commissions <a onclick="navTo('p-commissions',2)">Voir →</a></div>
+        <div class="cw"><canvas id="dashChart"></canvas></div>
+      </div>
+
+      <div class="al al-b"><div class="al-ic">📄</div><div><div class="al-t">Commission Sante — Rapport Acces aux soins pret</div><div class="al-s">Finalise · En attente de soumission au parti</div></div></div>
+      <div class="al al-o"><div class="al-ic">⚠️</div><div><div class="al-t">3 commissions sans activite ce mois</div><div class="al-s">Sport · Habitat · Transport</div></div></div>
+      <div class="al al-g"><div class="al-ic">🌍</div><div><div class="al-t">Nouveau membre depuis le Canada</div><div class="al-s">Commission Economie · Expert financier</div></div></div>
+      <div class="al al-o" onclick="navTo('p-plus',4);goTo('p-transmissions')" style="cursor:pointer"><div class="al-ic">📤</div><div><div class="al-t">Demande de consentement en attente</div><div class="al-s">TRANS-2025-0043 · Ministere de l Energie</div></div></div>
+
+      <div class="card">
+        <div class="ct">Derniers travaux <a onclick="navTo('p-commissions',2)">Voir →</a></div>
+        <div class="li" onclick="OS('trav1')">
+          <div class="la" style="background:var(--gb)">📄</div>
+          <div class="lm"><div class="ln">Rapport acces aux soins diaspora</div><div class="ls2">Commission Sante · Dr. Aminata Sow</div></div>
+          <div class="lr"><div class="vis-badge vis-mc">Moncap</div><div style="font-size:.62rem;color:var(--t3);margin-top:3px">Il y a 2j</div></div>
+        </div>
+        <div class="li" onclick="OS('trav1')">
+          <div class="la" style="background:var(--ob)">📊</div>
+          <div class="lm"><div class="ln">Analyse fiscalite diaspora 2025</div><div class="ls2">Commission Economie · Me. Cheikh Tall</div></div>
+          <div class="lr"><div class="vis-badge vis-pub">Partageable</div><div style="font-size:.62rem;color:var(--t3);margin-top:3px">Il y a 5j</div></div>
+        </div>
+        <div class="li" onclick="OS('trav1')">
+          <div class="la" style="background:var(--vb)">📝</div>
+          <div class="lm"><div class="ln">Note de position — Reforme territoriale</div><div class="ls2">Commission Decentralisation · Pr. Omar Ba</div></div>
+          <div class="lr"><div class="vis-badge vis-int">Interne</div><div style="font-size:.62rem;color:var(--t3);margin-top:3px">Il y a 1sem</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Prochains evenements <a onclick="navTo('p-plus',4)">Voir →</a></div>
+        <div class="li" onclick="OS('evt1')">
+          <div class="la" style="background:var(--vb)">🎤</div>
+          <div class="lm"><div class="ln">Webinaire Sante diaspora</div><div class="ls2">Commission Sante · Zoom · 18h00</div></div>
+          <div class="lr"><div style="font-size:.78rem;font-weight:700;color:var(--v)">12 Avr</div></div>
+        </div>
+        <div class="li" onclick="OS('evt1')">
+          <div class="la" style="background:var(--ob)">🏛️</div>
+          <div class="lm"><div class="ln">Reunion Bureau Moncap</div><div class="ls2">Paris 10e · Tous membres bureau</div></div>
+          <div class="lr"><div style="font-size:.78rem;font-weight:700;color:var(--or)">20 Avr</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMBRES -->
+    <div class="pg" id="p-membres">
+      <div class="ph"><h1>Membres</h1><p id="memSub">450 membres · 8 pays · 20 commissions</p></div>
+      <div class="kg">
+        <div class="kpi b"><div class="kv">450</div><div class="kl">Total membres</div><div class="kt">+18 ce mois</div></div>
+        <div class="kpi o"><div class="kv">8</div><div class="kl">Pays</div><div class="kt">Diaspora mondiale</div></div>
+      </div>
+      <div class="card"><div class="ct">Repartition par pays</div>
+        <div class="li"><div class="la" style="font-size:1.2rem">🇫🇷</div><div class="lm"><div class="ln">France</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:82%;background:var(--v)"></div></div></div></div><div class="lr"><div style="font-size:.82rem;font-weight:700">210</div><div style="font-size:.62rem;color:var(--t3)">47%</div></div></div>
+        <div class="li"><div class="la" style="font-size:1.2rem">🇧🇪</div><div class="lm"><div class="ln">Belgique</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:22%;background:var(--or)"></div></div></div></div><div class="lr"><div style="font-size:.82rem;font-weight:700">68</div><div style="font-size:.62rem;color:var(--t3)">15%</div></div></div>
+        <div class="li"><div class="la" style="font-size:1.2rem">🇺🇸</div><div class="lm"><div class="ln">USA</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:18%;background:var(--g)"></div></div></div></div><div class="lr"><div style="font-size:.82rem;font-weight:700">58</div><div style="font-size:.62rem;color:var(--t3)">13%</div></div></div>
+        <div class="li"><div class="la" style="font-size:1.2rem">🇨🇦</div><div class="lm"><div class="ln">Canada</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:12%;background:var(--r)"></div></div></div></div><div class="lr"><div style="font-size:.82rem;font-weight:700">42</div><div style="font-size:.62rem;color:var(--t3)">9%</div></div></div>
+        <div class="li"><div class="la" style="font-size:1.2rem">🌍</div><div class="lm"><div class="ln">Autres pays</div><div style="margin-top:4px"><div class="pt2"><div class="pf2" style="width:16%;background:var(--vi)"></div></div></div></div><div class="lr"><div style="font-size:.82rem;font-weight:700">72</div><div style="font-size:.62rem;color:var(--t3)">16%</div></div></div>
+      </div>
+
+      <!-- Bureau -->
+      <div class="card">
+        <div class="ct">Bureau Moncap</div>
+        <div class="membre-row"><div class="m-av" style="background:var(--vb);color:var(--v)">OS</div><div class="m-info"><div class="m-name">Ousmane Sarr</div><div class="m-exp">Coordinateur · Paris, France</div></div><div class="badge bb">Coord.</div></div>
+        <div class="membre-row"><div class="m-av" style="background:var(--ob);color:var(--or)">AF</div><div class="m-info"><div class="m-name">Aminata Fall</div><div class="m-exp">Coordinatrice Adjointe · Lyon, France</div></div><div class="badge bo">Adj.</div></div>
+        <div class="membre-row"><div class="m-av" style="background:var(--gb);color:var(--g)">CT</div><div class="m-info"><div class="m-name">Cheikh Tall</div><div class="m-exp">Resp. Pole Finance · Bruxelles, Belgique</div></div><div class="badge bg">Finance</div></div>
+        <div class="membre-row"><div class="m-av" style="background:var(--vb);color:var(--v)">MN</div><div class="m-info"><div class="m-name">Marieme Ndiaye</div><div class="m-exp">Resp. Pole Comm. · Paris, France</div></div><div class="badge bb">Comm.</div></div>
+        <div class="membre-row"><div class="m-av" style="background:#f5f0ff;color:#5B2D8B">PO</div><div class="m-info"><div class="m-name">Pr. Omar Ba</div><div class="m-exp">Resp. Pole Scientifique · Montreal, Canada</div></div><div class="badge bvi">Scientifique</div></div>
+      </div>
+
+      <button class="bp" onclick="OS('newMembre')">+ Ajouter un membre</button>
+    </div>
+
+    <!-- COMMISSIONS -->
+    <div class="pg" id="p-commissions">
+      <div class="ph"><h1>Commissions</h1><p>20 commissions · Bras intellectuel de Moncap</p></div>
+
+      <div class="comm-stats">
+        <div class="cs"><div class="cs-val">20</div><div class="cs-lbl">Total</div></div>
+        <div class="cs"><div class="cs-val">16</div><div class="cs-lbl">Actives</div></div>
+        <div class="cs"><div class="cs-val">47</div><div class="cs-lbl">Travaux</div></div>
+      </div>
+
+      <div class="pills">
+        <div class="pill act" onclick="setPill(this)">Toutes</div>
+        <div class="pill" onclick="setPill(this)">Actives</div>
+        <div class="pill" onclick="setPill(this)">Gouvernance</div>
+        <div class="pill" onclick="setPill(this)">Economie</div>
+        <div class="pill" onclick="setPill(this)">Social</div>
+        <div class="pill" onclick="setPill(this)">Science</div>
+      </div>
+
+      <!-- BLOC GOUVERNANCE -->
+      <div class="bloc-hdr">🏛️ Gouvernance &amp; Institutions</div>
+      <div class="cc" onclick="OS('comm1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Decentralisation &amp; Reforme Territoriale</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">12 membres · Resp : Pr. Oumar Ba</div>
+        <div class="cc-footer"><span class="badge bo">3 travaux</span><span class="badge bx">2 en cours</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 3j</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--or)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Affaires Etrangeres et Panafricanisme</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">8 membres · Resp : Ibrahima Diallo</div>
+        <div class="cc-footer"><span class="badge bo">1 travail</span><span class="badge bx">1 en cours</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 1sem</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--r)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Defense et Securite</div><div class="badge bx">Peu active</div></div>
+        <div class="cc-meta">5 membres · Resp : Col. Mamadou Seck</div>
+        <div class="cc-footer"><span class="badge bx">0 travail</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 3sem</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Justice et Questions Juridiques</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">9 membres · Resp : Me. Awa Mbaye</div>
+        <div class="cc-footer"><span class="badge bo">2 travaux</span><span class="badge bx">1 en cours</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--or)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Bonne Gouvernance, Patriotisme et Citoyennete</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">11 membres · Resp : Lamine Sarr</div>
+        <div class="cc-footer"><span class="badge bo">2 travaux</span><span class="badge bx">1 en cours</span></div>
+      </div>
+
+      <!-- BLOC ECONOMIE -->
+      <div class="bloc-hdr">💼 Economie &amp; Finances</div>
+      <div class="cc" onclick="OS('comm2')" style="border-left-color:var(--or)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Economie, Finances Publiques et Budget</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">18 membres · Resp : Me. Cheikh Tall</div>
+        <div class="cc-footer"><span class="badge bo">6 travaux</span><span class="badge bx">3 en cours</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 1j</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--or)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Commerce, Entrepreneuriat et PME</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">14 membres · Resp : Fatou Ndiaye</div>
+        <div class="cc-footer"><span class="badge bo">4 travaux</span><span class="badge bx">2 en cours</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Industrie, Mines et Carrieres</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">10 membres · Resp : Ibou Diop</div>
+        <div class="cc-footer"><span class="badge bo">2 travaux</span><span class="badge bx">1 en cours</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--r)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Travail, Emploi et Fonction Publique</div><div class="badge bx">Peu active</div></div>
+        <div class="cc-meta">7 membres · Resp : Seydou Ba</div>
+        <div class="cc-footer"><span class="badge bx">1 travail</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 2sem</span></div>
+      </div>
+
+      <!-- BLOC INFRASTRUCTURE -->
+      <div class="bloc-hdr">🏗️ Infrastructure &amp; Environnement</div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--r)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Transport et Infrastructures</div><div class="badge bx">Peu active</div></div>
+        <div class="cc-meta">6 membres · Resp : Omar Ndiaye</div>
+        <div class="cc-footer"><span class="badge bx">0 travail</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 1mois</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--r)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Habitat et Amenagement du Territoire</div><div class="badge bx">Peu active</div></div>
+        <div class="cc-meta">5 membres · Resp : Aminata Gueye</div>
+        <div class="cc-footer"><span class="badge bx">0 travail</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 3sem</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Energie et Hydraulique</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">13 membres · Resp : Dr. Moussa Sy</div>
+        <div class="cc-footer"><span class="badge bo">3 travaux</span><span class="badge bx">2 en cours</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--g)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Environnement et Cadre de Vie</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">11 membres · Resp : Ndaye Camara</div>
+        <div class="cc-footer"><span class="badge bo">2 travaux</span><span class="badge bx">1 en cours</span></div>
+      </div>
+
+      <!-- BLOC SOCIAL -->
+      <div class="bloc-hdr">🏥 Social &amp; Humain</div>
+      <div class="cc" onclick="OS('commSante')" style="border-left-color:var(--g)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Sante et Protection Sociale</div><div class="badge bg">Tres active</div></div>
+        <div class="cc-meta">22 membres · Resp : Dr. Aminata Sow</div>
+        <div class="cc-footer"><span class="badge bo">8 travaux</span><span class="badge bx">4 en cours</span><span style="font-size:.62rem;color:var(--g);font-weight:700;margin-left:auto">1 rapport pret</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Education Nationale</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">16 membres · Resp : Pr. Aissatou Fall</div>
+        <div class="cc-footer"><span class="badge bo">5 travaux</span><span class="badge bx">2 en cours</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--or)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Enseignement Superieur et Formation Professionnelle</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">14 membres · Resp : Pr. Babacar Lo</div>
+        <div class="cc-footer"><span class="badge bo">4 travaux</span><span class="badge bx">2 en cours</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:var(--r)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Sport</div><div class="badge bx">Peu active</div></div>
+        <div class="cc-meta">8 membres · Resp : Ibrahima Seck</div>
+        <div class="cc-footer"><span class="badge bx">1 travail</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 1mois</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Culture, Tourisme et Artisanat</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">10 membres · Resp : Mariama Diallo</div>
+        <div class="cc-footer"><span class="badge bo">2 travaux</span><span class="badge bx">1 en cours</span></div>
+      </div>
+
+      <!-- BLOC SCIENCE -->
+      <div class="bloc-hdr">🔬 Science &amp; Innovation</div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:#5B2D8B">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Recherche Scientifique et Technologique</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">20 membres · Resp : Dr. Ibou Sarr</div>
+        <div class="cc-footer"><span class="badge bo">4 travaux</span><span class="badge bx">3 en cours</span></div>
+      </div>
+      <div class="cc" onclick="OS('comm1')" style="border-left-color:#5B2D8B">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="cc-title">Agriculture, Elevage et Peche</div><div class="badge bb">Active</div></div>
+        <div class="cc-meta">15 membres · Resp : Cheikh Ndiaye</div>
+        <div class="cc-footer"><span class="badge bo">3 travaux</span><span class="badge bx">2 en cours</span></div>
+      </div>
+
+      <button class="bp bp-or" onclick="OS('newComm')" style="margin-top:4px">+ Nouvelle commission</button>
+    </div>
+
+    <!-- FINANCES -->
+    <div class="pg" id="p-finances">
+      <div class="ph"><h1>Finances</h1><p>Moncap Diaspora · 2025</p></div>
+      <!-- Recouvrement -->
+      <div style="background:linear-gradient(135deg,var(--v),var(--v2));border-radius:14px;padding:14px;margin-bottom:11px;color:#fff">
+        <div style="font-size:.66rem;opacity:.8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Taux de recouvrement</div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between">
+          <div style="font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900">71%</div>
+          <div style="font-size:.7rem;opacity:.85;text-align:right"><div>320 / 450 membres</div><div style="opacity:.7;margin-top:2px">Objectif : 80%</div></div>
+        </div>
+        <div style="height:8px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden;margin-top:10px"><div style="height:100%;width:71%;background:#fff;border-radius:4px"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:.62rem;opacity:.75;margin-top:6px"><span>A jour : 320</span><span>En retard : 80</span><span>Inactif : 50</span></div>
+      </div>
+      <div class="kg">
+        <div class="kpi b"><div class="kv">18 400€</div><div class="kl">Entrees</div><div class="kt">Cumul 2025</div><div class="kb">📈</div></div>
+        <div class="kpi r"><div class="kv">6 200€</div><div class="kl">Depenses</div><div class="kt">Cumul 2025</div><div class="kb">📉</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--v)">
+        <div style="font-size:.7rem;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Solde global</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--v)">12 200 €</div>
+      </div>
+      <div class="card"><div class="ct">Entrees</div>
+        <div class="sr"><span class="sl">💳 Cotisations membres</span><span class="sv" style="color:var(--v)">14 400€</span></div>
+        <div class="sr"><span class="sl">🎁 Dons</span><span class="sv" style="color:var(--v)">2 800€</span></div>
+        <div class="sr"><span class="sl">📅 Evenements</span><span class="sv" style="color:var(--v)">1 200€</span></div>
+      </div>
+      <div class="card"><div class="ct">Depenses</div>
+        <div class="sr"><span class="sl">🎤 Webinaires & evenements</span><span class="sv" style="color:var(--r)">2 800€</span></div>
+        <div class="sr"><span class="sl">📢 Communication</span><span class="sv" style="color:var(--r)">1 400€</span></div>
+        <div class="sr"><span class="sl">📋 Frais admin</span><span class="sv" style="color:var(--r)">1 000€</span></div>
+        <div class="sr"><span class="sl">🔬 Travaux commissions</span><span class="sv" style="color:var(--r)">1 000€</span></div>
+      </div>
+      <button class="bp" onclick="OS('newTrans')">+ Nouvelle transaction</button>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="pg" id="p-docs">
+      <div class="ph"><h1>Base Documentaire</h1><p>Travaux et references Moncap</p></div>
+      <div class="pills">
+        <div class="pill act" onclick="setPill(this)">Tous</div>
+        <div class="pill" onclick="setPill(this)">Rapports</div>
+        <div class="pill" onclick="setPill(this)">Notes</div>
+        <div class="pill" onclick="setPill(this)">Propositions</div>
+        <div class="pill" onclick="setPill(this)">References</div>
+        <div class="pill" onclick="setPill(this)">Partageables</div>
+      </div>
+
+      <!-- Stats docs -->
+      <div class="comm-stats" style="margin-bottom:13px">
+        <div class="cs"><div class="cs-val">127</div><div class="cs-lbl">Total docs</div></div>
+        <div class="cs"><div class="cs-val">34</div><div class="cs-lbl">Partageables</div></div>
+        <div class="cs"><div class="cs-val">12</div><div class="cs-lbl">Ce mois</div></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Travaux recents</div>
+        <div class="doc-row" onclick="OS('doc1')">
+          <div class="doc-ic" style="background:var(--gb)">📄</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600">Rapport acces aux soins diaspora</div>
+            <div style="font-size:.65rem;color:var(--t2)">Commission Sante · Dr. Aminata Sow · PDF</div>
+          </div>
+          <div class="vis-badge vis-mc">Moncap</div>
+        </div>
+        <div class="doc-row" onclick="OS('doc1')">
+          <div class="doc-ic" style="background:var(--ob)">📊</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600">Analyse fiscalite diaspora 2025</div>
+            <div style="font-size:.65rem;color:var(--t2)">Commission Economie · Me. Cheikh Tall · Excel</div>
+          </div>
+          <div class="vis-badge vis-pub">Partageable</div>
+        </div>
+        <div class="doc-row" onclick="OS('doc1')">
+          <div class="doc-ic" style="background:var(--vb)">📝</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600">Note — Reforme territoriale Senegal</div>
+            <div style="font-size:.65rem;color:var(--t2)">Commission Decentralisation · Word</div>
+          </div>
+          <div class="vis-badge vis-int">Interne</div>
+        </div>
+        <div class="doc-row" onclick="OS('doc1')">
+          <div class="doc-ic" style="background:#f5f0ff">🎯</div>
+          <div style="flex:1">
+            <div style="font-size:.8rem;font-weight:600">Propositions programme sante 2025-2030</div>
+            <div style="font-size:.65rem;color:var(--t2)">Commission Sante · PowerPoint</div>
+          </div>
+          <div class="vis-badge vis-pub">Partageable</div>
+        </div>
+      </div>
+
+      <button class="bp" onclick="OS('newDoc')">+ Ajouter un document</button>
+    </div>
+
+    <!-- PLUS -->
+    <div class="pg" id="p-plus">
+      <div class="ph"><h1>Modules</h1><p>Tous les outils Moncap</p></div>
+      <div class="g2">
+        <div class="mc2" onclick="goTo('p-evts')"><div style="font-size:2rem;margin-bottom:7px">📅</div><div style="font-size:.78rem;font-weight:700">Evenements</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Webinaires & reunions</div></div>
+        <div class="mc2" onclick="goTo('p-reunions')"><div style="font-size:2rem;margin-bottom:7px">🏛️</div><div style="font-size:.78rem;font-weight:700">Reunions</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Bureau & commissions</div></div>
+        <div class="mc2" onclick="goTo('p-travaux')"><div style="font-size:2rem;margin-bottom:7px">📄</div><div style="font-size:.78rem;font-weight:700">Travaux</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Productions intellectuelles</div></div>
+        <div class="mc2" onclick="goTo('p-docs')"><div style="font-size:2rem;margin-bottom:7px">📁</div><div style="font-size:.78rem;font-weight:700">Documents</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Base documentaire</div></div>
+        <div class="mc2" onclick="goTo('p-matrice')"><div style="font-size:2rem;margin-bottom:7px">🧠</div><div style="font-size:.78rem;font-weight:700">Competences</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Matrice experts</div></div>
+        <div class="mc2" onclick="goTo('p-transmissions')"><div style="font-size:2rem;margin-bottom:7px">📤</div><div style="font-size:.78rem;font-weight:700">Transmissions</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Autorites · Transparence</div></div>
+        <div class="mc2" onclick="goTo('p-rapports')"><div style="font-size:2rem;margin-bottom:7px">📑</div><div style="font-size:.78rem;font-weight:700">Rapports</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">PDF · Export</div></div>
+        <div class="mc2" onclick="OS('scanQuick')"><div style="font-size:2rem;margin-bottom:7px">📷</div><div style="font-size:.78rem;font-weight:700">Scan carte</div><div style="font-size:.62rem;color:var(--t2);margin-top:2px">Verification membre</div></div>
+      </div>
+
+      <!-- Pole scientifique -->
+      <div class="card">
+        <div class="ct">Pole Scientifique <span style="color:var(--v);font-size:.62rem">Coordinateur : Pr. Omar Ba</span></div>
+        <div style="font-size:.74rem;color:var(--t2);margin-bottom:12px">Le pole scientifique coordonne les 20 commissions et centralise les travaux intellectuels destines au parti.</div>
+        <div class="sr"><span class="sl">Commissions actives</span><span class="sv">16 / 20</span></div>
+        <div class="sr"><span class="sl">Travaux finalises ce trim.</span><span class="sv" style="color:var(--v)">47</span></div>
+        <div class="sr"><span class="sl">Travaux en cours</span><span class="sv">12</span></div>
+        <div class="sr"><span class="sl">Prets pour soumission</span><span class="sv" style="color:var(--or);font-weight:700">3</span></div>
+        <button class="bp bp-or" style="margin-top:12px" onclick="OS('soumission')">📤 Soumettre au parti</button>
+      </div>
+    </div>
+
+    <!-- TRAVAUX -->
+    <div class="pg" id="p-travaux">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Travaux</h1></div>
+      <div class="pills">
+        <div class="pill act" onclick="setPill(this)">Tous</div>
+        <div class="pill" onclick="setPill(this)">En cours</div>
+        <div class="pill" onclick="setPill(this)">Finalises</div>
+        <div class="pill" onclick="setPill(this)">Soumis au parti</div>
+      </div>
+      <div class="comm-stats" style="margin-bottom:13px">
+        <div class="cs"><div class="cs-val">47</div><div class="cs-lbl">Finalises</div></div>
+        <div class="cs"><div class="cs-val">12</div><div class="cs-lbl">En cours</div></div>
+        <div class="cs"><div class="cs-val">3</div><div class="cs-lbl">A soumettre</div></div>
+      </div>
+      <div class="travail-card" onclick="OS('trav1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="trav-title">Rapport acces aux soins diaspora senegalaise</div>
+          <div class="vis-badge vis-mc">Moncap</div>
+        </div>
+        <div class="trav-meta">Commission Sante · Dr. Aminata Sow · PDF · 28 pages</div>
+        <div class="trav-footer"><div class="badge bg">Finalise</div><span class="badge bo">Sante</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 2 jours</span></div>
+      </div>
+      <div class="travail-card" onclick="OS('trav1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="trav-title">Analyse fiscalite et droits des travailleurs diaspora 2025</div>
+          <div class="vis-badge vis-pub">Partageable</div>
+        </div>
+        <div class="trav-meta">Commission Economie · Me. Cheikh Tall · Excel + PDF · 3 auteurs</div>
+        <div class="trav-footer"><div class="badge bg">Finalise</div><span class="badge bo">Economie</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Il y a 5 jours</span></div>
+      </div>
+      <div class="travail-card" onclick="OS('trav1')" style="border-left:3px solid var(--or)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="trav-title">Note de position — Reforme de la decentralisation</div>
+          <div class="vis-badge vis-int">Interne</div>
+        </div>
+        <div class="trav-meta">Commission Decentralisation · Pr. Omar Ba · Word · En cours</div>
+        <div class="trav-footer"><div class="badge bx">En cours</div><span class="badge bb">Decentralisation</span><span style="font-size:.62rem;color:var(--t3);margin-left:auto">Mis a jour hier</span></div>
+      </div>
+      <button class="bp" onclick="OS('newTravail')">+ Nouveau travail</button>
+    </div>
+
+    <!-- EVENEMENTS -->
+    <div class="pg" id="p-evts">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Evenements</h1></div>
+      <div style="background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);display:flex;gap:11px;cursor:pointer" onclick="OS('evt1')">
+        <div style="width:44px;border-radius:9px;background:var(--vb);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;padding:6px 0"><div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--v);line-height:1">12</div><div style="font-size:.58rem;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.06em">Avr</div></div>
+        <div style="flex:1"><div style="font-size:.85rem;font-weight:700;color:var(--t)">Webinaire — Sante diaspora</div><div style="font-size:.68rem;color:var(--t2);margin-top:2px">Zoom · 18h00 · Commission Sante</div><div style="display:flex;gap:5px;margin-top:7px"><span class="badge bb">Webinaire</span><span class="badge bo">120 inscrits</span><span class="badge bx">QR actif</span></div></div>
+      </div>
+      <div style="background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);display:flex;gap:11px;cursor:pointer" onclick="OS('evt1')">
+        <div style="width:44px;border-radius:9px;background:var(--ob);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;padding:6px 0"><div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--or);line-height:1">20</div><div style="font-size:.58rem;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.06em">Avr</div></div>
+        <div style="flex:1"><div style="font-size:.85rem;font-weight:700;color:var(--t)">Reunion Bureau Moncap</div><div style="font-size:.68rem;color:var(--t2);margin-top:2px">Paris 10e · 14h00 · Tous membres bureau</div><div style="display:flex;gap:5px;margin-top:7px"><span class="badge bg">Reunion</span><span class="badge bx">8 membres</span></div></div>
+      </div>
+      <button class="bp" onclick="OS('newEvt')">+ Creer un evenement</button>
+    </div>
+
+    <!-- REUNIONS -->
+    <div class="pg" id="p-reunions">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Reunions</h1></div>
+      <div style="background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);border-left:4px solid var(--v);cursor:pointer" onclick="OS('reun1')">
+        <div style="display:flex;justify-content:space-between"><div style="font-size:.86rem;font-weight:700">Bureau Moncap</div><div class="badge bg">Cloturee</div></div>
+        <div style="font-size:.68rem;color:var(--t2);margin-top:2px">15 Mars 2025 · Paris · 8 membres</div>
+        <div style="display:flex;gap:5px;margin-top:8px"><span class="badge bo">3 decisions</span><span class="badge bb">PV dispo</span></div>
+      </div>
+      <div style="background:var(--card);border-radius:13px;padding:13px;margin-bottom:9px;box-shadow:var(--sh);border-left:4px solid var(--or);cursor:pointer" onclick="OS('reun1')">
+        <div style="display:flex;justify-content:space-between"><div style="font-size:.86rem;font-weight:700">Commission Sante</div><div class="badge bg">Cloturee</div></div>
+        <div style="font-size:.68rem;color:var(--t2);margin-top:2px">20 Mars 2025 · Zoom · 14 membres</div>
+        <div style="display:flex;gap:5px;margin-top:8px"><span class="badge bo">2 decisions</span><span class="badge bx">Rapport finalise</span></div>
+      </div>
+      <button class="bp" onclick="OS('newReun')">+ Creer une reunion</button>
+    </div>
+
+    <!-- RAPPORTS -->
+    <div class="pg" id="p-rapports">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Rapports PDF</h1></div>
+      <div class="card" style="border-left:4px solid var(--v);cursor:pointer" onclick="OS('rptComm')">
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:12px;background:var(--vb);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">🔬</div><div style="flex:1"><div style="font-size:.86rem;font-weight:700">Bilan commissions</div><div style="font-size:.7rem;color:var(--t2);margin-top:2px">Activite · Travaux produits · Par commission</div></div><div style="font-size:1rem;color:var(--t3)">›</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--or);cursor:pointer" onclick="OS('rptComm')">
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:12px;background:var(--ob);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">💰</div><div style="flex:1"><div style="font-size:.86rem;font-weight:700">Rapport financier</div><div style="font-size:.7rem;color:var(--t2);margin-top:2px">Cotisations · Depenses · Recouvrement</div></div><div style="font-size:1rem;color:var(--t3)">›</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--g);cursor:pointer" onclick="OS('rptComm')">
+        <div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:12px;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">📄</div><div style="flex:1"><div style="font-size:.86rem;font-weight:700">Travaux a soumettre au parti</div><div style="font-size:.7rem;color:var(--t2);margin-top:2px">Compilation des travaux finalises prets</div></div><div style="font-size:1rem;color:var(--t3)">›</div></div>
+      </div>
+    </div>
+
+  </div>
+
+
+    <!-- MATRICE COMPETENCES -->
+    <div class="pg" id="p-matrice">
+      <div class="ph"><h1>Competences</h1><p>Cartographie des expertises Moncap</p></div>
+
+      <div class="comm-stats" style="margin-bottom:13px">
+        <div class="cs"><div class="cs-val">450</div><div class="cs-lbl">Membres</div></div>
+        <div class="cs"><div class="cs-val">38</div><div class="cs-lbl">Domaines</div></div>
+        <div class="cs"><div class="cs-val" style="color:var(--r)">6</div><div class="cs-lbl">Manques</div></div>
+      </div>
+
+      <div class="pills" id="matPills">
+        <button class="pill act" onclick="matTab(this,'mat-global')">Vue globale</button>
+        <button class="pill" onclick="matTab(this,'mat-commission')">Par commission</button>
+        <button class="pill" onclick="matTab(this,'mat-manques')">Manques</button>
+        <button class="pill" onclick="matTab(this,'mat-recherche')">Rechercher</button>
+      </div>
+
+      <div id="mat-global">
+        <div class="card">
+          <div class="ct">Repartition par domaine</div>
+          <div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">⚕️ Medecine &amp; Sante</span><span style="font-weight:700">42</span></div><div class="pt2"><div class="pf2" style="width:88%;background:var(--g)"></div></div></div>
+          <div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">⚖️ Droit &amp; Juridique</span><span style="font-weight:700">38</span></div><div class="pt2"><div class="pf2" style="width:79%;background:var(--v)"></div></div></div>
+          <div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">💹 Economie &amp; Finance</span><span style="font-weight:700">35</span></div><div class="pt2"><div class="pf2" style="width:73%;background:var(--or)"></div></div></div>
+          <div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">🎓 Education &amp; Formation</span><span style="font-weight:700">28</span></div><div class="pt2"><div class="pf2" style="width:58%;background:var(--v)"></div></div></div>
+          <div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">💻 Numerique &amp; IA</span><span style="font-weight:700">24</span></div><div class="pt2"><div class="pf2" style="width:50%;background:#5B2D8B"></div></div></div>
+          <div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">🌱 Agriculture &amp; Peche</span><span style="font-weight:700">18</span></div><div class="pt2"><div class="pf2" style="width:38%;background:var(--g)"></div></div></div>
+          <div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">⚡ Energie &amp; Hydraulique</span><span style="font-weight:700">14</span></div><div class="pt2"><div class="pf2" style="width:29%;background:var(--or)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px"><span style="color:var(--t2)">🏗️ Urbanisme &amp; Habitat</span><span style="font-weight:700">11</span></div><div class="pt2"><div class="pf2" style="width:23%;background:var(--r)"></div></div></div>
+        </div>
+        <div class="card">
+          <div class="ct">Niveaux — global</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gb);border-radius:9px"><span style="font-size:.78rem;font-weight:600">🟢 Expert (+10 ans)</span><span style="font-size:.88rem;font-weight:800;color:var(--g)">142</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--vb);border-radius:9px"><span style="font-size:.78rem;font-weight:600">🔵 Avance (5-10 ans)</span><span style="font-size:.88rem;font-weight:800;color:var(--v)">168</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--ob);border-radius:9px"><span style="font-size:.78rem;font-weight:600">🟡 Intermediaire (2-5 ans)</span><span style="font-size:.88rem;font-weight:800;color:var(--or)">98</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#f5f5f5;border-radius:9px"><span style="font-size:.78rem;font-weight:600">⚪ Notions</span><span style="font-size:.88rem;font-weight:800;color:#888">42</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">Top experts</div>
+          <div class="membre-row" onclick="OS('expertDetail')">
+            <div class="m-av" style="background:var(--gb);color:var(--g)">AS</div>
+            <div class="m-info"><div class="m-name">Dr. Aminata Sow</div><div class="m-exp">Medecine · Sante publique · Paris</div><div style="display:flex;gap:4px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bb">Sante</span></div></div>
+          </div>
+          <div class="membre-row" onclick="OS('expertDetail')">
+            <div class="m-av" style="background:var(--ob);color:var(--or)">CT</div>
+            <div class="m-info"><div class="m-name">Me. Cheikh Tall</div><div class="m-exp">Droit fiscal · Finance · Bruxelles</div><div style="display:flex;gap:4px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bo">Economie</span></div></div>
+          </div>
+          <div class="membre-row" onclick="OS('expertDetail')">
+            <div class="m-av" style="background:#f5f0ff;color:#5B2D8B">OB</div>
+            <div class="m-info"><div class="m-name">Pr. Omar Ba</div><div class="m-exp">Urbanisme · Decentralisation · Montreal</div><div style="display:flex;gap:4px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bb">Decentralisation</span></div></div>
+          </div>
+          <button class="bp bp-or" style="margin-top:8px;font-size:.78rem" onclick="goTo('p-transmissions')">📤 Voir les transmissions aux autorites</button>
+        </div>
+      </div>
+
+      <div id="mat-commission" style="display:none">
+        <div class="fg"><label class="fl">Commission</label>
+          <select class="fi fsel">
+            <option>Sante et Protection Sociale</option>
+            <option>Economie, Finances et Budget</option>
+            <option>Education Nationale</option>
+            <option>Energie et Hydraulique</option>
+            <option>Recherche Scientifique</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="ct">Commission Sante — Competences</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gb);border-radius:9px">
+              <span style="font-size:.76rem;font-weight:600">Medecine generale</span>
+              <div style="display:flex;align-items:center;gap:5px">
+                <div style="display:flex;gap:3px"><span style="width:9px;height:9px;border-radius:50%;background:var(--g);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:var(--g);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:var(--g);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:var(--g);display:inline-block"></span></div>
+                <span style="font-size:.64rem;font-weight:700;color:var(--g)">8 experts</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gb);border-radius:9px">
+              <span style="font-size:.76rem;font-weight:600">Sante publique</span>
+              <div style="display:flex;align-items:center;gap:5px">
+                <div style="display:flex;gap:3px"><span style="width:9px;height:9px;border-radius:50%;background:var(--g);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:var(--g);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:var(--g);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#ddd;display:inline-block"></span></div>
+                <span style="font-size:.64rem;font-weight:700;color:var(--g)">6 experts</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--ob);border-radius:9px">
+              <span style="font-size:.76rem;font-weight:600">Epidemiologie</span>
+              <div style="display:flex;align-items:center;gap:5px">
+                <div style="display:flex;gap:3px"><span style="width:9px;height:9px;border-radius:50%;background:var(--or);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:var(--or);display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#ddd;display:inline-block"></span><span style="width:9px;height:9px;border-radius:50%;background:#ddd;display:inline-block"></span></div>
+                <span style="font-size:.64rem;font-weight:700;color:var(--or)">2 avances</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--rb);border-radius:9px;border:1.5px dashed var(--r)">
+              <span style="font-size:.76rem;font-weight:600">Sante mentale</span>
+              <span style="font-size:.68rem;font-weight:700;color:var(--r)">⚠️ Manque</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--rb);border-radius:9px;border:1.5px dashed var(--r)">
+              <span style="font-size:.76rem;font-weight:600">Pharmacologie</span>
+              <span style="font-size:.68rem;font-weight:700;color:var(--r)">⚠️ Manque</span>
+            </div>
+          </div>
+          <button class="bp bp-or" style="margin-top:12px;font-size:.78rem" onclick="OS('recruterExpert')">+ Recruter un expert manquant</button>
+        </div>
+      </div>
+
+      <div id="mat-manques" style="display:none">
+        <div style="background:var(--rb);border-radius:12px;padding:13px;margin-bottom:13px;border-left:4px solid var(--r)">
+          <div style="font-size:.76rem;font-weight:700;color:var(--r);margin-bottom:4px">⚠️ 6 manques critiques identifies</div>
+          <div style="font-size:.7rem;color:var(--t2)">Ces domaines n'ont pas d'expert dans les commissions concernees.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div onclick="OS('recruterExpert')" style="padding:11px 13px;background:var(--rb);border-radius:11px;border-left:4px solid var(--r);cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:.8rem;font-weight:700">Sante mentale</div><span class="badge br">Critique</span></div><div style="font-size:.68rem;color:var(--t2);margin-top:3px">Commission Sante · 0 expert disponible</div></div>
+          <div onclick="OS('recruterExpert')" style="padding:11px 13px;background:var(--rb);border-radius:11px;border-left:4px solid var(--r);cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:.8rem;font-weight:700">Energie renouvelable</div><span class="badge br">Critique</span></div><div style="font-size:.68rem;color:var(--t2);margin-top:3px">Commission Energie · 1 intermediaire seulement</div></div>
+          <div onclick="OS('recruterExpert')" style="padding:11px 13px;background:var(--rb);border-radius:11px;border-left:4px solid var(--r);cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:.8rem;font-weight:700">Droit international</div><span class="badge br">Critique</span></div><div style="font-size:.68rem;color:var(--t2);margin-top:3px">Commission Affaires Etrangeres · 0 juriste</div></div>
+          <div onclick="OS('recruterExpert')" style="padding:11px 13px;background:var(--ob);border-radius:11px;border-left:4px solid var(--or);cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:.8rem;font-weight:700">Intelligence Artificielle</div><span class="badge bo">Modere</span></div><div style="font-size:.68rem;color:var(--t2);margin-top:3px">Commission Recherche · 2 intermediaires</div></div>
+          <div onclick="OS('recruterExpert')" style="padding:11px 13px;background:var(--ob);border-radius:11px;border-left:4px solid var(--or);cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:.8rem;font-weight:700">Logistique portuaire</div><span class="badge bo">Modere</span></div><div style="font-size:.68rem;color:var(--t2);margin-top:3px">Commission Transport · 0 expert</div></div>
+          <div onclick="OS('recruterExpert')" style="padding:11px 13px;background:var(--ob);border-radius:11px;border-left:4px solid var(--or);cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:.8rem;font-weight:700">Aquaculture</div><span class="badge bo">Modere</span></div><div style="font-size:.68rem;color:var(--t2);margin-top:3px">Commission Agriculture · 1 intermediaire</div></div>
+        </div>
+        <button class="bp" style="margin-top:12px" onclick="OS('recruterExpert')">📢 Lancer un appel a competences</button>
+      </div>
+
+      <div id="mat-recherche" style="display:none">
+        <div class="fg"><input class="fi" type="text" id="matSearch" placeholder="Tapez un domaine : medecin, fiscal, energie..." oninput="doSearch(this.value)"></div>
+        <div id="matResults">
+          <div style="text-align:center;padding:30px 0;color:var(--t3)">
+            <div style="font-size:2.5rem;margin-bottom:8px">🔍</div>
+            <div style="font-size:.78rem">Tapez pour trouver des experts</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- TRANSMISSIONS AUTORITES -->
+    <div class="pg" id="p-transmissions">
+      <div class="sh2"><button class="bk" onclick="goBack()">←</button><h1>Transmissions</h1></div>
+      <div style="background:linear-gradient(135deg,var(--v),var(--v2));border-radius:14px;padding:14px;margin-bottom:13px;color:#fff">
+        <div style="font-size:.66rem;opacity:.8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Transparence des recrutements</div>
+        <div style="font-size:.78rem;line-height:1.5">Chaque transmission de profil aux autorites senegalaises est tracee, horodatee et soumise au consentement explicite du membre concerne.</div>
+      </div>
+
+      <div class="comm-stats" style="margin-bottom:13px">
+        <div class="cs"><div class="cs-val">12</div><div class="cs-lbl">Transmissions</div></div>
+        <div class="cs"><div class="cs-val" style="color:var(--g)">5</div><div class="cs-lbl">Recrutes</div></div>
+        <div class="cs"><div class="cs-val" style="color:var(--or)">3</div><div class="cs-lbl">En cours</div></div>
+      </div>
+
+      <div class="pills" id="transPills">
+        <button class="pill act" onclick="transTab(this,'trans-registre')">Registre</button>
+        <button class="pill" onclick="transTab(this,'trans-mes-consentements')">Mes consentements</button>
+      </div>
+
+      <div id="trans-registre">
+        <div class="travail-card" onclick="OS('transDetail1')">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:.66rem;color:var(--t3);font-family:monospace">TRANS-2025-0042</div>
+              <div class="trav-title" style="margin-top:2px">Ministere de la Sante</div>
+            </div>
+            <span class="badge bg">Recrute</span>
+          </div>
+          <div class="trav-meta">Conseiller technique DGS · 2 profils transmis</div>
+          <div class="trav-footer">
+            <span class="badge bb">Sante</span>
+            <span style="font-size:.62rem;color:var(--t3);margin-left:auto">13 Mars 2025</span>
+          </div>
+        </div>
+
+        <div class="travail-card" onclick="OS('transDetail2')">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:.66rem;color:var(--t3);font-family:monospace">TRANS-2025-0041</div>
+              <div class="trav-title" style="margin-top:2px">Ministere de l Economie et des Finances</div>
+            </div>
+            <span class="badge bo">En discussion</span>
+          </div>
+          <div class="trav-meta">Expert fiscalite diaspora · 1 profil transmis</div>
+          <div class="trav-footer">
+            <span class="badge bo">Economie</span>
+            <span style="font-size:.62rem;color:var(--t3);margin-left:auto">28 Fev 2025</span>
+          </div>
+        </div>
+
+        <div class="travail-card" onclick="OS('transDetail3')">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:.66rem;color:var(--t3);font-family:monospace">TRANS-2025-0039</div>
+              <div class="trav-title" style="margin-top:2px">APIX - Agence de Promotion des Investissements</div>
+            </div>
+            <span class="badge bx">Sans suite</span>
+          </div>
+          <div class="trav-meta">Mission conseil entrepreneuriat · 2 profils transmis</div>
+          <div class="trav-footer">
+            <span class="badge bo">Commerce</span>
+            <span style="font-size:.62rem;color:var(--t3);margin-left:auto">10 Fev 2025</span>
+          </div>
+        </div>
+
+        <div class="travail-card" onclick="OS('transDetail4')" style="border-left:3px solid var(--or)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:.66rem;color:var(--t3);font-family:monospace">TRANS-2025-0043</div>
+              <div class="trav-title" style="margin-top:2px">Ministere de l Energie</div>
+            </div>
+            <span class="badge bo">Consentement en attente</span>
+          </div>
+          <div class="trav-meta">Expert energies renouvelables · 1 profil propose</div>
+          <div class="trav-footer">
+            <span class="badge bb">Energie</span>
+            <span style="font-size:.62rem;color:var(--t3);margin-left:auto">2 Avr 2025</span>
+          </div>
+        </div>
+
+        <button class="bp bp-or" onclick="OS('newTransmission')">+ Nouvelle transmission</button>
+      </div>
+
+      <div id="trans-mes-consentements" style="display:none">
+        <div style="background:var(--ob);border-radius:12px;padding:13px;margin-bottom:13px;border-left:4px solid var(--or)">
+          <div style="font-size:.76rem;font-weight:700;color:var(--or);margin-bottom:4px">1 demande de consentement en attente</div>
+          <div style="font-size:.7rem;color:var(--t2)">Une autorite souhaite recevoir votre profil. Votre accord est requis.</div>
+        </div>
+
+        <div class="card" style="border-left:4px solid var(--or)">
+          <div class="ct">Demande de transmission</div>
+          <div class="sr"><span class="sl">Reference</span><span class="sv" style="font-family:monospace">TRANS-2025-0043</span></div>
+          <div class="sr"><span class="sl">Autorite</span><span class="sv">Ministere de l Energie</span></div>
+          <div class="sr"><span class="sl">Motif</span><span class="sv">Expert energies renouvelables</span></div>
+          <div class="sr"><span class="sl">Demande par</span><span class="sv">Pr. Omar Ba (Pole Sci.)</span></div>
+          <div class="sr"><span class="sl">Date demande</span><span class="sv">2 Avril 2025</span></div>
+          <div style="margin-top:12px;font-size:.7rem;color:var(--t2);background:var(--bg);padding:10px;border-radius:9px;line-height:1.5">
+            En acceptant, votre nom, votre expertise (Energie · Hydraulique), votre CV et vos disponibilites pour mission seront transmis au Ministere de l Energie dans un rapport officiel signe par le Bureau Moncap.
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="bp bp-g" style="margin-bottom:0" onclick="OS('consentOK')">J accepte</button>
+            <button class="bp bp-dk" style="margin-bottom:0" onclick="OS('consentNon')">Je refuse</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ct">Historique de mes transmissions</div>
+          <div class="sr"><span class="sl">TRANS-2025-0042 · Min. Sante</span><span class="badge bg">Accepte</span></div>
+          <div class="sr"><span class="sl">TRANS-2024-0028 · Min. Education</span><span class="badge bx">Refuse</span></div>
+        </div>
+      </div>
+    </div>
+
+  <!-- NAV -->
+  <div id="BN">
+    <button class="ni act" onclick="navTo('p-dash',0)"><div class="ni-ic">🏠</div><div class="ni-lb">Accueil</div></button>
+    <button class="ni" onclick="navTo('p-membres',1)"><div class="ni-ic">👥</div><div class="ni-lb">Membres</div></button>
+    <button class="ni" onclick="navTo('p-commissions',2)"><div class="ni-ic">🔬</div><div class="ni-lb">Commissions</div></button>
+    <button class="ni" onclick="navTo('p-finances',3)"><div class="ni-ic">💰</div><div class="ni-lb">Finances</div></button>
+    <button class="ni" onclick="navTo('p-plus',4)"><div class="ni-ic">&#8943;</div><div class="ni-lb">Plus</div></button>
+  </div>
+</div>
+
+<!-- OVERLAYS -->
+<div class="ov" id="ov-notif" onclick="CS('notif')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Notifications</div>
+  <div class="al al-b"><div class="al-ic">📄</div><div><div class="al-t">Commission Sante — Rapport finalise</div><div class="al-s">En attente de soumission au parti</div></div></div>
+  <div class="al al-o"><div class="al-ic">⚠️</div><div><div class="al-t">3 commissions sans activite ce mois</div><div class="al-s">Sport · Habitat · Transport</div></div></div>
+  <div class="al al-g"><div class="al-ic">✅</div><div><div class="al-t">Nouveau membre valide — Canada</div><div class="al-s">Commission Economie</div></div></div>
+</div></div>
+
+<div class="ov" id="ov-profil" onclick="CS('profil')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;margin-bottom:18px">
+    <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--v),var(--v2));display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;margin:0 auto 8px" id="profilAv">BM</div>
+    <div style="font-size:.95rem;font-weight:700" id="profilNom">Bureau Moncap</div>
+    <div style="font-size:.74rem;color:var(--t2)" id="profilRole">Coordinateur · Vue globale</div>
+  </div>
+  <div class="sr"><span class="sl">Organisation</span><span class="sv">Moncap Diaspora Authentique</span></div>
+  <div class="sr"><span class="sl">Statut cotisation</span><span class="badge bg">A jour</span></div>
+  <div style="margin-top:14px"><button class="bp bp-dk" onclick="CS('profil');resetApp()">Changer de profil</button></div>
+</div></div>
+
+<!-- COMMISSION DETAIL - SANTE -->
+<div class="ov" id="ov-commSante" onclick="CS('commSante')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <div style="width:44px;height:44px;border-radius:12px;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">⚕️</div>
+    <div><div class="st" style="margin-bottom:0">Sante et Protection Sociale</div><div style="font-size:.68rem;color:var(--t2)">Commission · Moncap Diaspora</div></div>
+  </div>
+  <div class="comm-stats">
+    <div class="cs"><div class="cs-val">22</div><div class="cs-lbl">Membres</div></div>
+    <div class="cs"><div class="cs-val">8</div><div class="cs-lbl">Travaux</div></div>
+    <div class="cs"><div class="cs-val">4</div><div class="cs-lbl">En cours</div></div>
+  </div>
+  <div style="margin:12px 0 6px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Bureau de la commission</div>
+  <div class="membre-row"><div class="m-av" style="background:var(--gb);color:var(--g)">AS</div><div class="m-info"><div class="m-name">Dr. Aminata Sow</div><div class="m-exp">Responsable · Medecin généraliste · Paris</div></div><div class="badge bg">Resp.</div></div>
+  <div class="membre-row"><div class="m-av" style="background:var(--vb);color:var(--v)">ID</div><div class="m-info"><div class="m-name">Ibou Diallo</div><div class="m-exp">Adjoint · Pharmacien · Lyon</div></div><div class="badge bb">Adj.</div></div>
+  <div style="margin:12px 0 6px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Dernier travail</div>
+  <div style="background:var(--gb);border-radius:10px;padding:11px;cursor:pointer" onclick="CS('commSante');OS('trav1')">
+    <div style="font-size:.8rem;font-weight:700;color:var(--t)">Rapport acces aux soins diaspora</div>
+    <div style="font-size:.68rem;color:var(--t2);margin-top:3px">Finalise · 28 pages · PDF</div>
+    <div style="display:flex;gap:6px;margin-top:8px"><div class="badge bg">Pret</div><div class="vis-badge vis-mc">Moncap</div></div>
+  </div>
+  <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+    <button class="bp" onclick="CS('commSante');goTo('p-travaux')" style="margin-bottom:0">📄 Voir tous les travaux</button>
+    <button class="bp bp-or" onclick="CS('commSante');OS('soumission')" style="margin-bottom:0">📤 Soumettre au parti</button>
+  </div>
+</div></div>
+
+<!-- COMMISSION DETAIL GENERIQUE -->
+<div class="ov" id="ov-comm1" onclick="CS('comm1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Decentralisation & Reforme Territoriale</div>
+  <div class="comm-stats">
+    <div class="cs"><div class="cs-val">12</div><div class="cs-lbl">Membres</div></div>
+    <div class="cs"><div class="cs-val">3</div><div class="cs-lbl">Travaux</div></div>
+    <div class="cs"><div class="cs-val">2</div><div class="cs-lbl">En cours</div></div>
+  </div>
+  <div class="sr"><span class="sl">Responsable</span><span class="sv">Pr. Oumar Ba</span></div>
+  <div class="sr"><span class="sl">Adjoint</span><span class="sv">Mamadou Ndiaye</span></div>
+  <div class="sr"><span class="sl">Derniere activite</span><span class="sv">Il y a 3 jours</span></div>
+  <div style="margin-top:14px;display:flex;gap:8px">
+    <button class="bp" onclick="CS('comm1');goTo('p-travaux')" style="margin-bottom:0">Voir les travaux</button>
+    <button class="bp bp-or" onclick="CS('comm1');OS('newTravail')" style="margin-bottom:0">+ Nouveau travail</button>
+  </div>
+</div></div>
+
+<!-- COMMISSION ECONOMIE -->
+<div class="ov" id="ov-comm2" onclick="CS('comm2')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Economie, Finances et Budget</div>
+  <div class="comm-stats">
+    <div class="cs"><div class="cs-val">18</div><div class="cs-lbl">Membres</div></div>
+    <div class="cs"><div class="cs-val">6</div><div class="cs-lbl">Travaux</div></div>
+    <div class="cs"><div class="cs-val">3</div><div class="cs-lbl">En cours</div></div>
+  </div>
+  <div class="sr"><span class="sl">Responsable</span><span class="sv">Me. Cheikh Tall</span></div>
+  <div class="sr"><span class="sl">Adjoint</span><span class="sv">Awa Sarr</span></div>
+  <div style="margin:12px 0 6px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Membres experts</div>
+  <div class="membre-row"><div class="m-av" style="background:var(--ob);color:var(--or)">FN</div><div class="m-info"><div class="m-name">Fatou Ndiaye</div><div class="m-exp">Economiste · Banque Mondiale · Washington</div></div></div>
+  <div class="membre-row"><div class="m-av" style="background:var(--vb);color:var(--v)">OD</div><div class="m-info"><div class="m-name">Omar Diallo</div><div class="m-exp">Expert fiscal · Cabinet Ernst & Young · Paris</div></div></div>
+  <div style="margin-top:14px;display:flex;gap:8px">
+    <button class="bp" onclick="CS('comm2');goTo('p-travaux')" style="margin-bottom:0">Voir les travaux</button>
+    <button class="bp bp-or" onclick="CS('comm2');OS('newTravail')" style="margin-bottom:0">+ Nouveau travail</button>
+  </div>
+</div></div>
+
+<!-- TRAVAIL DETAIL -->
+<div class="ov" id="ov-trav1" onclick="CS('trav1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div class="st">Rapport acces aux soins diaspora</div>
+  <div style="display:flex;gap:6px;margin-bottom:12px"><div class="badge bg">Finalise</div><div class="vis-badge vis-mc">Moncap</div><span class="badge bo">Sante</span></div>
+  <div class="sr"><span class="sl">Commission</span><span class="sv">Sante et Protection Sociale</span></div>
+  <div class="sr"><span class="sl">Auteur principal</span><span class="sv">Dr. Aminata Sow</span></div>
+  <div class="sr"><span class="sl">Co-auteurs</span><span class="sv">3 membres</span></div>
+  <div class="sr"><span class="sl">Format</span><span class="sv">PDF · 28 pages</span></div>
+  <div class="sr"><span class="sl">Date</span><span class="sv">Il y a 2 jours</span></div>
+  <div class="sr"><span class="sl">Visibilite</span><span class="vis-badge vis-mc">Moncap</span></div>
+  <div style="margin:12px 0 5px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Resume</div>
+  <div style="font-size:.78rem;color:var(--t);background:var(--bg);padding:11px;border-radius:10px;line-height:1.5">Analyse des obstacles d'acces aux soins de sante pour la diaspora senegalaise en Europe et en Amerique du Nord. Propositions concretes de politique publique.</div>
+  <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+    <button class="bp" onclick="CS('trav1')" style="margin-bottom:0">📥 Telecharger le document</button>
+    <button class="bp bp-or" onclick="CS('trav1');OS('soumission')" style="margin-bottom:0">📤 Soumettre au parti</button>
+    <button class="bp bp-dk" onclick="CS('trav1')" style="margin-bottom:0">✏️ Modifier la visibilite</button>
+  </div>
+</div></div>
+
+<!-- SOUMISSION AU PARTI -->
+<div class="ov" id="ov-soumission" onclick="CS('soumission')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Soumettre au Pastef</div>
+  <div style="background:var(--vb);border-radius:12px;padding:14px;margin-bottom:14px">
+    <div style="font-size:.78rem;font-weight:700;color:var(--v);margin-bottom:6px">📤 Travaux prets pour soumission</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:9px;border-radius:8px"><div><div style="font-size:.76rem;font-weight:600">Rapport acces aux soins</div><div style="font-size:.62rem;color:var(--t2)">Commission Sante</div></div><input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--v)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:9px;border-radius:8px"><div><div style="font-size:.76rem;font-weight:600">Analyse fiscalite diaspora</div><div style="font-size:.62rem;color:var(--t2)">Commission Economie</div></div><input type="checkbox" checked style="width:16px;height:16px;accent-color:var(--v)"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:9px;border-radius:8px"><div><div style="font-size:.76rem;font-weight:600">Note reforme territoriale</div><div style="font-size:.62rem;color:var(--t2)">Commission Decentralisation</div></div><input type="checkbox" style="width:16px;height:16px;accent-color:var(--v)"></div>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Destinataire</label><select class="fi fsel"><option>Secretariat National Pastef</option><option>Bureau Politique National</option><option>Commission specialisee Pastef</option></select></div>
+  <div class="fg"><label class="fl">Message d'accompagnement</label><textarea class="fi" rows="3" style="resize:none" placeholder="Message optionnel..."></textarea></div>
+  <button class="bp" onclick="CS('soumission')">📤 Envoyer au parti</button>
+  <button class="bp bp-dk" onclick="CS('soumission')">Annuler</button>
+</div></div>
+
+<!-- NOUVEAU TRAVAIL -->
+<div class="ov" id="ov-newTravail" onclick="CS('newTravail')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Nouveau travail</div>
+  <div class="fg"><label class="fl">Commission</label><select class="fi fsel"><option>Sante et Protection Sociale</option><option>Economie, Finances et Budget</option><option>Decentralisation</option><option>Education Nationale</option><option>Numerique</option></select></div>
+  <div class="fg"><label class="fl">Titre</label><input class="fi" type="text" placeholder="Ex: Rapport acces aux soins..."></div>
+  <div class="fg"><label class="fl">Type</label><select class="fi fsel"><option>Rapport</option><option>Note de position</option><option>Proposition</option><option>Synthese de recherche</option><option>Recommandation</option></select></div>
+  <div class="fg"><label class="fl">Auteur(s)</label><input class="fi" type="text" placeholder="Membres de la commission"></div>
+  <div class="fg"><label class="fl">Visibilite</label><select class="fi fsel"><option>Interne (commission uniquement)</option><option>Moncap (tous les membres)</option><option>Partageable (peut etre diffuse)</option></select></div>
+  <div class="fg"><label class="fl">Joindre un document</label><input class="fi" type="file" style="padding:8px"></div>
+  <button class="bp" onclick="CS('newTravail')">Creer le travail</button>
+</div></div>
+
+<!-- NOUVEAU MEMBRE -->
+<div class="ov" id="ov-newMembre" onclick="CS('newMembre')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Ajouter un membre</div>
+  <div class="fg"><label class="fl">Nom & Prenom</label><input class="fi" type="text" placeholder="Ex: Dr. Aminata Sow"></div>
+  <div class="fg"><label class="fl">Email</label><input class="fi" type="email"></div>
+  <div class="fg"><label class="fl">Telephone</label><input class="fi" type="tel"></div>
+  <div class="fg"><label class="fl">Pays de residence</label><select class="fi fsel"><option>France</option><option>Belgique</option><option>USA</option><option>Canada</option><option>Autre</option></select></div>
+  <div class="fg"><label class="fl">Expertise / Profession</label><input class="fi" type="text" placeholder="Ex: Medecin, Economiste, Juriste..."></div>
+  <div class="fg"><label class="fl">Commission(s)</label><select class="fi fsel"><option>Sante et Protection Sociale</option><option>Economie, Finances et Budget</option><option>Education Nationale</option><option>Numerique</option><option>Decentralisation</option></select></div>
+  <div class="fg"><label class="fl">Est aussi militant Pastef France</label><select class="fi fsel"><option>Non</option><option>Oui</option></select></div>
+  <button class="bp" onclick="CS('newMembre')">Enregistrer le membre</button>
+</div></div>
+
+<!-- DOC DETAIL -->
+<div class="ov" id="ov-doc1" onclick="CS('doc1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Rapport acces aux soins diaspora</div>
+  <div class="sr"><span class="sl">Type</span><span class="badge bg">Rapport</span></div>
+  <div class="sr"><span class="sl">Commission</span><span class="sv">Sante</span></div>
+  <div class="sr"><span class="sl">Format</span><span class="sv">PDF · 28 pages</span></div>
+  <div class="sr"><span class="sl">Visibilite</span><span class="vis-badge vis-mc">Moncap</span></div>
+  <div style="margin-top:14px;display:flex;gap:8px">
+    <button class="bp" onclick="CS('doc1')" style="margin-bottom:0">📥 Telecharger</button>
+    <button class="bp bp-dk" onclick="CS('doc1')" style="margin-bottom:0">Modifier</button>
+  </div>
+</div></div>
+
+<!-- EVT DETAIL -->
+<div class="ov" id="ov-evt1" onclick="CS('evt1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Webinaire Sante diaspora</div>
+  <div class="sr"><span class="sl">Date</span><span class="sv">12 Avril 2025 · 18h00</span></div>
+  <div class="sr"><span class="sl">Format</span><span class="sv">Zoom (lien envoye aux inscrits)</span></div>
+  <div class="sr"><span class="sl">Commission</span><span class="sv">Sante et Protection Sociale</span></div>
+  <div class="sr"><span class="sl">Inscrits</span><span class="sv">120 membres</span></div>
+  <div style="margin:12px 0 5px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">QR Code inscription</div>
+  <div style="background:var(--bg);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px">
+    <div style="width:130px;height:130px;background:#fff;border-radius:8px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:4rem;border:2px solid var(--bd)">📱</div>
+    <div style="font-size:.68rem;color:var(--t2)">moncap.pasteffrance.fr/webinaire-sante</div>
+  </div>
+  <button class="bp" onclick="CS('evt1')">📥 Telecharger QR Code</button>
+</div></div>
+
+<!-- REUN DETAIL -->
+<div class="ov" id="ov-reun1" onclick="CS('reun1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Bureau Moncap — 15 Mars</div>
+  <div class="sr"><span class="sl">Date</span><span class="sv">15 Mars 2025 · 14h00</span></div>
+  <div class="sr"><span class="sl">Lieu</span><span class="sv">Paris 10e</span></div>
+  <div class="sr"><span class="sl">Participants</span><span class="sv">8 membres bureau</span></div>
+  <div style="margin:12px 0 5px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Decisions</div>
+  <div style="padding:9px 0;border-bottom:1px solid var(--bd)"><div style="font-size:.8rem;font-weight:500">Lancer appel a contributions — Commission Sante</div><div style="margin-top:3px"><span class="badge bg">Executee</span></div></div>
+  <div style="padding:9px 0;border-bottom:1px solid var(--bd)"><div style="font-size:.8rem;font-weight:500">Organiser webinaire mensuel par commission</div><div style="margin-top:3px"><span class="badge bo">En cours</span></div></div>
+  <div style="padding:9px 0"><div style="font-size:.8rem;font-weight:500">Definir procedure de soumission au parti</div><div style="margin-top:3px"><span class="badge bb">En attente</span></div></div>
+  <div style="margin-top:14px;display:flex;gap:8px"><button class="bp" onclick="CS('reun1')" style="margin-bottom:0">Voir le PV</button><button class="bp bp-dk" onclick="CS('reun1')" style="margin-bottom:0">CR PDF</button></div>
+</div></div>
+
+<!-- RPT COMM -->
+<div class="ov" id="ov-rptComm" onclick="CS('rptComm')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Bilan commissions</div>
+  <div class="fg"><label class="fl">Periode</label><select class="fi fsel"><option>T1 2025 (Janv-Mars)</option><option>Mars 2025</option><option>2024 (annuel)</option></select></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px">
+    <div style="border:2px solid var(--v);background:var(--vb);border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.2rem">📄</div><div style="font-size:.72rem;font-weight:700;color:var(--v);margin-top:3px">Simple</div><div style="font-size:.6rem;color:var(--t2)">Une commission</div></div>
+    <div style="border:2px solid var(--bd);background:#fff;border-radius:10px;padding:12px;text-align:center;cursor:pointer"><div style="font-size:1.2rem">📚</div><div style="font-size:.72rem;font-weight:700;color:var(--t2);margin-top:3px">Toutes</div><div style="font-size:.6rem;color:var(--t2)">Bilan global</div></div>
+  </div>
+  <button class="bp" onclick="CS('rptComm')">Generer le rapport PDF</button>
+</div></div>
+
+<!-- SCAN -->
+<div class="ov" id="ov-scanQuick" onclick="CS('scanQuick')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Scanner une carte membre</div>
+  <div style="text-align:center;margin-bottom:16px">
+    <div style="width:200px;height:200px;border-radius:14px;background:#0A0E1A;margin:0 auto;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+      <div style="width:150px;height:150px;position:relative">
+        <div style="position:absolute;top:0;left:0;width:28px;height:28px;border-top:3px solid #fff;border-left:3px solid #fff;border-radius:3px 0 0 0"></div>
+        <div style="position:absolute;top:0;right:0;width:28px;height:28px;border-top:3px solid #fff;border-right:3px solid #fff;border-radius:0 3px 0 0"></div>
+        <div style="position:absolute;bottom:0;left:0;width:28px;height:28px;border-bottom:3px solid #fff;border-left:3px solid #fff;border-radius:0 0 0 3px"></div>
+        <div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-bottom:3px solid #fff;border-right:3px solid #fff;border-radius:0 0 3px 0"></div>
+        <div style="position:absolute;top:50%;left:0;right:0;height:2px;background:var(--or2);animation:scanLine 2s ease-in-out infinite"></div>
+      </div>
+    </div>
+    <div style="font-size:.74rem;color:var(--t2);margin-top:10px">Pointez vers la carte membre Moncap</div>
+  </div>
+  <button class="bp" onclick="CS('scanQuick')" style="margin-bottom:8px">✅ Simuler : Membre valide</button>
+  <button class="bp bp-dk" onclick="CS('scanQuick')">❌ Simuler : Inconnu</button>
+</div></div>
+
+<!-- NOUVEAU EVENEMENT -->
+<div class="ov" id="ov-newEvt" onclick="CS('newEvt')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Creer un evenement</div>
+  <div class="fg"><label class="fl">Type</label><select class="fi fsel"><option>Webinaire</option><option>Reunion bureau</option><option>Reunion commission</option><option>Conference</option><option>Evenement convivial</option></select></div>
+  <div class="fg"><label class="fl">Titre</label><input class="fi" type="text" placeholder="Ex: Webinaire Sante diaspora"></div>
+  <div class="fg"><label class="fl">Date</label><input class="fi" type="datetime-local"></div>
+  <div class="fg"><label class="fl">Format</label><select class="fi fsel"><option>Zoom / Visio</option><option>Presentiel</option><option>Hybride</option></select></div>
+  <button class="bp" onclick="CS('newEvt')">Creer + generer QR Code</button>
+</div></div>
+
+<!-- NOUVELLE REUNION -->
+<div class="ov" id="ov-newReun" onclick="CS('newReun')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Creer une reunion</div>
+  <div class="fg"><label class="fl">Instance</label><select class="fi fsel"><option>Bureau Moncap</option><option>Pole Scientifique</option><option>Commission Sante</option><option>Commission Economie</option><option>Commission Numerique</option></select></div>
+  <div class="fg"><label class="fl">Date</label><input class="fi" type="date"></div>
+  <div class="fg"><label class="fl">Format</label><select class="fi fsel"><option>Zoom / Visio</option><option>Presentiel</option></select></div>
+  <div class="fg"><label class="fl">Ordre du jour</label><textarea class="fi" rows="3" style="resize:none"></textarea></div>
+  <button class="bp" onclick="CS('newReun')">Creer la reunion</button>
+</div></div>
+
+<!-- NOUVELLE TRANSACTION -->
+<div class="ov" id="ov-newTrans" onclick="CS('newTrans')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Nouvelle transaction</div>
+  <div class="fg"><label class="fl">Type</label><select class="fi fsel"><option>Entree</option><option>Depense</option></select></div>
+  <div class="fg"><label class="fl">Categorie</label><select class="fi fsel"><option>Cotisation membre</option><option>Don</option><option>Webinaire / evenement</option><option>Communication</option><option>Travaux commissions</option><option>Frais admin</option></select></div>
+  <div class="fg"><label class="fl">Montant (€)</label><input class="fi" type="number" placeholder="0"></div>
+  <div class="fg"><label class="fl">Description</label><input class="fi" type="text"></div>
+  <button class="bp" onclick="CS('newTrans')">Enregistrer</button>
+</div></div>
+
+<!-- NOUVEAU DOC -->
+<div class="ov" id="ov-newDoc" onclick="CS('newDoc')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Ajouter un document</div>
+  <div class="fg"><label class="fl">Titre</label><input class="fi" type="text" placeholder="Titre du document"></div>
+  <div class="fg"><label class="fl">Commission</label><select class="fi fsel"><option>Sante</option><option>Economie</option><option>Numerique</option><option>Document general Moncap</option></select></div>
+  <div class="fg"><label class="fl">Type</label><select class="fi fsel"><option>Rapport</option><option>Note de position</option><option>Proposition</option><option>Reference externe</option><option>Archive</option></select></div>
+  <div class="fg"><label class="fl">Visibilite</label><select class="fi fsel"><option>Interne</option><option>Moncap</option><option>Partageable</option></select></div>
+  <div class="fg"><label class="fl">Fichier</label><input class="fi" type="file" style="padding:8px"></div>
+  <button class="bp" onclick="CS('newDoc')">Ajouter le document</button>
+</div></div>
+
+<!-- NOUVELLE COMMISSION -->
+<div class="ov" id="ov-newComm" onclick="CS('newComm')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Nouvelle commission</div>
+  <div class="fg"><label class="fl">Nom</label><input class="fi" type="text" placeholder="Ex: Intelligence Artificielle"></div>
+  <div class="fg"><label class="fl">Bloc thematique</label><select class="fi fsel"><option>Gouvernance & Institutions</option><option>Economie & Finances</option><option>Infrastructure & Environnement</option><option>Social & Humain</option><option>Science & Innovation</option></select></div>
+  <div class="fg"><label class="fl">Responsable</label><input class="fi" type="text" placeholder="Nom du responsable"></div>
+  <button class="bp" onclick="CS('newComm')">Creer la commission</button>
+</div></div>
+
+
+<!-- MATRICE OVERLAYS -->
+<div class="ov" id="ov-expertDetail" onclick="CS('expertDetail')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <div style="width:56px;height:56px;border-radius:14px;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--g);flex-shrink:0">AS</div>
+    <div><div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;color:var(--t)">Dr. Aminata Sow</div><div style="font-size:.7rem;color:var(--t2);margin-top:2px">Medecin generaliste · Paris, France</div></div>
+  </div>
+  <div class="sr"><span class="sl">Institution</span><span class="sv">CHU Paris Nord</span></div>
+  <div class="sr"><span class="sl">Experience</span><span class="sv">15 ans</span></div>
+  <div class="sr"><span class="sl">Pays</span><span class="sv">🇫🇷 France</span></div>
+  <div class="sr"><span class="sl">Commission</span><span class="sv">Sante et Protection Sociale</span></div>
+  <div class="sr"><span class="sl">Disponibilite</span><span class="sv">5h / semaine</span></div>
+  <div style="margin:14px 0 8px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Competences</div>
+  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gb);border-radius:9px">
+      <span style="font-size:.78rem;font-weight:600">Medecine generale</span>
+      <div style="display:flex;align-items:center;gap:6px"><div style="display:flex;gap:3px"><span class="niv-dot" style="background:var(--g)"></span><span class="niv-dot" style="background:var(--g)"></span><span class="niv-dot" style="background:var(--g)"></span><span class="niv-dot" style="background:var(--g)"></span></div><span style="font-size:.65rem;font-weight:700;color:var(--g)">Expert</span></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gb);border-radius:9px">
+      <span style="font-size:.78rem;font-weight:600">Sante publique</span>
+      <div style="display:flex;align-items:center;gap:6px"><div style="display:flex;gap:3px"><span class="niv-dot" style="background:var(--g)"></span><span class="niv-dot" style="background:var(--g)"></span><span class="niv-dot" style="background:var(--g)"></span><span class="niv-dot" style="background:var(--g)"></span></div><span style="font-size:.65rem;font-weight:700;color:var(--g)">Expert</span></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--vb);border-radius:9px">
+      <span style="font-size:.78rem;font-weight:600">Recherche clinique</span>
+      <div style="display:flex;align-items:center;gap:6px"><div style="display:flex;gap:3px"><span class="niv-dot" style="background:var(--v)"></span><span class="niv-dot" style="background:var(--v)"></span><span class="niv-dot" style="background:var(--v)"></span><span class="niv-dot" style="background:#ddd"></span></div><span style="font-size:.65rem;font-weight:700;color:var(--v)">Avance</span></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#f9f9f9;border-radius:9px">
+      <span style="font-size:.78rem;font-weight:600">Epidemiologie</span>
+      <div style="display:flex;align-items:center;gap:6px"><div style="display:flex;gap:3px"><span class="niv-dot" style="background:var(--or)"></span><span class="niv-dot" style="background:var(--or)"></span><span class="niv-dot" style="background:#ddd"></span><span class="niv-dot" style="background:#ddd"></span></div><span style="font-size:.65rem;font-weight:700;color:var(--or)">Intermediaire</span></div>
+    </div>
+  </div>
+  <div style="margin-bottom:8px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Formations</div>
+  <div style="font-size:.75rem;color:var(--t2);background:var(--bg);padding:10px;border-radius:9px;margin-bottom:14px">Doctorat en Medecine — Universite Paris VI (2009)<br>Master Sante Publique — EHESP Paris (2012)</div>
+  <button class="bp" onclick="CS('expertDetail')">✏️ Modifier ma fiche</button>
+</div></div>
+
+<div class="ov" id="ov-allExperts" onclick="CS('allExperts')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Tous les experts</div>
+  <div class="fg"><input class="fi" type="text" placeholder="Filtrer par nom ou domaine..."></div>
+  <div class="membre-row" onclick="CS('allExperts');OS('expertDetail')"><div class="m-av" style="background:var(--gb);color:var(--g)">AS</div><div class="m-info"><div class="m-name">Dr. Aminata Sow</div><div class="m-exp">Medecine · Sante publique</div><div style="display:flex;gap:3px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bb">Sante</span></div></div></div>
+  <div class="membre-row" onclick="CS('allExperts');OS('expertDetail')"><div class="m-av" style="background:var(--ob);color:var(--or)">CT</div><div class="m-info"><div class="m-name">Me. Cheikh Tall</div><div class="m-exp">Droit fiscal · Finance publique</div><div style="display:flex;gap:3px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bo">Economie</span></div></div></div>
+  <div class="membre-row" onclick="CS('allExperts');OS('expertDetail')"><div class="m-av" style="background:#f5f0ff;color:#5B2D8B">OB</div><div class="m-info"><div class="m-name">Pr. Omar Ba</div><div class="m-exp">Urbanisme · Decentralisation</div><div style="display:flex;gap:3px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bb">Decentralisation</span></div></div></div>
+  <div class="membre-row" onclick="CS('allExperts');OS('expertDetail')"><div class="m-av" style="background:var(--vb);color:var(--v)">FN</div><div class="m-info"><div class="m-name">Fatou Ndiaye</div><div class="m-exp">Economiste · Banque Mondiale</div><div style="display:flex;gap:3px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bo">Economie</span></div></div></div>
+  <div class="membre-row" onclick="CS('allExperts');OS('expertDetail')"><div class="m-av" style="background:var(--gb);color:var(--g)">IS</div><div class="m-info"><div class="m-name">Dr. Ibou Sarr</div><div class="m-exp">Recherche scientifique · IA</div><div style="display:flex;gap:3px;margin-top:4px"><span class="badge bg">Expert</span><span class="badge bvi">Recherche</span></div></div></div>
+</div></div>
+
+<div class="ov" id="ov-recruterExpert" onclick="CS('recruterExpert')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Recruter / Appel a competences</div>
+  <div style="background:var(--rb);border-radius:10px;padding:11px;margin-bottom:14px">
+    <div style="font-size:.76rem;font-weight:700;color:var(--r);margin-bottom:3px">⚠️ Manque identifie</div>
+    <div style="font-size:.7rem;color:var(--t2)">Sante mentale — Commission Sante et Protection Sociale</div>
+  </div>
+  <div class="fg"><label class="fl">Type d'appel</label><select class="fi fsel"><option>Appel interne (membres Moncap)</option><option>Appel externe (diaspora)</option><option>Les deux</option></select></div>
+  <div class="fg"><label class="fl">Competence recherchee</label><input class="fi" type="text" value="Psychiatre / Psychologue clinicien"></div>
+  <div class="fg"><label class="fl">Message</label><textarea class="fi" rows="3" style="resize:none" placeholder="Decrivez le besoin..."></textarea></div>
+  <button class="bp" onclick="CS('recruterExpert')">📢 Envoyer l'appel</button>
+  <button class="bp bp-dk" onclick="CS('recruterExpert')">Annuler</button>
+</div></div>
+
+<style>
+.niv-dot{width:10px;height:10px;border-radius:50%;display:inline-block;background:#ddd}
+.vi{--vi:#5B2D8B}
+</style>
+
+
+<!-- TRANSMISSION DETAIL 1 -->
+<div class="ov" id="ov-transDetail1" onclick="CS('transDetail1')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;margin-bottom:14px">
+    <div style="font-size:.66rem;color:var(--t3);font-family:monospace;letter-spacing:.05em">TRANS-2025-0042</div>
+    <div class="st" style="margin-bottom:4px">Rapport de Transmission</div>
+    <span class="badge bg">Recrute</span>
+  </div>
+
+  <div style="background:var(--vb);border-radius:10px;padding:11px;margin-bottom:10px">
+    <div style="font-size:.66rem;font-weight:700;color:var(--v);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">1. Demande</div>
+    <div class="sr"><span class="sl">Autorite</span><span class="sv">Ministere de la Sante</span></div>
+    <div class="sr"><span class="sl">Motif</span><span class="sv">Conseiller technique DGS</span></div>
+    <div class="sr"><span class="sl">Date demande</span><span class="sv">10 Mars 2025</span></div>
+  </div>
+
+  <div style="background:var(--ob);border-radius:10px;padding:11px;margin-bottom:10px">
+    <div style="font-size:.66rem;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">2. Processus de selection</div>
+    <div class="sr"><span class="sl">Recherche par</span><span class="sv">Pr. Omar Ba (Pole Sci.)</span></div>
+    <div class="sr"><span class="sl">Criteres</span><span class="sv">Medecine · Sante publique</span></div>
+    <div class="sr"><span class="sl">Profils consideres</span><span class="sv">8</span></div>
+    <div class="sr"><span class="sl">Profils retenus</span><span class="sv" style="color:var(--v);font-weight:800">2</span></div>
+  </div>
+
+  <div style="background:var(--gb);border-radius:10px;padding:11px;margin-bottom:10px">
+    <div style="font-size:.66rem;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">3. Profils transmis et consentement</div>
+    <div class="membre-row" style="padding:6px 0">
+      <div class="m-av" style="background:var(--gb);color:var(--g);width:30px;height:30px;font-size:.65rem">AS</div>
+      <div class="m-info"><div class="m-name" style="font-size:.76rem">Dr. Aminata Sow</div></div>
+      <span class="badge bg">12/03 14h32</span>
+    </div>
+    <div class="membre-row" style="padding:6px 0;border-bottom:none">
+      <div class="m-av" style="background:var(--vb);color:var(--v);width:30px;height:30px;font-size:.65rem">ID</div>
+      <div class="m-info"><div class="m-name" style="font-size:.76rem">Dr. Ibou Diallo</div></div>
+      <span class="badge bg">12/03 16h15</span>
+    </div>
+  </div>
+
+  <div style="background:#f5f0ff;border-radius:10px;padding:11px;margin-bottom:14px">
+    <div style="font-size:.66rem;font-weight:700;color:#5B2D8B;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">4. Validation et signatures</div>
+    <div class="sr"><span class="sl">Coordinateur</span><span class="sv">Ousmane Sarr</span></div>
+    <div class="sr"><span class="sl">Adjoint</span><span class="sv">Aminata Fall</span></div>
+    <div class="sr"><span class="sl">Date transmission</span><span class="sv">13 Mars 2025</span></div>
+  </div>
+
+  <div style="background:var(--bg);border-radius:10px;padding:11px;margin-bottom:14px;font-size:.68rem;color:var(--t2);line-height:1.5;text-align:center">
+    Ce document certifie que la transmission a ete effectuee dans le respect des regles de Moncap et avec le consentement explicite des membres concernes.
+  </div>
+
+  <div style="margin:12px 0 6px;font-size:.66rem;font-weight:700;color:var(--t3);text-transform:uppercase">Suivi</div>
+  <div class="sr"><span class="sl">Resultat</span><span class="badge bg">Dr. Aminata Sow recrutee</span></div>
+
+  <button class="bp" onclick="CS('transDetail1')">Telecharger le rapport PDF officiel</button>
+</div></div>
+
+<!-- TRANSMISSION DETAIL 2 -->
+<div class="ov" id="ov-transDetail2" onclick="CS('transDetail2')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;margin-bottom:14px">
+    <div style="font-size:.66rem;color:var(--t3);font-family:monospace">TRANS-2025-0041</div>
+    <div class="st" style="margin-bottom:4px">Ministere de l Economie et des Finances</div>
+    <span class="badge bo">En discussion</span>
+  </div>
+  <div class="sr"><span class="sl">Motif</span><span class="sv">Expert fiscalite diaspora</span></div>
+  <div class="sr"><span class="sl">Recherche par</span><span class="sv">Me. Cheikh Tall</span></div>
+  <div class="sr"><span class="sl">Profil transmis</span><span class="sv">Omar Diallo</span></div>
+  <div class="sr"><span class="sl">Consentement</span><span class="badge bg">Accepte</span></div>
+  <div class="sr"><span class="sl">Validation</span><span class="sv">Ousmane Sarr + Aminata Fall</span></div>
+  <div class="sr"><span class="sl">Date</span><span class="sv">28 Fevrier 2025</span></div>
+  <button class="bp" style="margin-top:14px" onclick="CS('transDetail2')">Telecharger le rapport PDF</button>
+</div></div>
+
+<!-- TRANSMISSION DETAIL 3 -->
+<div class="ov" id="ov-transDetail3" onclick="CS('transDetail3')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;margin-bottom:14px">
+    <div style="font-size:.66rem;color:var(--t3);font-family:monospace">TRANS-2025-0039</div>
+    <div class="st" style="margin-bottom:4px">APIX</div>
+    <span class="badge bx">Sans suite</span>
+  </div>
+  <div class="sr"><span class="sl">Motif</span><span class="sv">Mission conseil entrepreneuriat</span></div>
+  <div class="sr"><span class="sl">Profils transmis</span><span class="sv">2 (consentement accepte)</span></div>
+  <div class="sr"><span class="sl">Date</span><span class="sv">10 Fevrier 2025</span></div>
+  <div style="background:var(--bg);border-radius:10px;padding:11px;margin-top:10px;font-size:.7rem;color:var(--t2)">Aucune suite donnee par l APIX apres 60 jours. Dossier classe sans suite.</div>
+  <button class="bp" style="margin-top:14px" onclick="CS('transDetail3')">Telecharger le rapport PDF</button>
+</div></div>
+
+<!-- TRANSMISSION DETAIL 4 -->
+<div class="ov" id="ov-transDetail4" onclick="CS('transDetail4')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;margin-bottom:14px">
+    <div style="font-size:.66rem;color:var(--t3);font-family:monospace">TRANS-2025-0043</div>
+    <div class="st" style="margin-bottom:4px">Ministere de l Energie</div>
+    <span class="badge bo">Consentement en attente</span>
+  </div>
+  <div class="sr"><span class="sl">Motif</span><span class="sv">Expert energies renouvelables</span></div>
+  <div class="sr"><span class="sl">Recherche par</span><span class="sv">Pr. Omar Ba</span></div>
+  <div class="sr"><span class="sl">Profil propose</span><span class="sv">Lamine Ba</span></div>
+  <div class="sr"><span class="sl">Consentement</span><span class="badge bo">En attente</span></div>
+  <div style="background:var(--ob);border-radius:10px;padding:11px;margin-top:10px;font-size:.7rem;color:var(--t2)">La transmission ne sera effectuee qu apres accord explicite du membre concerne.</div>
+</div></div>
+
+<!-- NOUVELLE TRANSMISSION -->
+<div class="ov" id="ov-newTransmission" onclick="CS('newTransmission')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div><div class="st">Nouvelle transmission</div>
+  <div style="background:var(--vb);border-radius:10px;padding:10px;margin-bottom:13px;font-size:.7rem;color:var(--v)">
+    Une reference unique sera generee automatiquement (ex: TRANS-2025-0044).
+  </div>
+  <div class="fg"><label class="fl">Autorite demandeuse</label><input class="fi" type="text" placeholder="Ex: Ministere de..."></div>
+  <div class="fg"><label class="fl">Motif de la demande</label><input class="fi" type="text" placeholder="Ex: Conseiller technique..."></div>
+  <div class="fg"><label class="fl">Date de la demande</label><input class="fi" type="date"></div>
+  <div class="fg"><label class="fl">Commission / domaine concerne</label><select class="fi fsel"><option>Sante et Protection Sociale</option><option>Economie, Finances et Budget</option><option>Energie et Hydraulique</option><option>Education Nationale</option><option>Numerique</option></select></div>
+  <div class="fg"><label class="fl">Charge de recherche (Pole Scientifique)</label><input class="fi" type="text" placeholder="Nom du responsable"></div>
+  <div class="fg"><label class="fl">Profils a proposer</label><input class="fi" type="text" placeholder="Rechercher dans la matrice..."></div>
+  <div style="background:var(--ob);border-radius:10px;padding:10px;margin-bottom:13px;font-size:.68rem;color:var(--t2)">
+    Une demande de consentement sera envoyee a chaque profil selectionne. La transmission ne sera finalisee qu apres double signature du Bureau (Coordinateur + Adjoint).
+  </div>
+  <button class="bp bp-or" onclick="CS('newTransmission')">Creer la demande</button>
+</div></div>
+
+<!-- CONSENTEMENT OK -->
+<div class="ov" id="ov-consentOK" onclick="CS('consentOK')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;padding:16px 0">
+    <div style="font-size:2.5rem;margin-bottom:10px">OK</div>
+    <div class="st">Consentement enregistre</div>
+    <div style="font-size:.76rem;color:var(--t2);line-height:1.5">Votre accord a ete horodate et enregistre. Le Bureau Moncap va finaliser la transmission avec double signature.</div>
+  </div>
+  <button class="bp" onclick="CS('consentOK')">Fermer</button>
+</div></div>
+
+<!-- CONSENTEMENT NON -->
+<div class="ov" id="ov-consentNon" onclick="CS('consentNon')"><div class="sh3" onclick="e=>e.stopPropagation()"><div class="hd"></div>
+  <div style="text-align:center;padding:16px 0">
+    <div style="font-size:2.5rem;margin-bottom:10px">🔒</div>
+    <div class="st">Refus enregistre</div>
+    <div style="font-size:.76rem;color:var(--t2);line-height:1.5">Votre profil ne sera pas transmis a cette autorite. Votre choix est confidentiel et n affecte pas votre statut dans Moncap.</div>
+  </div>
+  <button class="bp" onclick="CS('consentNon')">Fermer</button>
+</div></div>
+
+<style>@keyframes scanLine{0%{top:10%}50%{top:90%}100%{top:10%}}</style>
+
+<script>
+const PROFILES={
+  bureau:{nom:'Bureau Moncap',role:'Coordinateur',scope:'Vue globale',av:'BM',kMem:'450',kTrav:'47'},
+  pole_sci:{nom:'Pr. Omar Ba',role:'Pole Scientifique',scope:'Toutes commissions',av:'OB',kMem:'450',kTrav:'47'},
+  resp_comm:{nom:'Dr. Aminata Sow',role:'Resp. Commission Sante',scope:'Commission Sante',av:'AS',kMem:'22',kTrav:'8'},
+  membre_comm:{nom:'Me. Cheikh Tall',role:'Membre Commission Economie',scope:'Commission Economie',av:'CT',kMem:'18',kTrav:'6'},
+  resp_finance:{nom:'Fatou Ndiaye',role:'Resp. Pole Finance',scope:'Finances Moncap',av:'FN',kMem:'450',kTrav:'47'},
+};
+
+let curP=null,prevPg='p-dash',curPg='p-dash';
+const NAVIDS=['p-dash','p-membres','p-commissions','p-finances','p-plus'];
+
+function selP(btn,id){document.querySelectorAll('.pb').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');curP=id;document.getElementById('btnGo').disabled=false}
+
+function enterApp(){
+  if(!curP)return;
+  const p=PROFILES[curP];
+  document.getElementById('tbSub').textContent='Diaspora Authentique';
+  document.getElementById('rbRole').textContent=p.role;
+  document.getElementById('rbScope').textContent=p.scope;
+  document.getElementById('avLbl').textContent=p.av;
+  document.getElementById('wName').textContent=p.nom;
+  document.getElementById('wRole').textContent=p.role+' · '+p.scope;
+  document.getElementById('kMem').textContent=p.kMem;
+  document.getElementById('kTrav').textContent=p.kTrav;
+  document.getElementById('memSub').textContent=p.kMem+' membres · 8 pays · 20 commissions';
+  document.getElementById('profilAv').textContent=p.av;
+  document.getElementById('profilNom').textContent=p.nom;
+  document.getElementById('profilRole').textContent=p.role;
+  const days=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const months=['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
+  const now=new Date();
+  document.getElementById('wDate').textContent=days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('LS').style.opacity='0';
+  setTimeout(()=>{document.getElementById('LS').style.display='none';},350);
+  document.getElementById('app').style.display='flex';
+  setTimeout(initChart,120);
+  // Init matrice chart lazily when page is shown
+  
+}
+
+function goTo(id){document.querySelectorAll('.pg').forEach(p=>p.classList.remove('act'));document.getElementById(id).classList.add('act');if(NAVIDS.includes(curPg))prevPg=curPg;curPg=id}
+function navTo(id,idx){goTo(id);const ni=document.querySelectorAll('.ni');ni.forEach(n=>n.classList.remove('act'));ni[idx].classList.add('act');prevPg=id}
+function goBack(){goTo(prevPg);const i=NAVIDS.indexOf(prevPg);if(i>-1){const ni=document.querySelectorAll('.ni');ni.forEach(n=>n.classList.remove('act'));ni[i].classList.add('act')}}
+function OS(id){document.getElementById('ov-'+id).classList.add('open')}
+function CS(id){document.getElementById('ov-'+id).classList.remove('open')}
+function setPill(el){el.parentElement.querySelectorAll('.pill').forEach(p=>p.classList.remove('act'));el.classList.add('act')}
+
+
+
+
+
+function matTab(btn, id) {
+  var pills = document.querySelectorAll('#matPills .pill');
+  pills.forEach(function(p){ p.classList.remove('act'); });
+  btn.classList.add('act');
+  var tabs = ['mat-global','mat-commission','mat-manques','mat-recherche'];
+  tabs.forEach(function(t){
+    var el = document.getElementById(t);
+    if(el) el.style.display = (t === id) ? 'block' : 'none';
+  });
+}
+
+var EXPERTS = [
+  {init:'AS',nom:'Dr. Aminata Sow',dom:'Medecine · Sante publique',pays:'France',comm:'Sante',niv:'Expert',bg:'var(--gb)',col:'var(--g)'},
+  {init:'CT',nom:'Me. Cheikh Tall',dom:'Droit fiscal · Finance',pays:'Belgique',comm:'Economie',niv:'Expert',bg:'var(--ob)',col:'var(--or)'},
+  {init:'OB',nom:'Pr. Omar Ba',dom:'Urbanisme · Decentralisation',pays:'Canada',comm:'Decentralisation',niv:'Expert',bg:'#f5f0ff',col:'#5B2D8B'},
+  {init:'FN',nom:'Fatou Ndiaye',dom:'Economiste · Banque Mondiale',pays:'USA',comm:'Economie',niv:'Expert',bg:'var(--vb)',col:'var(--v)'},
+  {init:'IS',nom:'Dr. Ibou Sarr',dom:'Recherche · IA',pays:'France',comm:'Recherche',niv:'Expert',bg:'var(--gb)',col:'var(--g)'},
+  {init:'ID',nom:'Ibou Diallo',dom:'Pharmacie · Sante',pays:'France',comm:'Sante',niv:'Avance',bg:'var(--vb)',col:'var(--v)'},
+  {init:'LB',nom:'Lamine Ba',dom:'Energie · Hydraulique',pays:'Belgique',comm:'Energie',niv:'Avance',bg:'var(--vb)',col:'var(--v)'},
+  {init:'OD',nom:'Omar Diallo',dom:'Fiscaliste · Ernst Young',pays:'France',comm:'Economie',niv:'Avance',bg:'var(--ob)',col:'var(--or)'},
+];
+
+function doSearch(val) {
+  var res = document.getElementById('matResults');
+  if(!res) return;
+  if(!val || val.length < 2) {
+    res.innerHTML = '<div style="text-align:center;padding:30px 0;color:var(--t3)"><div style="font-size:2.5rem;margin-bottom:8px">🔍</div><div style="font-size:.78rem">Tapez pour trouver des experts</div></div>';
+    return;
+  }
+  var v = val.toLowerCase();
+  var found = EXPERTS.filter(function(e){
+    return e.dom.toLowerCase().includes(v) || e.nom.toLowerCase().includes(v) || e.comm.toLowerCase().includes(v);
+  });
+  if(found.length === 0) {
+    res.innerHTML = '<div style="text-align:center;padding:24px 0;color:var(--t3)"><div style="font-size:2rem;margin-bottom:8px">😕</div><div style="font-size:.78rem">Aucun expert pour ce domaine</div><button class="bp bp-or" onclick="OS(\'recruterExpert\')" style="margin-top:14px;width:auto;padding:10px 20px;font-size:.78rem">📢 Lancer un appel</button></div>';
+    return;
+  }
+  res.innerHTML = found.map(function(e){
+    return '<div class="membre-row" onclick="OS(\'expertDetail\')" style="cursor:pointer"><div class="m-av" style="background:'+e.bg+';color:'+e.col+'">'+e.init+'</div><div class="m-info"><div class="m-name">'+e.nom+'</div><div class="m-exp">'+e.dom+' · '+e.pays+'</div><div style="display:flex;gap:4px;margin-top:4px"><span class="badge bg">'+e.niv+'</span><span class="badge bb">'+e.comm+'</span></div></div></div>';
+  }).join('');
+}
+
+
+
+function transTab(btn, id) {
+  var pills = document.querySelectorAll('#transPills .pill');
+  pills.forEach(function(p){ p.classList.remove('act'); });
+  btn.classList.add('act');
+  var tabs = ['trans-registre','trans-mes-consentements'];
+  tabs.forEach(function(t){
+    var el = document.getElementById(t);
+    if(el) el.style.display = (t === id) ? 'block' : 'none';
+  });
+}
+
+
+function resetApp(){document.getElementById('app').style.display='none';document.getElementById('LS').style.opacity='1';document.getElementById('LS').style.display='flex';curP=null;document.getElementById('btnGo').disabled=true;document.querySelectorAll('.pb').forEach(b=>b.classList.remove('sel'))}
+
+Chart.defaults.color='#8A90B0';Chart.defaults.font.family='Sora';Chart.defaults.font.size=10;
+
+function initChart(){
+  const ctx=document.getElementById('dashChart');if(!ctx)return;
+  new Chart(ctx,{type:'bar',data:{
+    labels:['Gouv.','Eco.','Infra.','Social','Science'],
+    datasets:[
+      {label:'Finalises',data:[7,9,5,11,7],backgroundColor:'rgba(10,36,99,.7)',borderRadius:4},
+      {label:'En cours',data:[2,4,2,5,3],backgroundColor:'rgba(200,149,10,.6)',borderRadius:4}
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:10,padding:10}}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{stepSize:2}}}}});
+}
+</script>
+</body>
+</html>

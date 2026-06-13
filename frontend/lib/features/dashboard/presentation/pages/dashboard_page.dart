@@ -8,6 +8,7 @@ import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/kpi_card.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../rapports/presentation/pages/rapport_activite_form_page.dart';
 import '../providers/dashboard_provider.dart';
 
 class DashboardPage extends ConsumerWidget {
@@ -62,7 +63,9 @@ class DashboardPage extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RapportActiviteFormPage()),
+                  ),
                   icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
                   label: const Text("Rapport d'activité PDF"),
                   style: ElevatedButton.styleFrom(

@@ -252,9 +252,7 @@ class _SelecteurEvenement extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(evenementsProvider);
     final evs = state.maybeWhen(charge: (_) {
-      final aVenir = state.aVenir;
-      final passes = state.passes;
-      return [...aVenir, ...passes];
+      return state.tous;
     }, orElse: () => <dynamic>[]);
 
     return Container(

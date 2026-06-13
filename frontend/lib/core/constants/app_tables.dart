@@ -20,8 +20,7 @@ class AppTables {
   static const String colUniteId   = 'unite_id';
 
   // Colonnes profiles
-  static const String colUniteOrganisationnelleId = 'unite_organisationnelle_id';
-  static const String colEntite                   = 'entite';
+  static const String colEntite = 'entite';
 
   // Table unites_organisationnelles
   static const String unitesOrganisationnelles = 'unites_organisationnelles';

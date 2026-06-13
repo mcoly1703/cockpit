@@ -10,6 +10,13 @@ import '../../data/repositories/elections_repository_impl.dart';
 import '../../domain/entities/candidat_election.dart';
 import '../../domain/entities/scrutin.dart';
 import '../../domain/repositories/elections_repository.dart';
+import '../../domain/usecases/ajouter_candidat.dart';
+import '../../domain/usecases/ajouter_scrutin.dart';
+import '../../domain/usecases/changer_statut_scrutin.dart';
+import '../../domain/usecases/get_candidats.dart';
+import '../../domain/usecases/get_scrutins.dart';
+import '../../domain/usecases/retirer_candidat.dart';
+import '../../domain/usecases/saisir_resultat.dart';
 
 part 'elections_provider.freezed.dart';
 
@@ -57,7 +64,7 @@ final electionsDatasourceProvider = Provider(
   (ref) => ElectionsDatasource(ref.watch(supabaseClientProvider)),
 );
 
-final electionsRepositoryProvider = Provider(
+final electionsRepositoryProvider = Provider<ElectionsRepository>(
   (ref) => ElectionsRepositoryImpl(ref.watch(electionsDatasourceProvider)),
 );
 
@@ -66,18 +73,28 @@ final electionsRepositoryProvider = Provider(
 final electionsProvider =
     StateNotifierProvider<ElectionsNotifier, ElectionsState>(
   (ref) => ElectionsNotifier(
-    repository: ref.watch(electionsRepositoryProvider),
-    ref: ref,
+    getScrutins:        GetScrutins(ref.watch(electionsRepositoryProvider)),
+    ajouterScrutin:     AjouterScrutin(ref.watch(electionsRepositoryProvider)),
+    changerStatut:      ChangerStatutScrutin(ref.watch(electionsRepositoryProvider)),
+    ref:                ref,
   ),
 );
 
 class ElectionsNotifier extends StateNotifier<ElectionsState> {
-  final ElectionsRepository _repository;
-  final Ref _ref;
+  final GetScrutins          _getScrutins;
+  final AjouterScrutin       _ajouterScrutin;
+  final ChangerStatutScrutin _changerStatut;
+  final Ref                  _ref;
 
-  ElectionsNotifier({required ElectionsRepository repository, required Ref ref})
-      : _repository = repository,
-        _ref = ref,
+  ElectionsNotifier({
+    required GetScrutins          getScrutins,
+    required AjouterScrutin       ajouterScrutin,
+    required ChangerStatutScrutin changerStatut,
+    required Ref                  ref,
+  })  : _getScrutins    = getScrutins,
+        _ajouterScrutin = ajouterScrutin,
+        _changerStatut  = changerStatut,
+        _ref            = ref,
         super(const ElectionsState.initial()) {
     charger();
   }
@@ -96,7 +113,7 @@ class ElectionsNotifier extends StateNotifier<ElectionsState> {
     }
     final filtrer = !_estAccesGlobal(utilisateur.role);
     final uniteId = filtrer ? utilisateur.uniteOrganisationnelleId : null;
-    final result = await _repository.getScrutins(uniteId: uniteId);
+    final result = await _getScrutins(ParamsGetScrutins(uniteId: uniteId));
     result.fold(
       (f) => state = ElectionsState.erreur(failure: f),
       (s) => state = ElectionsState.charge(scrutins: s),
@@ -104,13 +121,15 @@ class ElectionsNotifier extends StateNotifier<ElectionsState> {
   }
 
   Future<Either<Failure, void>> ajouterScrutin(ParamsAjouterScrutin params) async {
-    final result = await _repository.ajouterScrutin(params);
+    final result = await _ajouterScrutin(params);
     if (result.isRight()) await charger();
     return result;
   }
 
   Future<Either<Failure, void>> changerStatut(String scrutinId, String statut) async {
-    final result = await _repository.changerStatut(scrutinId, statut);
+    final result = await _changerStatut(
+      ParamsChangerStatut(scrutinId: scrutinId, statut: statut),
+    );
     if (result.isRight()) await charger();
     return result;
   }
@@ -120,25 +139,39 @@ class ElectionsNotifier extends StateNotifier<ElectionsState> {
 
 final candidatsProvider = StateNotifierProvider.family<CandidatsNotifier, CandidatsState, String>(
   (ref, scrutinId) => CandidatsNotifier(
-    repository: ref.watch(electionsRepositoryProvider),
-    scrutinId: scrutinId,
+    getCandidats:    GetCandidats(ref.watch(electionsRepositoryProvider)),
+    ajouterCandidat: AjouterCandidat(ref.watch(electionsRepositoryProvider)),
+    saisirResultat:  SaisirResultat(ref.watch(electionsRepositoryProvider)),
+    retirerCandidat: RetirerCandidat(ref.watch(electionsRepositoryProvider)),
+    scrutinId:       scrutinId,
   ),
 );
 
 class CandidatsNotifier extends StateNotifier<CandidatsState> {
-  final ElectionsRepository _repository;
-  final String _scrutinId;
+  final GetCandidats    _getCandidats;
+  final AjouterCandidat _ajouterCandidat;
+  final SaisirResultat  _saisirResultat;
+  final RetirerCandidat _retirerCandidat;
+  final String          _scrutinId;
 
-  CandidatsNotifier({required ElectionsRepository repository, required String scrutinId})
-      : _repository = repository,
-        _scrutinId = scrutinId,
+  CandidatsNotifier({
+    required GetCandidats    getCandidats,
+    required AjouterCandidat ajouterCandidat,
+    required SaisirResultat  saisirResultat,
+    required RetirerCandidat retirerCandidat,
+    required String          scrutinId,
+  })  : _getCandidats    = getCandidats,
+        _ajouterCandidat = ajouterCandidat,
+        _saisirResultat  = saisirResultat,
+        _retirerCandidat = retirerCandidat,
+        _scrutinId       = scrutinId,
         super(const CandidatsState.initial()) {
     charger();
   }
 
   Future<void> charger() async {
     state = const CandidatsState.chargement();
-    final result = await _repository.getCandidats(_scrutinId);
+    final result = await _getCandidats(_scrutinId);
     result.fold(
       (f) => state = CandidatsState.erreur(failure: f),
       (c) => state = CandidatsState.charge(candidats: c),
@@ -146,19 +179,19 @@ class CandidatsNotifier extends StateNotifier<CandidatsState> {
   }
 
   Future<Either<Failure, void>> ajouterCandidat(ParamsAjouterCandidat params) async {
-    final result = await _repository.ajouterCandidat(params);
+    final result = await _ajouterCandidat(params);
     if (result.isRight()) await charger();
     return result;
   }
 
   Future<Either<Failure, void>> saisirResultat(ParamsSaisirResultat params) async {
-    final result = await _repository.saisirResultat(params);
+    final result = await _saisirResultat(params);
     if (result.isRight()) await charger();
     return result;
   }
 
   Future<Either<Failure, void>> retirerCandidat(String candidatId) async {
-    final result = await _repository.retirerCandidat(candidatId);
+    final result = await _retirerCandidat(candidatId);
     if (result.isRight()) await charger();
     return result;
   }

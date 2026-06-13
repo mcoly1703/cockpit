@@ -5,6 +5,8 @@ import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/candidat_election.dart';
 import '../../domain/entities/scrutin.dart';
 import '../../domain/repositories/elections_repository.dart';
+import '../models/candidat_election_model.dart';
+import '../models/scrutin_model.dart';
 
 class ElectionsDatasource {
   final SupabaseClient supabase;
@@ -100,24 +102,9 @@ class ElectionsDatasource {
     }
   }
 
-  static Scrutin _scrutinFromMap(Map<String, dynamic> e) => Scrutin(
-    id:          e[AppTables.colId]          as String,
-    uniteId:     e[AppTables.colUniteId]     as String?,
-    titre:       e[AppTables.colTitre]       as String,
-    type:        e[AppTables.colType]        as String,
-    dateScrutin: DateTime.parse(e[AppTables.colDateScrutin] as String),
-    description: e[AppTables.colDescription] as String?,
-    statut:      e[AppTables.colStatut]      as String,
-  );
+  static Scrutin _scrutinFromMap(Map<String, dynamic> e) =>
+      ScrutinModel.fromJson(e).toEntity();
 
-  static CandidatElection _candidatFromMap(Map<String, dynamic> e) => CandidatElection(
-    id:         e[AppTables.colId]         as String,
-    scrutinId:  e[AppTables.colScrutinId]  as String,
-    militantId: e[AppTables.colMilitantId] as String?,
-    nom:        e[AppTables.colNom]        as String,
-    prenom:     e[AppTables.colPrenom]     as String,
-    poste:      e[AppTables.colPoste]      as String?,
-    voix:       e[AppTables.colVoix]       as int?,
-    elu:        (e[AppTables.colElu]       as bool?) ?? false,
-  );
+  static CandidatElection _candidatFromMap(Map<String, dynamic> e) =>
+      CandidatElectionModel.fromJson(e).toEntity();
 }

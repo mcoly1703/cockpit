@@ -27,14 +27,21 @@ class EvenementsState with _$EvenementsState {
   const factory EvenementsState.charge({required List<Evenement> evenements}) = _Charge;
   const factory EvenementsState.erreur({required Failure failure})         = _Erreur;
 
+  List<Evenement> get tous => maybeWhen(
+        charge: (e) => List<Evenement>.from(e)
+          ..sort((a, b) => b.dateDebut.compareTo(a.dateDebut)),
+        orElse: () => [],
+      );
+
   List<Evenement> get aVenir => maybeWhen(
         charge: (e) => e.where((ev) => ev.dateDebut.isAfter(DateTime.now())).toList()
           ..sort((a, b) => a.dateDebut.compareTo(b.dateDebut)),
         orElse: () => [],
       );
 
-  List<Evenement> get passes => maybeWhen(
-        charge: (e) => e.where((ev) => !ev.dateDebut.isAfter(DateTime.now())).toList(),
+  List<Evenement> get termines => maybeWhen(
+        charge: (e) => e.where((ev) => !ev.dateDebut.isAfter(DateTime.now())).toList()
+          ..sort((a, b) => b.dateDebut.compareTo(a.dateDebut)),
         orElse: () => [],
       );
 

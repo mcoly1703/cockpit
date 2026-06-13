@@ -14,8 +14,9 @@ class RapportsService {
   RapportsService(this.supabase);
 
   // ── Couleurs Pastef ────────────────────────────────────────────────────────
-  static final _vert = PdfColor.fromHex('#1B4D1B');
-  static final _or   = PdfColor.fromHex('#C8950A');
+  static final _vert  = PdfColor.fromHex('#1B4D1B');
+  static final _rouge = PdfColor.fromHex('#8B0000');
+  static final _or    = PdfColor.fromHex('#C8950A');
   static const _fondClair = PdfColor(0.96, 0.95, 0.94);
   static const _texte     = PdfColors.grey900;
   static const _texte2    = PdfColors.grey600;
@@ -256,8 +257,7 @@ class RapportsService {
           _sectionTitre(fontBold, 'ORDRE DU JOUR'),
           pw.Padding(
             padding: const pw.EdgeInsets.symmetric(vertical: 4),
-            child: pw.Text(reunionData[AppTables.colOrdreJour] as String,
-                style: pw.TextStyle(font: font, fontSize: 10, color: _texte2)),
+            child: _texteMultiligne(font, reunionData[AppTables.colOrdreJour] as String),
           ),
         ],
         _espacement,
@@ -419,6 +419,293 @@ class RapportsService {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
+  // 6 — Rapport d'Activité (dashboard)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  Future<Uint8List> genererRapportActivite({
+    String?  uniteId, // null = global (BEX)
+    required DateTime debut,
+    required DateTime fin,
+    bool inclureMilitants  = true,
+    bool inclureProspects  = true,
+    bool inclureFinances   = true,
+    bool inclureEvenements = true,
+    bool inclureReunions   = true,
+    bool inclureBureau     = true,
+  }) async {
+    // Nom de l'unité
+    String uniteNom = 'Section France';
+    if (uniteId != null) {
+      try {
+        final ud = await supabase
+            .from(AppTables.unitesOrganisationnelles)
+            .select(AppTables.colCode)
+            .eq(AppTables.colId, uniteId)
+            .maybeSingle();
+        if (ud != null) uniteNom = ud[AppTables.colCode] as String? ?? uniteNom;
+      } catch (_) {}
+    }
+
+    final fmtPeriode = DateFormat('dd/MM/yyyy', 'fr');
+    final periodeLabel = '${fmtPeriode.format(debut)} — ${fmtPeriode.format(fin)}';
+
+    // Helper query optionnel par unité
+    dynamic _filtreUnite(dynamic q) => uniteId != null ? q.eq(AppTables.colUniteId, uniteId) : q;
+
+    // ── MILITANTS ─────────────────────────────────────────────────────────────
+    List<Map<String, dynamic>> militants = [];
+    if (inclureMilitants || inclureFinances) {
+      militants = List<Map<String, dynamic>>.from(await _filtreUnite(supabase
+          .from(AppTables.militants)
+          .select('${AppTables.colId}, ${AppTables.colSexe}, ${AppTables.colStatut}, ${AppTables.colCreatedAt}'))
+          .eq(AppTables.colStatut, AppEnums.militantActif));
+    }
+
+    final milIds = militants.map((m) => m[AppTables.colId] as String).toList();
+    final newMil = militants.where((m) {
+      final ca = DateTime.parse(m[AppTables.colCreatedAt] as String);
+      return !ca.isBefore(debut) && !ca.isAfter(fin);
+    }).length;
+
+    // Cotisations (pour le taux de recouvrement, uniquement si section militants ou finances)
+    List<Map<String, dynamic>> cotisations = [];
+    if ((inclureMilitants || inclureFinances) && milIds.isNotEmpty) {
+      cotisations = List<Map<String, dynamic>>.from(await supabase
+          .from(AppTables.cotisations)
+          .select('${AppTables.colMilitantId}, ${AppTables.colStatutCotis}')
+          .eq(AppTables.colAnnee, debut.year)
+          .inFilter(AppTables.colMilitantId, milIds));
+    }
+    final cotMilIds = cotisations.map((c) => c[AppTables.colMilitantId] as String).toSet();
+    final aJour    = cotisations.where((c) { final s = c[AppTables.colStatutCotis] as String; return s == AppEnums.cotisationPayee || s == AppEnums.cotisationPartiel; }).length;
+    final enRetard = cotisations.where((c) => c[AppTables.colStatutCotis] == AppEnums.cotisationEnRetard).length;
+    final inactif  = milIds.length - cotMilIds.length;
+    final taux     = milIds.isNotEmpty ? aJour / milIds.length : 0.0;
+
+    // ── PROSPECTS ─────────────────────────────────────────────────────────────
+    List<Map<String, dynamic>> prospects = [];
+    if (inclureProspects) {
+      prospects = List<Map<String, dynamic>>.from(await _filtreUnite(supabase
+          .from(AppTables.prospects)
+          .select('${AppTables.colEtape}, ${AppTables.colCreatedAt}')));
+    }
+    final prosperiode = prospects.where((p) {
+      final d = DateTime.parse(p[AppTables.colCreatedAt] as String);
+      return !d.isBefore(debut) && !d.isAfter(fin);
+    }).toList();
+
+    // ── FINANCES ──────────────────────────────────────────────────────────────
+    List<Map<String, dynamic>> transactions = [];
+    if (inclureFinances) {
+      transactions = List<Map<String, dynamic>>.from(await _filtreUnite(supabase
+          .from(AppTables.transactions)
+          .select('${AppTables.colType}, ${AppTables.colMontant}, ${AppTables.colCategorie}, ${AppTables.colDateTransaction}'))
+          .gte(AppTables.colDateTransaction, debut.toIso8601String())
+          .lte(AppTables.colDateTransaction, fin.toIso8601String())
+          .order(AppTables.colDateTransaction));
+    }
+    final entrees  = transactions.where((t) => t[AppTables.colType] == AppEnums.transactionEntree).toList();
+    final depenses = transactions.where((t) => t[AppTables.colType] == AppEnums.transactionDepense).toList();
+    final totalE   = entrees.fold(0.0,  (s, t) => s + (t[AppTables.colMontant] as num).toDouble());
+    final totalD   = depenses.fold(0.0, (s, t) => s + (t[AppTables.colMontant] as num).toDouble());
+
+    final parCatE = <String, double>{};
+    for (final t in entrees) { final c = t[AppTables.colCategorie] as String; parCatE[c] = (parCatE[c] ?? 0) + (t[AppTables.colMontant] as num).toDouble(); }
+    final parCatD = <String, double>{};
+    for (final t in depenses) { final c = t[AppTables.colCategorie] as String; parCatD[c] = (parCatD[c] ?? 0) + (t[AppTables.colMontant] as num).toDouble(); }
+
+    // ── ÉVÉNEMENTS ────────────────────────────────────────────────────────────
+    List<Map<String, dynamic>> evenements = [];
+    int presTotal = 0;
+    if (inclureEvenements) {
+      evenements = List<Map<String, dynamic>>.from(await _filtreUnite(supabase
+          .from(AppTables.evenements)
+          .select('${AppTables.colId}, ${AppTables.colTitre}, ${AppTables.colType}, ${AppTables.colDateDebut}, ${AppTables.colLieu}'))
+          .gte(AppTables.colDateDebut, debut.toIso8601String())
+          .lte(AppTables.colDateDebut, fin.toIso8601String())
+          .order(AppTables.colDateDebut));
+      if (evenements.isNotEmpty) {
+        final ids = evenements.map((e) => e[AppTables.colId] as String).toList();
+        final pres = await supabase.from(AppTables.presences).select(AppTables.colId).inFilter(AppTables.colEvenementId, ids);
+        presTotal = pres.length;
+      }
+    }
+
+    // ── RÉUNIONS ──────────────────────────────────────────────────────────────
+    List<Map<String, dynamic>> reunions = [];
+    int decisTotal = 0;
+    if (inclureReunions) {
+      reunions = List<Map<String, dynamic>>.from(await _filtreUnite(supabase
+          .from(AppTables.reunions)
+          .select('${AppTables.colId}, ${AppTables.colTitre}, ${AppTables.colType}, ${AppTables.colDate}, ${AppTables.colLieu}'))
+          .gte(AppTables.colDate, debut.toIso8601String())
+          .lte(AppTables.colDate, fin.toIso8601String())
+          .order(AppTables.colDate));
+      if (reunions.isNotEmpty) {
+        final ids = reunions.map((r) => r[AppTables.colId] as String).toList();
+        final decis = await supabase.from(AppTables.decisions).select(AppTables.colId).inFilter(AppTables.colReunionId, ids);
+        decisTotal = decis.length;
+      }
+    }
+
+    // ── BUREAU ────────────────────────────────────────────────────────────────
+    List<Map<String, dynamic>> postes = [];
+    if (inclureBureau) {
+      postes = List<Map<String, dynamic>>.from(await _filtreUnite(supabase
+          .from(AppTables.postesBureau)
+          .select('${AppTables.colIntitule}, ${AppTables.colMilitantNom}, ${AppTables.colMilitantPrenom}, ${AppTables.colDateNomination}'))
+          .order(AppTables.colIntitule));
+    }
+
+    // ── PDF ───────────────────────────────────────────────────────────────────
+    final font     = await PdfGoogleFonts.openSansRegular();
+    final fontBold = await PdfGoogleFonts.openSansBold();
+    final fmtM     = NumberFormat.currency(locale: 'fr', symbol: '€', decimalDigits: 0);
+    final fmtDate  = DateFormat('dd/MM/yyyy', 'fr');
+    final fmtDateH = DateFormat('dd/MM/yy · HH:mm', 'fr');
+
+    final sections = <pw.Widget>[];
+
+    // MILITANTS
+    if (inclureMilitants) {
+      sections.addAll([
+        _sectionTitre(fontBold, 'MILITANTS'),
+        _kpisLigne(font, fontBold, [
+          ('Total actifs',  '${militants.length}'),
+          ('Nouveaux',      '$newMil'),
+          ('Hommes',        '${militants.where((m) => m[AppTables.colSexe] == AppEnums.sexeHomme).length}'),
+          ('Femmes',        '${militants.where((m) => m[AppTables.colSexe] == AppEnums.sexeFemme).length}'),
+        ]),
+        _espacement,
+        _sectionTitre(fontBold, 'TAUX DE RECOUVREMENT'),
+        _blocRecouvrement(font, fontBold, aJour, enRetard, inactif, milIds.length, taux),
+        _espacement,
+      ]);
+    }
+
+    // PROSPECTS
+    if (inclureProspects) {
+      sections.addAll([
+        _sectionTitre(fontBold, 'PROSPECTS'),
+        _kpisLigne(font, fontBold, [
+          ('Sur la période', '${prosperiode.length}'),
+          ('Contact',        '${prospects.where((p) => p[AppTables.colEtape] == AppEnums.etapeContact).length}'),
+          ('Sympathisant',   '${prospects.where((p) => p[AppTables.colEtape] == AppEnums.etapeSympathisant).length}'),
+          ('Converti',       '${prospects.where((p) => p[AppTables.colEtape] == AppEnums.etapeConverti).length}'),
+        ]),
+        _espacement,
+      ]);
+    }
+
+    // FINANCES
+    if (inclureFinances) {
+      sections.addAll([
+        _sectionTitre(fontBold, 'FINANCES'),
+        _kpisLigne(font, fontBold, [
+          ('Entrées',  fmtM.format(totalE)),
+          ('Dépenses', fmtM.format(totalD)),
+          ('Solde',    fmtM.format(totalE - totalD)),
+        ]),
+        if (parCatE.isNotEmpty) ...[
+          _espacement,
+          _sectionTitre(fontBold, 'ENTRÉES PAR CATÉGORIE'),
+          _tableauCategories(font, fontBold, parCatE, fmtM),
+        ],
+        if (parCatD.isNotEmpty) ...[
+          _espacement,
+          _sectionTitre(fontBold, 'DÉPENSES PAR CATÉGORIE'),
+          _tableauCategories(font, fontBold, parCatD, fmtM),
+        ],
+        _espacement,
+      ]);
+    }
+
+    // ÉVÉNEMENTS
+    if (inclureEvenements) {
+      sections.addAll([
+        _sectionTitre(fontBold, 'ÉVÉNEMENTS (${evenements.length})'),
+        _kpisLigne(font, fontBold, [
+          ('Événements', '${evenements.length}'),
+          ('Présences',  '$presTotal'),
+          ('Moy./event', evenements.isEmpty ? '—' : '${(presTotal / evenements.length).round()}'),
+        ]),
+        if (evenements.isNotEmpty) ...[
+          _espacement,
+          _tableau(
+            font: font, fontBold: fontBold,
+            entetes: ['Date', 'Titre', 'Type', 'Lieu'],
+            lignes: evenements.map((e) => [
+              fmtDate.format(DateTime.parse(e[AppTables.colDateDebut] as String)),
+              e[AppTables.colTitre] as String,
+              AppEnums.typesEvenement.firstWhere((t) => t.$1 == e[AppTables.colType], orElse: () => ('', e[AppTables.colType] as String)).$2,
+              e[AppTables.colLieu] as String? ?? '—',
+            ]).toList(),
+          ),
+        ],
+        _espacement,
+      ]);
+    }
+
+    // RÉUNIONS
+    if (inclureReunions) {
+      sections.addAll([
+        _sectionTitre(fontBold, 'RÉUNIONS (${reunions.length})'),
+        _kpisLigne(font, fontBold, [
+          ('Réunions',  '${reunions.length}'),
+          ('Décisions', '$decisTotal'),
+        ]),
+        if (reunions.isNotEmpty) ...[
+          _espacement,
+          _tableau(
+            font: font, fontBold: fontBold,
+            entetes: ['Date', 'Titre', 'Type', 'Lieu'],
+            lignes: reunions.map((r) => [
+              fmtDateH.format(DateTime.parse(r[AppTables.colDate] as String)),
+              r[AppTables.colTitre] as String,
+              AppEnums.typesReunion.firstWhere((t) => t.$1 == r[AppTables.colType], orElse: () => ('', r[AppTables.colType] as String)).$2,
+              r[AppTables.colLieu] as String? ?? '—',
+            ]).toList(),
+          ),
+        ],
+        _espacement,
+      ]);
+    }
+
+    // BUREAU
+    if (inclureBureau && postes.isNotEmpty) {
+      sections.addAll([
+        _sectionTitre(fontBold, 'COMPOSITION DU BUREAU'),
+        _tableau(
+          font: font, fontBold: fontBold,
+          entetes: ['Poste', 'Titulaire', 'Depuis'],
+          lignes: postes.map((p) => [
+            p[AppTables.colIntitule] as String? ?? '—',
+            '${p[AppTables.colMilitantPrenom] ?? ''} ${p[AppTables.colMilitantNom] ?? ''}'.trim(),
+            p[AppTables.colDateNomination] != null
+                ? fmtDate.format(DateTime.parse(p[AppTables.colDateNomination] as String))
+                : '—',
+          ]).toList(),
+        ),
+      ]);
+    }
+
+    if (sections.isEmpty) {
+      sections.add(pw.Text('Aucune section sélectionnée.',
+          style: pw.TextStyle(font: font, fontSize: 11, color: _texte2)));
+    }
+
+    final doc = pw.Document();
+    doc.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      header: (_) => _entete(font, fontBold, 'Rapport d\'Activité', '$uniteNom · $periodeLabel'),
+      footer: (_) => _piedPage(font),
+      build: (_) => sections,
+    ));
+    return doc.save();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
   // Éléments PDF communs
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -512,9 +799,20 @@ class RapportsService {
         pw.SizedBox(width: 90,
           child: pw.Text(label,
               style: pw.TextStyle(font: fontBold, fontSize: 9, color: _texte2))),
-        pw.Expanded(child: pw.Text(valeur,
-            style: pw.TextStyle(font: font, fontSize: 9, color: _texte))),
+        pw.Expanded(child: _texteMultiligne(font, valeur, fontSize: 9, color: _texte)),
       ]),
+    );
+  }
+
+  pw.Widget _texteMultiligne(pw.Font font, String texte, {double fontSize = 10, PdfColor? color}) {
+    // Normalise les \n littéraux (venant du SQL) ET les vrais sauts de ligne (saisie utilisateur)
+    final lignes = texte.replaceAll(r'\n', '\n').split('\n');
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: lignes.map((ligne) => pw.Text(
+        ligne,
+        style: pw.TextStyle(font: font, fontSize: fontSize, color: color ?? _texte2),
+      )).toList(),
     );
   }
 
@@ -553,6 +851,85 @@ class RapportsService {
   }
 
   pw.SizedBox get _espacement => pw.SizedBox(height: 16);
+
+  pw.Widget _blocRecouvrement(pw.Font font, pw.Font fontBold,
+      int aJour, int enRetard, int inactif, int total, double taux) {
+    final pct = (taux * 100).round();
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(color: _fondClair, borderRadius: pw.BorderRadius.circular(4)),
+      child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+        pw.Row(children: [
+          pw.Text('$pct%', style: pw.TextStyle(font: fontBold, fontSize: 30, color: _vert)),
+          pw.Spacer(),
+          pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+            pw.Text('$aJour / $total militants',
+                style: pw.TextStyle(font: fontBold, fontSize: 10, color: _texte)),
+            pw.Text('Objectif : 80%',
+                style: pw.TextStyle(font: font, fontSize: 9, color: _texte2)),
+          ]),
+        ]),
+        pw.SizedBox(height: 8),
+        _barreProgression(taux),
+        pw.SizedBox(height: 8),
+        pw.Row(children: [
+          pw.Text('● À jour : $aJour',  style: pw.TextStyle(font: font, fontSize: 8, color: _vert)),
+          pw.SizedBox(width: 14),
+          pw.Text('● Retard : $enRetard', style: pw.TextStyle(font: font, fontSize: 8, color: _or)),
+          pw.SizedBox(width: 14),
+          pw.Text('● Inactif : $inactif', style: pw.TextStyle(font: font, fontSize: 8, color: _rouge)),
+        ]),
+      ]),
+    );
+  }
+
+  pw.Widget _barreProgression(double taux) {
+    final pct = (taux * 100).round().clamp(0, 100);
+    return pw.SizedBox(
+      height: 8,
+      child: pw.Row(children: [
+        if (pct > 0)   pw.Expanded(flex: pct,       child: pw.Container(color: _vert)),
+        if (pct < 100) pw.Expanded(flex: 100 - pct, child: pw.Container(color: PdfColors.grey300)),
+      ]),
+    );
+  }
+
+  pw.Widget _tableauCategories(pw.Font font, pw.Font fontBold,
+      Map<String, double> data, NumberFormat fmt) {
+    final sorted = data.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final total  = data.values.fold(0.0, (s, v) => s + v);
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      children: [
+        pw.TableRow(
+          decoration: pw.BoxDecoration(color: _vert),
+          children: ['Catégorie', 'Montant', '%'].map((h) => pw.Padding(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: pw.Text(h, style: pw.TextStyle(font: fontBold, fontSize: 8, color: PdfColors.white)),
+          )).toList(),
+        ),
+        ...sorted.asMap().entries.map((entry) {
+          final isOdd = entry.key.isOdd;
+          final cat   = entry.value.key;
+          final montant = entry.value.value;
+          final pct   = total > 0 ? (montant / total * 100).round() : 0;
+          return pw.TableRow(
+            decoration: isOdd ? pw.BoxDecoration(color: _fondClair) : null,
+            children: [
+              _cellule(font, AppCategories.label(cat)),
+              _cellule(font, fmt.format(montant)),
+              _cellule(font, '$pct%'),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+
+  pw.Widget _cellule(pw.Font font, String texte) => pw.Padding(
+    padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+    child: pw.Text(texte, style: pw.TextStyle(font: font, fontSize: 8, color: _texte)),
+  );
 
   String _labelStatutDecision(String s) => switch (s) {
     AppEnums.decisionEnAttente => 'En attente',

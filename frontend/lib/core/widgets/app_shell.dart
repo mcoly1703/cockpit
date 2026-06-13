@@ -72,6 +72,13 @@ class AppShell extends ConsumerWidget {
   }
 }
 
+String _initiales(Utilisateur? u) {
+  if (u == null) return '?';
+  final p = u.prenom.isNotEmpty ? u.prenom[0] : '?';
+  final n = u.nom.isNotEmpty ? u.nom[0] : '';
+  return '$p$n'.toUpperCase();
+}
+
 // ---------- TOPBAR ----------
 
 class _Topbar extends StatelessWidget {
@@ -88,9 +95,7 @@ class _Topbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initiales = utilisateur != null
-        ? '${utilisateur!.prenom[0]}${utilisateur!.nom[0]}'.toUpperCase()
-        : '?';
+    final initiales = _initiales(utilisateur);
     final sousTitre = estMoncap ? 'MonCap Diaspora' : 'Section France';
 
     return Container(
@@ -437,11 +442,9 @@ class _MenuUtilisateur extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nom       = utilisateur != null
-        ? '${utilisateur!.prenom} ${utilisateur!.nom}'
+        ? '${utilisateur!.prenom} ${utilisateur!.nom}'.trim()
         : 'Utilisateur';
-    final initiales = utilisateur != null
-        ? '${utilisateur!.prenom[0]}${utilisateur!.nom[0]}'.toUpperCase()
-        : '?';
+    final initiales = _initiales(utilisateur);
     final role  = _labelRole(utilisateur?.role);
     final email = utilisateur?.email ?? '';
 

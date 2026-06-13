@@ -105,10 +105,19 @@ class _BureauView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier  = ref.read(bureauProvider.notifier);
+    final notifier    = ref.read(bureauProvider.notifier);
     final listePostes = notifier.getListePostes();
-    final totalPostes = listePostes.length;
+    final totalPostes  = listePostes.length;
     final totalPourvus = state.totalPourvus;
+
+    // Mandat calculé à partir de la plus ancienne date de nomination
+    final postes = state.maybeWhen(charge: (p) => p, orElse: () => <PosteBureau>[]);
+    final debutMandat = postes.isEmpty
+        ? null
+        : postes.map((p) => p.dateNomination).reduce((a, b) => a.isBefore(b) ? a : b);
+    final mandatLabel = debutMandat != null
+        ? 'Mandat ${debutMandat.year}–${debutMandat.year + 6}'
+        : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -123,8 +132,30 @@ class _BureauView extends ConsumerWidget {
                   const Text('Bureau',
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900,
                           color: AppColors.text)),
-                  Text('Composition et mandats',
-                      style: const TextStyle(fontSize: 13, color: AppColors.text2)),
+                  const SizedBox(height: 2),
+                  Row(children: [
+                    Text('Composition et mandats',
+                        style: const TextStyle(fontSize: 13, color: AppColors.text2)),
+                    if (mandatLabel != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          mandatLabel,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ]),
                 ]),
               ),
 

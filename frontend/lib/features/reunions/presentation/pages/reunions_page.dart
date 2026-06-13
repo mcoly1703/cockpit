@@ -51,7 +51,7 @@ class _ReunionsViewState extends ConsumerState<_ReunionsView>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
+    _tabs = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -90,9 +90,10 @@ class _ReunionsViewState extends ConsumerState<_ReunionsView>
 
   @override
   Widget build(BuildContext context) {
-    final state  = widget.state;
-    final aVenir = state.aVenir;
-    final passes = state.passees;
+    final state    = widget.state;
+    final toutes   = state.toutes;
+    final aVenir   = state.aVenir;
+    final terminees = state.terminees;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -113,7 +114,7 @@ class _ReunionsViewState extends ConsumerState<_ReunionsView>
               const Text('Réunions',
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900,
                       color: AppColors.text)),
-              Text('${aVenir.length} à venir · ${passes.length} passée${passes.length > 1 ? 's' : ''}',
+              Text('${aVenir.length} à venir · ${terminees.length} terminée${terminees.length > 1 ? 's' : ''}',
                   style: const TextStyle(fontSize: 13, color: AppColors.text2)),
             ]),
           ),
@@ -131,8 +132,9 @@ class _ReunionsViewState extends ConsumerState<_ReunionsView>
               unselectedLabelColor: AppColors.text2,
               indicatorColor: AppColors.primary,
               tabs: [
-                Tab(child: _TabLabel('À venir', aVenir.length, AppColors.primary)),
-                Tab(child: _TabLabel('Passées',  passes.length,  AppColors.text2)),
+                Tab(child: _TabLabel('Toutes',    toutes.length,    AppColors.text2)),
+                Tab(child: _TabLabel('À venir',   aVenir.length,    AppColors.primary)),
+                Tab(child: _TabLabel('Terminées', terminees.length, AppColors.text2)),
               ],
             ),
           ),
@@ -143,13 +145,18 @@ class _ReunionsViewState extends ConsumerState<_ReunionsView>
               controller: _tabs,
               children: [
                 _ListeReunions(
+                  reunions: toutes,
+                  vide:     'Aucune réunion',
+                  onTap:    _ouvrirDetail,
+                ),
+                _ListeReunions(
                   reunions: aVenir,
                   vide:     'Aucune réunion à venir',
                   onTap:    _ouvrirDetail,
                 ),
                 _ListeReunions(
-                  reunions: passes,
-                  vide:     'Aucune réunion passée',
+                  reunions: terminees,
+                  vide:     'Aucune réunion terminée',
                   onTap:    _ouvrirDetail,
                 ),
               ],

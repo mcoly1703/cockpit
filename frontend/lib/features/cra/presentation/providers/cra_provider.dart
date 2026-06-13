@@ -4,11 +4,20 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/constants/app_tables.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/usecases/usecase.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/cra_datasource.dart';
 import '../../data/repositories/cra_repository_impl.dart';
 import '../../domain/entities/compte_rendu.dart';
 import '../../domain/repositories/cra_repository.dart';
+import '../../domain/usecases/creer_cr.dart';
+import '../../domain/usecases/get_mes_rendus.dart';
+import '../../domain/usecases/get_rendus_recus.dart';
+import '../../domain/usecases/mettre_a_jour_cr.dart';
+import '../../domain/usecases/retourner_cr.dart';
+import '../../domain/usecases/soumettre_cr.dart';
+import '../../domain/usecases/supprimer_cr.dart';
+import '../../domain/usecases/valider_cr.dart';
 
 part 'cra_provider.freezed.dart';
 
@@ -54,23 +63,44 @@ final craDatasourceProvider = Provider(
   (ref) => CraDatasource(ref.watch(supabaseClientProvider)),
 );
 
-final craRepositoryProvider = Provider(
+final craRepositoryProvider = Provider<CraRepository>(
   (ref) => CraRepositoryImpl(ref.watch(craDatasourceProvider)),
 );
 
 // --- Notifier mes CR ---
 
 final craProvider = StateNotifierProvider<CraNotifier, CraState>(
-  (ref) => CraNotifier(repository: ref.watch(craRepositoryProvider), ref: ref),
+  (ref) => CraNotifier(
+    getMesRendus:  GetMesRendus(ref.watch(craRepositoryProvider)),
+    creerCr:       CreerCr(ref.watch(craRepositoryProvider)),
+    mettreAJour:   MettreAJourCr(ref.watch(craRepositoryProvider)),
+    soumettre:     SoumettreC(ref.watch(craRepositoryProvider)),
+    supprimer:     SupprimerCr(ref.watch(craRepositoryProvider)),
+    ref:           ref,
+  ),
 );
 
 class CraNotifier extends StateNotifier<CraState> {
-  final CraRepository _repository;
-  final Ref _ref;
+  final GetMesRendus  _getMesRendus;
+  final CreerCr       _creerCr;
+  final MettreAJourCr _mettreAJour;
+  final SoumettreC    _soumettre;
+  final SupprimerCr   _supprimer;
+  final Ref           _ref;
 
-  CraNotifier({required CraRepository repository, required Ref ref})
-      : _repository = repository,
-        _ref = ref,
+  CraNotifier({
+    required GetMesRendus  getMesRendus,
+    required CreerCr       creerCr,
+    required MettreAJourCr mettreAJour,
+    required SoumettreC    soumettre,
+    required SupprimerCr   supprimer,
+    required Ref           ref,
+  })  : _getMesRendus = getMesRendus,
+        _creerCr      = creerCr,
+        _mettreAJour  = mettreAJour,
+        _soumettre    = soumettre,
+        _supprimer    = supprimer,
+        _ref          = ref,
         super(const CraState.initial()) {
     charger();
   }
@@ -95,7 +125,7 @@ class CraNotifier extends StateNotifier<CraState> {
       state = const CraState.charge(rendus: []);
       return;
     }
-    final result = await _repository.getMesRendus(uniteId);
+    final result = await _getMesRendus(uniteId);
     result.fold(
       (f) => state = CraState.erreur(failure: f),
       (r) => state = CraState.charge(rendus: r),
@@ -108,25 +138,25 @@ class CraNotifier extends StateNotifier<CraState> {
   }
 
   Future<Either<Failure, void>> creerCr(ParamsCreerCr params) async {
-    final result = await _repository.creerCr(params);
+    final result = await _creerCr(params);
     if (result.isRight()) await charger();
     return result;
   }
 
   Future<Either<Failure, void>> mettreAJour(ParamsMajCr params) async {
-    final result = await _repository.mettreAJour(params);
+    final result = await _mettreAJour(params);
     if (result.isRight()) await charger();
     return result;
   }
 
   Future<Either<Failure, void>> soumettre(String crId) async {
-    final result = await _repository.soumettre(crId);
+    final result = await _soumettre(crId);
     if (result.isRight()) await charger();
     return result;
   }
 
   Future<Either<Failure, void>> supprimer(String crId) async {
-    final result = await _repository.supprimer(crId);
+    final result = await _supprimer(crId);
     if (result.isRight()) await charger();
     return result;
   }
@@ -135,21 +165,32 @@ class CraNotifier extends StateNotifier<CraState> {
 // --- Notifier CR reçus (pour les superviseurs) ---
 
 final craRecusProvider = StateNotifierProvider<CraRecusNotifier, CraRecusState>(
-  (ref) => CraRecusNotifier(repository: ref.watch(craRepositoryProvider)),
+  (ref) => CraRecusNotifier(
+    getRendusRecus: GetRendusRecus(ref.watch(craRepositoryProvider)),
+    validerCr:      ValiderCr(ref.watch(craRepositoryProvider)),
+    retournerCr:    RetournerCr(ref.watch(craRepositoryProvider)),
+  ),
 );
 
 class CraRecusNotifier extends StateNotifier<CraRecusState> {
-  final CraRepository _repository;
+  final GetRendusRecus _getRendusRecus;
+  final ValiderCr      _validerCr;
+  final RetournerCr    _retournerCr;
 
-  CraRecusNotifier({required CraRepository repository})
-      : _repository = repository,
+  CraRecusNotifier({
+    required GetRendusRecus getRendusRecus,
+    required ValiderCr      validerCr,
+    required RetournerCr    retournerCr,
+  })  : _getRendusRecus = getRendusRecus,
+        _validerCr      = validerCr,
+        _retournerCr    = retournerCr,
         super(const CraRecusState.initial()) {
     charger();
   }
 
   Future<void> charger() async {
     state = const CraRecusState.chargement();
-    final result = await _repository.getRendusRecus();
+    final result = await _getRendusRecus(const NoParams());
     result.fold(
       (f) => state = CraRecusState.erreur(failure: f),
       (r) => state = CraRecusState.charge(rendus: r),
@@ -157,13 +198,15 @@ class CraRecusNotifier extends StateNotifier<CraRecusState> {
   }
 
   Future<Either<Failure, void>> valider(String crId) async {
-    final result = await _repository.valider(crId);
+    final result = await _validerCr(crId);
     if (result.isRight()) await charger();
     return result;
   }
 
   Future<Either<Failure, void>> retourner(String crId, String observations) async {
-    final result = await _repository.retourner(crId, observations);
+    final result = await _retournerCr(
+      ParamsRetournerCr(crId: crId, observations: observations),
+    );
     if (result.isRight()) await charger();
     return result;
   }

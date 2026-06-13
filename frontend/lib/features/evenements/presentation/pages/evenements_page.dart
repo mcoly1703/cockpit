@@ -51,7 +51,7 @@ class _EvenementsViewState extends ConsumerState<_EvenementsView>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
+    _tabs = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -90,9 +90,10 @@ class _EvenementsViewState extends ConsumerState<_EvenementsView>
 
   @override
   Widget build(BuildContext context) {
-    final state   = widget.state;
-    final aVenir  = state.aVenir;
-    final passes  = state.passes;
+    final state    = widget.state;
+    final tous     = state.tous;
+    final aVenir   = state.aVenir;
+    final termines = state.termines;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -113,7 +114,7 @@ class _EvenementsViewState extends ConsumerState<_EvenementsView>
               const Text('Événements',
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900,
                       color: AppColors.text)),
-              Text('${aVenir.length} à venir · ${passes.length} passé${passes.length > 1 ? 's' : ''}',
+              Text('${aVenir.length} à venir · ${termines.length} terminé${termines.length > 1 ? 's' : ''}',
                   style: const TextStyle(fontSize: 13, color: AppColors.text2)),
             ]),
           ),
@@ -131,8 +132,9 @@ class _EvenementsViewState extends ConsumerState<_EvenementsView>
               unselectedLabelColor: AppColors.text2,
               indicatorColor: AppColors.primary,
               tabs: [
-                Tab(child: _TabLabel('À venir', aVenir.length, AppColors.primary)),
-                Tab(child: _TabLabel('Passés',  passes.length,  AppColors.text2)),
+                Tab(child: _TabLabel('Tous',      tous.length,     AppColors.text2)),
+                Tab(child: _TabLabel('À venir',   aVenir.length,   AppColors.primary)),
+                Tab(child: _TabLabel('Terminés',  termines.length, AppColors.text2)),
               ],
             ),
           ),
@@ -143,13 +145,18 @@ class _EvenementsViewState extends ConsumerState<_EvenementsView>
               controller: _tabs,
               children: [
                 _ListeEvenements(
+                  evenements: tous,
+                  vide: 'Aucun événement',
+                  onTap: _ouvrirDetail,
+                ),
+                _ListeEvenements(
                   evenements: aVenir,
                   vide: 'Aucun événement à venir',
                   onTap: _ouvrirDetail,
                 ),
                 _ListeEvenements(
-                  evenements: passes,
-                  vide: 'Aucun événement passé',
+                  evenements: termines,
+                  vide: 'Aucun événement terminé',
                   onTap: _ouvrirDetail,
                 ),
               ],
