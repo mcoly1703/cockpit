@@ -9,6 +9,24 @@ import '../../features/militants/domain/entities/militant.dart';
 import '../../features/militants/domain/entities/unite_organisationnelle.dart';
 import '../../features/militants/presentation/providers/militants_provider.dart';
 
+/// Nombre de membres composant l'AG (coordinateur + resp unités + délégués cellules).
+/// Exclut bureau_executif et admin_technique qui n'en font pas partie.
+final _countAGProvider = FutureProvider.autoDispose<int>((ref) async {
+  final client = ref.watch(supabaseClientProvider);
+  final rolesAG = [
+    AppRoles.coordinateur,
+    AppRoles.responsableSousSection,
+    AppRoles.responsableMouvement,
+    AppRoles.responsableSecretariat,
+    AppRoles.coordinateurCellule,
+  ];
+  final data = await client
+      .from(AppTables.profiles)
+      .select(AppTables.colId)
+      .inFilter(AppTables.colRole, rolesAG);
+  return (data as List).length;
+});
+
 /// Map uniteId → photoUrl des responsables (depuis la table profiles).
 final _photosResponsablesProvider = FutureProvider.autoDispose<Map<String, String>>((ref) async {
   final client = ref.watch(supabaseClientProvider);
@@ -62,8 +80,9 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
         ),
       ),
       charge: (militants, unites, _, _) {
-        final data   = _construire(militants, unites, role, monUniteId);
-        final racine = _buildArbre(data);
+        final data    = _construire(militants, unites, role, monUniteId);
+        final countAG = ref.watch(_countAGProvider).valueOrNull ?? 0;
+        final racine  = _buildArbre(data, countAG);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -680,7 +699,7 @@ class _NoeudArbre {
 
 // ─── Construction de l'arbre depuis les données ───────────────────────────────
 
-_NoeudArbre _buildArbre(_OrganigrammeData data) {
+_NoeudArbre _buildArbre(_OrganigrammeData data, int countAG) {
   // Cellules
   _NoeudArbre noeudCellule(_UniteStat c) => _NoeudArbre(
     id: c.unite.id, label: c.unite.nom,
@@ -733,9 +752,9 @@ _NoeudArbre _buildArbre(_OrganigrammeData data) {
   ];
 
   final ag = _NoeudArbre(
-    id: '__ag', label: "Assemblée Générale", sousLabel: 'Pastef France',
+    id: '__ag', label: 'Assemblée Générale', sousLabel: 'Coordinateurs · Resp. · Délégués',
     icone: Icons.groups_rounded, couleur: AppColors.secondary,
-    count: enfantsAG.fold(0, (s, n) => s + n.count),
+    count: countAG,
     enfants: enfantsAG,
   );
 
