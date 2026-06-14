@@ -15,6 +15,10 @@ class AppConstants {
   static const int objectifMinSousSection   = 10;
   static const int objectifMinCellule       = 5;
 
+  // Seuils de statut d'une cellule
+  static const int seuilActiveCellule       = 25;  // active à partir de 25 membres
+  static const int seuilPleineCellule       = 100; // pleine à partir de 100 membres
+
   // Limites d'affichage dans les listes de stats
   static const int maxLignesStats           = 10;
   static const int maxLignesCellules        = 15;

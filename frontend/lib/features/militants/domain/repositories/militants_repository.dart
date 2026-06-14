@@ -60,6 +60,12 @@ class ParamsModifierMilitant {
   });
 }
 
+class ParamsCreerCellule {
+  final String nom;
+  final String parentId;
+  const ParamsCreerCellule({required this.nom, required this.parentId});
+}
+
 // Interface
 
 abstract class MilitantsRepository {
@@ -78,4 +84,7 @@ abstract class MilitantsRepository {
 
   Future<Either<Failure, int>> importerMilitants(
       List<Map<String, dynamic>> rows);
+
+  Future<Either<Failure, UniteOrganisationnelle>> creerCellule(
+      ParamsCreerCellule params);
 }

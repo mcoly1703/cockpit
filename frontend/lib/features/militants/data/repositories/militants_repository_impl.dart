@@ -88,4 +88,16 @@ class MilitantsRepositoryImpl implements MilitantsRepository {
       return const Left(Failure.reseau());
     }
   }
+
+  @override
+  Future<Either<Failure, UniteOrganisationnelle>> creerCellule(
+      ParamsCreerCellule params) async {
+    try {
+      return Right(await _datasource.creerCellule(params));
+    } on ServerException catch (e) {
+      return Left(Failure.serveur(message: e.message));
+    } on NetworkException {
+      return const Left(Failure.reseau());
+    }
+  }
 }

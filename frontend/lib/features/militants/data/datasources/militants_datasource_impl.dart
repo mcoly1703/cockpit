@@ -135,4 +135,25 @@ class MilitantsDatasourceImpl implements MilitantsDatasource {
       throw const NetworkException();
     }
   }
+
+  @override
+  Future<UniteOrganisationnelle> creerCellule(ParamsCreerCellule params) async {
+    try {
+      final data = await supabase
+          .from(AppTables.unitesOrganisationnelles)
+          .insert({
+            AppTables.colType:     AppUniteTypes.cellule,
+            AppTables.colNom:      params.nom,
+            AppTables.colParentId: params.parentId,
+            AppTables.colIsActive: true,
+          })
+          .select()
+          .single();
+      return UniteOrganisationnelleModel.fromJson(data).toEntity();
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (_) {
+      throw const NetworkException();
+    }
+  }
 }

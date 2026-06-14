@@ -9,4 +9,5 @@ abstract class MilitantsDatasource {
   Future<Militant> modifierMilitant(ParamsModifierMilitant params);
   Future<void> toggleStatut(String id, String nouveauStatut);
   Future<int> importerMilitants(List<Map<String, dynamic>> rows);
+  Future<UniteOrganisationnelle> creerCellule(ParamsCreerCellule params);
 }

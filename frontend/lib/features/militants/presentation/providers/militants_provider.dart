@@ -12,6 +12,7 @@ import '../../domain/entities/militant.dart';
 import '../../domain/entities/unite_organisationnelle.dart';
 import '../../domain/repositories/militants_repository.dart';
 import '../../domain/usecases/ajouter_militant.dart';
+import '../../domain/usecases/creer_cellule.dart';
 import '../../domain/usecases/get_militants.dart';
 import '../../domain/usecases/get_unites.dart';
 import '../../domain/usecases/modifier_militant.dart';
@@ -377,6 +378,7 @@ final militantsProvider =
     ajouterMilitant:     AjouterMilitant(ref.watch(militantsRepositoryProvider)),
     modifierMilitant:    ModifierMilitant(ref.watch(militantsRepositoryProvider)),
     toggleStatutMilitant: ToggleStatutMilitant(ref.watch(militantsRepositoryProvider)),
+    creerCellule:        CreerCellule(ref.watch(militantsRepositoryProvider)),
     ref: ref,
   ),
 );
@@ -387,6 +389,7 @@ class MilitantsNotifier extends StateNotifier<MilitantsState> {
   final AjouterMilitant      _ajouterMilitant;
   final ModifierMilitant     _modifierMilitant;
   final ToggleStatutMilitant _toggleStatut;
+  final CreerCellule         _creerCellule;
   final Ref                  _ref;
 
   MilitantsNotifier({
@@ -395,12 +398,14 @@ class MilitantsNotifier extends StateNotifier<MilitantsState> {
     required AjouterMilitant ajouterMilitant,
     required ModifierMilitant modifierMilitant,
     required ToggleStatutMilitant toggleStatutMilitant,
+    required CreerCellule creerCellule,
     required Ref ref,
   })  : _getMilitants = getMilitants,
         _getUnites = getUnites,
         _ajouterMilitant = ajouterMilitant,
         _modifierMilitant = modifierMilitant,
         _toggleStatut = toggleStatutMilitant,
+        _creerCellule = creerCellule,
         _ref = ref,
         super(const MilitantsState.initial()) {
     charger();
@@ -494,6 +499,13 @@ class MilitantsNotifier extends StateNotifier<MilitantsState> {
     final result = await _ref
         .read(militantsRepositoryProvider)
         .importerMilitants(rows);
+    if (result.isRight()) await charger();
+    return result;
+  }
+
+  Future<Either<Failure, UniteOrganisationnelle>> creerCellule(
+      ParamsCreerCellule params) async {
+    final result = await _creerCellule(params);
     if (result.isRight()) await charger();
     return result;
   }

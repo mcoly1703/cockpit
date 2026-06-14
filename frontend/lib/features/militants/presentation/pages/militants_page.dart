@@ -10,8 +10,10 @@ import '../../../../core/utils/download_csv.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../../core/utils/csv_helper.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/militant.dart';
 import '../../domain/entities/unite_organisationnelle.dart';
+import '../../domain/usecases/creer_cellule.dart';
 import '../providers/militants_provider.dart';
 import 'militant_form_page.dart';
 
@@ -161,7 +163,11 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
           // Stats (filtrées) — toujours visible quand un type est sélectionné
           if (_filtreUniteType != null)
             SliverToBoxAdapter(
-              child: _StatsSousSections(stats: statsFiltered, titre: titreStats),
+              child: _StatsSousSections(
+                stats:           statsFiltered,
+                titre:           titreStats,
+                showStatutBadge: _filtreUniteType == AppUniteTypes.cellule,
+              ),
             ),
 
           // Séparateur + titre liste
@@ -240,65 +246,97 @@ class _BarreActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+    final role        = utilisateur?.role;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              icon:  const Icon(Icons.person_add, size: 18),
-              label: const Text('Ajouter un militant'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                textStyle: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w700),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon:  const Icon(Icons.person_add, size: 18),
+                  label: const Text('Ajouter un militant'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    textStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          MilitantFormPage(militant: null, unites: unites),
+                    ),
+                  ),
+                ),
               ),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      MilitantFormPage(militant: null, unites: unites),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon:  const Icon(Icons.upload_file, size: 18),
+                  label: const Text('Import'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    textStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                  onPressed: () => _importer(context, ref),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon:  const Icon(Icons.download, size: 18),
+                  label: const Text('Télécharger'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    textStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                  onPressed: () => _exporter(context),
+                ),
+              ),
+            ],
+          ),
+          if (_peutCreerCellule(role)) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.add_location_alt_outlined, size: 16),
+                label: const Text('Nouvelle cellule'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  textStyle: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w700),
+                ),
+                onPressed: () => _dialogCreerCellule(
+                  context,
+                  ref,
+                  role!,
+                  utilisateur?.uniteOrganisationnelleId,
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: ElevatedButton.icon(
-              icon:  const Icon(Icons.upload_file, size: 18),
-              label: const Text('Import'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                textStyle: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w700),
-              ),
-              onPressed: () => _importer(context, ref),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: ElevatedButton.icon(
-              icon:  const Icon(Icons.download, size: 18),
-              label: const Text('Télécharger'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                textStyle: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w700),
-              ),
-              onPressed: () => _exporter(context),
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -308,6 +346,115 @@ class _BarreActions extends ConsumerWidget {
     final csv      = formaterCsvMilitants(militants, unites);
     final filename = 'militants_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv';
     await telechargerCsv(csv, filename);
+  }
+
+  bool _peutCreerCellule(String? role) =>
+      role == AppRoles.bureauExecutif ||
+      role == AppRoles.coordinateur ||
+      role == AppRoles.responsableSousSection;
+
+  Future<void> _dialogCreerCellule(
+    BuildContext context,
+    WidgetRef ref,
+    String role,
+    String? uniteUtilisateurId,
+  ) async {
+    final nomCtrl    = TextEditingController();
+    String? parentId = role == AppRoles.responsableSousSection
+        ? uniteUtilisateurId
+        : null;
+    final sousSections = unites
+        .where((u) => u.type == AppUniteTypes.sousSection)
+        .toList()
+      ..sort((a, b) => a.nom.compareTo(b.nom));
+
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) {
+          final peutValider = nomCtrl.text.trim().isNotEmpty && parentId != null;
+          return AlertDialog(
+            title: const Text('Créer une cellule'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: nomCtrl,
+                  onChanged: (_) => setS(() {}),
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: 'Nom de la cellule',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+                if (role != AppRoles.responsableSousSection) ...[
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: parentId,
+                    hint: const Text('Sous-section parente'),
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                    ),
+                    items: sousSections
+                        .map((ss) => DropdownMenuItem(
+                              value: ss.id,
+                              child: Text(ss.nom,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 13)),
+                            ))
+                        .toList(),
+                    onChanged: (v) => setS(() => parentId = v),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    'Sous-section : ${unites.where((u) => u.id == uniteUtilisateurId).firstOrNull?.nom ?? '—'}',
+                    style: const TextStyle(fontSize: 12, color: AppColors.text2),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: peutValider ? () => Navigator.pop(ctx, true) : null,
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white),
+                child: const Text('Créer'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (confirme != true || !context.mounted) return;
+
+    final res = await ref.read(militantsProvider.notifier).creerCellule(
+          ParamsCreerCellule(nom: nomCtrl.text.trim(), parentId: parentId!),
+        );
+
+    if (!context.mounted) return;
+    res.fold(
+      (_) => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Erreur : création impossible'),
+        backgroundColor: AppColors.secondary,
+      )),
+      (_) => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Cellule créée avec succès'),
+        backgroundColor: AppColors.primary,
+      )),
+    );
   }
 
   Future<void> _importer(BuildContext context, WidgetRef ref) async {
@@ -735,10 +882,15 @@ class _TendanceChart extends StatelessWidget {
 // ─── Stats par sous-section ───────────────────────────────────────────────────
 
 class _StatsSousSections extends StatelessWidget {
-  const _StatsSousSections({required this.stats, this.titre = 'PAR SOUS-SECTION'});
+  const _StatsSousSections({
+    required this.stats,
+    this.titre = 'PAR SOUS-SECTION',
+    this.showStatutBadge = false,
+  });
   // (nom, count, objectif, nouveauxCeMois, code)
   final List<(String, int, int, int, String?)> stats;
   final String titre;
+  final bool   showStatutBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -772,12 +924,13 @@ class _StatsSousSections extends StatelessWidget {
             )
           else
             ...stats.take(AppConstants.maxLignesStats).toList().asMap().entries.map((e) => _LigneSS(
-                  nom:      e.value.$1,
-                  count:    e.value.$2,
-                  objectif: e.value.$3,
-                  nouveaux: e.value.$4,
-                  code:     e.value.$5,
-                  index:    e.key,
+                  nom:              e.value.$1,
+                  count:            e.value.$2,
+                  objectif:         e.value.$3,
+                  nouveaux:         e.value.$4,
+                  code:             e.value.$5,
+                  index:            e.key,
+                  showStatutBadge:  showStatutBadge,
                 )),
         ],
       ),
@@ -793,13 +946,15 @@ class _LigneSS extends StatelessWidget {
     required this.nouveaux,
     required this.code,
     required this.index,
+    this.showStatutBadge = false,
   });
-  final String nom;
-  final int    count;
-  final int    objectif;
-  final int    nouveaux;
+  final String  nom;
+  final int     count;
+  final int     objectif;
+  final int     nouveaux;
   final String? code;
-  final int    index;
+  final int     index;
+  final bool    showStatutBadge;
 
   static const _palette = [
     AppColors.secondary,
@@ -878,7 +1033,7 @@ class _LigneSS extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Count + variation %
+          // Count + variation % + badge statut cellule
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -897,6 +1052,10 @@ class _LigneSS extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppColors.primary),
                 ),
+              if (showStatutBadge) ...[
+                const SizedBox(height: 4),
+                _BadgeStatutCellule(count),
+              ],
             ],
           ),
         ],
@@ -916,6 +1075,43 @@ class _LigneSS extends StatelessWidget {
     final words = s.trim().split(RegExp(r'\s+'));
     if (words.length == 1) return s.substring(0, s.length.clamp(0, 4)).toUpperCase();
     return words.take(3).map((w) => w[0].toUpperCase()).join();
+  }
+}
+
+// ─── Badge statut cellule ─────────────────────────────────────────────────────
+
+class _BadgeStatutCellule extends StatelessWidget {
+  const _BadgeStatutCellule(this.count);
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color couleur;
+    final String label;
+
+    if (count >= AppConstants.seuilPleineCellule) {
+      couleur = AppColors.secondary;
+      label   = '⚠ Pleine';
+    } else if (count >= AppConstants.seuilActiveCellule) {
+      couleur = AppColors.primary;
+      label   = 'Active';
+    } else {
+      couleur = AppColors.accent;
+      label   = 'En cours';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color:        couleur.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+            fontSize: 9, fontWeight: FontWeight.w700, color: couleur),
+      ),
+    );
   }
 }
 
