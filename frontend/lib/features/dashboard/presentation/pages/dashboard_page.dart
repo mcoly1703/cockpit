@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_tables.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/kpi_card.dart';
 import '../../../../core/widgets/loading_widget.dart';
