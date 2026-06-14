@@ -14,5 +14,6 @@ class AppRoutes {
   static const String rapports   = '/rapports';
   static const String scan       = '/scan';
   static const String elections  = '/elections';
-  static const String cra        = '/cra';
+  static const String cra          = '/cra';
+  static const String organigramme = '/organigramme';
 }

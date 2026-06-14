@@ -23,6 +23,7 @@ import 'features/scan/presentation/pages/scan_page.dart';
 import 'features/elections/presentation/pages/elections_page.dart';
 import 'features/cra/presentation/pages/cra_page.dart';
 import 'core/widgets/modules_page.dart';
+import 'core/widgets/organigramme_page.dart';
 
 
 /// Point d'entrée de l'application.
@@ -172,6 +173,10 @@ final _router = GoRouter(
         GoRoute(
           path: AppRoutes.modules,
           builder: (_, __) => const ModulesPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.organigramme,
+          builder: (_, __) => const OrganigrammePage(),
         ),
       ],
     ),

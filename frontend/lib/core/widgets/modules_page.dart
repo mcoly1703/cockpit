@@ -57,6 +57,13 @@ class ModulesPage extends StatelessWidget {
       gradient:  AppColors.kpiVertGradient,
       route:     AppRoutes.cra,
     ),
+    _Module(
+      titre:     'Organigramme',
+      sousTitre: 'Structure & cellules',
+      icone:     Icons.account_tree_outlined,
+      gradient:  AppColors.kpiBleuGradient,
+      route:     AppRoutes.organigramme,
+    ),
   ];
 
   @override
