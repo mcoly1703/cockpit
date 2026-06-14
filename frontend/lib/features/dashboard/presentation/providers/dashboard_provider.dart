@@ -39,6 +39,63 @@ final dashboardProvider = StateNotifierProvider<DashboardNotifier, DashboardStat
   ),
 );
 
+// --- Provider total activités (événements) ---
+
+final totalActivitesProvider = FutureProvider<int>((ref) async {
+  final client      = ref.watch(supabaseClientProvider);
+  final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+  if (utilisateur == null) return 0;
+
+  final estGlobal = utilisateur.role == AppRoles.bureauExecutif ||
+                    utilisateur.role == AppRoles.coordinateur  ||
+                    utilisateur.role == AppRoles.adminTechnique;
+
+  var query = client.from(AppTables.evenements).select('id');
+  if (!estGlobal && utilisateur.uniteOrganisationnelleId != null) {
+    query = query.eq(AppTables.colUniteId, utilisateur.uniteOrganisationnelleId!);
+  }
+  final data = await query;
+  return (data as List).length;
+});
+
+// --- Provider activités par cellule (vue sous-section) ---
+
+final activitesParCelluleProvider = FutureProvider<Map<String, int>>((ref) async {
+  final client      = ref.watch(supabaseClientProvider);
+  final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+  if (utilisateur?.uniteOrganisationnelleId == null) return {};
+
+  final cellules = await client
+      .from(AppTables.unitesOrganisationnelles)
+      .select('id, nom')
+      .eq(AppTables.colType, AppUniteTypes.cellule)
+      .eq(AppTables.colParentId, utilisateur!.uniteOrganisationnelleId!);
+
+  if ((cellules as List).isEmpty) return {};
+
+  final celluleIds = cellules.map((c) => c['id'] as String).toList();
+
+  final events = await client
+      .from(AppTables.evenements)
+      .select(AppTables.colUniteId)
+      .inFilter(AppTables.colUniteId, celluleIds);
+
+  final Map<String, int> countById = {};
+  for (final e in (events as List)) {
+    final uid = e[AppTables.colUniteId] as String;
+    countById[uid] = (countById[uid] ?? 0) + 1;
+  }
+
+  final Map<String, int> result = {
+    for (final c in cellules)
+      c['nom'] as String: countById[c['id'] as String] ?? 0,
+  };
+
+  return Map.fromEntries(
+    result.entries.toList()..sort((a, b) => b.value.compareTo(a.value)),
+  );
+});
+
 // --- Provider cellules par section ---
 
 final cellulesParSectionProvider = FutureProvider<Map<String, int>>((ref) async {

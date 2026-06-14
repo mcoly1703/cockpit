@@ -259,12 +259,18 @@ class _ObjectifBar extends StatelessWidget {
 
 // ---------- KPI GRID (2×3) ----------
 
-class _KpiGrid extends StatelessWidget {
+class _KpiGrid extends ConsumerWidget {
   const _KpiGrid({required this.stats});
   final stats;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final totalActivites = ref.watch(totalActivitesProvider).when(
+      data:    (n)    => n,
+      loading: ()     => stats.evenementsCeMois,
+      error:   (e, s) => stats.evenementsCeMois,
+    );
+
     return GridView.count(
       crossAxisCount: 2,
       crossAxisSpacing: 9,
@@ -298,28 +304,28 @@ class _KpiGrid extends StatelessWidget {
           gradient:  AppColors.kpiBleuGradient,
         ),
         KpiCard(
-          titre:     'Événements',
-          valeur:    '${stats.evenementsCeMois}',
-          icone:     Icons.event_rounded,
-          evolution: '${stats.evenementsAVenir} à venir',
-          emoji:     '📅',
-          gradient:  AppColors.kpiOrGradient,
-        ),
-        KpiCard(
-          titre:     'Cellules',
-          valeur:    '${stats.nombreCellules}',
-          icone:     Icons.location_city_rounded,
-          evolution: 'Actives',
-          emoji:     '🏘️',
-          gradient:  AppColors.kpiVioletGradient,
-        ),
-        KpiCard(
           titre:     'Actions retard',
           valeur:    '${stats.actionsEnRetard}',
           icone:     Icons.warning_rounded,
           evolution: 'À traiter',
           emoji:     '⚡',
           gradient:  AppColors.kpiDarkGradient,
+        ),
+        KpiCard(
+          titre:     'Cellules',
+          valeur:    '${stats.nombreCellules}',
+          icone:     Icons.location_city_rounded,
+          evolution: 'Total actives',
+          emoji:     '🏘️',
+          gradient:  AppColors.kpiVioletGradient,
+        ),
+        KpiCard(
+          titre:     'Activités',
+          valeur:    '$totalActivites',
+          icone:     Icons.event_rounded,
+          evolution: '${stats.evenementsCeMois} ce mois',
+          emoji:     '📅',
+          gradient:  AppColors.kpiOrGradient,
         ),
       ],
     );
@@ -591,121 +597,154 @@ class _ErreurView extends StatelessWidget {
   }
 }
 
-// ---------- CELLULES PAR SECTION ----------
+// ---------- CELLULES PAR SECTION / ACTIVITÉS PAR CELLULE ----------
 
 class _CellulesSection extends ConsumerWidget {
   const _CellulesSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(cellulesParSectionProvider);
+    final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+    final estSS = utilisateur?.role == AppRoles.responsableSousSection;
 
+    if (estSS) {
+      return _ActivitesParCellule(ref: ref);
+    }
+    return _CellulesParSection(ref: ref);
+  }
+}
+
+class _CellulesParSection extends StatelessWidget {
+  const _CellulesParSection({required this.ref});
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context) {
+    final async = ref.watch(cellulesParSectionProvider);
     return async.when(
       loading: () => const SizedBox.shrink(),
       error:   (e, s) => const SizedBox.shrink(),
       data: (parSection) {
         if (parSection.isEmpty) return const SizedBox.shrink();
         final total = parSection.values.fold(0, (a, b) => a + b);
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: AppColors.cardShadow,
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.location_city_rounded, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 6),
-                  Text(
-                    'CELLULES PAR SECTION',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text2,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '$total au total',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ...parSection.entries.map((e) => _LigneCellule(
-                nom:    e.key,
-                count:  e.value,
-                total:  total,
-              )),
-            ],
-          ),
+        return _BreakdownCard(
+          titre:  'CELLULES PAR SECTION',
+          badge:  '$total au total',
+          lignes: parSection.entries.map((e) => _LigneBar(
+            nom:    e.key,
+            valeur: '${e.value} cellule${e.value > 1 ? 's' : ''}',
+            ratio:  total > 0 ? e.value / total : 0,
+          )).toList(),
         );
       },
     );
   }
 }
 
-class _LigneCellule extends StatelessWidget {
-  const _LigneCellule({required this.nom, required this.count, required this.total});
-  final String nom;
-  final int    count;
-  final int    total;
+class _ActivitesParCellule extends StatelessWidget {
+  const _ActivitesParCellule({required this.ref});
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
-    final pct = total > 0 ? count / total : 0.0;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  nom,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '$count cellule${count > 1 ? 's' : ''}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: pct,
-              minHeight: 5,
-              backgroundColor: AppColors.border,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          ),
-        ],
-      ),
+    final async = ref.watch(activitesParCelluleProvider);
+    return async.when(
+      loading: () => const SizedBox.shrink(),
+      error:   (e, s) => const SizedBox.shrink(),
+      data: (parCellule) {
+        if (parCellule.isEmpty) return const SizedBox.shrink();
+        final total = parCellule.values.fold(0, (a, b) => a + b);
+        return _BreakdownCard(
+          titre:  'ACTIVITÉS PAR CELLULE',
+          badge:  '$total activités',
+          lignes: parCellule.entries.map((e) => _LigneBar(
+            nom:    e.key,
+            valeur: '${e.value} activité${e.value > 1 ? 's' : ''}',
+            ratio:  total > 0 ? e.value / total : 0,
+          )).toList(),
+        );
+      },
     );
   }
+}
+
+class _BreakdownCard extends StatelessWidget {
+  const _BreakdownCard({required this.titre, required this.badge, required this.lignes});
+  final String        titre;
+  final String        badge;
+  final List<_LigneBar> lignes;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(14),
+      boxShadow: AppColors.cardShadow,
+    ),
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.location_city_rounded, size: 16, color: AppColors.primary),
+            const SizedBox(width: 6),
+            Text(titre, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                color: AppColors.text2, letterSpacing: 0.8)),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(badge, style: const TextStyle(fontSize: 11,
+                  fontWeight: FontWeight.w600, color: AppColors.primary)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...lignes,
+      ],
+    ),
+  );
+}
+
+class _LigneBar extends StatelessWidget {
+  const _LigneBar({required this.nom, required this.valeur, required this.ratio});
+  final String nom;
+  final String valeur;
+  final double ratio;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(nom,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                overflow: TextOverflow.ellipsis),
+            ),
+            Text(valeur,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+                  color: AppColors.primary)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: ratio,
+            minHeight: 5,
+            backgroundColor: AppColors.border,
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ),
+        ),
+      ],
+    ),
+  );
 }
