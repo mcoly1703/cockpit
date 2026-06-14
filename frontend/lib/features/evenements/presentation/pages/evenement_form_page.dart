@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../militants/domain/entities/unite_organisationnelle.dart';
 import '../../domain/repositories/evenements_repository.dart';
+import '../providers/evenements_provider.dart';
 
 class EvenementFormPage extends ConsumerStatefulWidget {
   const EvenementFormPage({super.key});
@@ -15,14 +17,15 @@ class EvenementFormPage extends ConsumerStatefulWidget {
 }
 
 class _EvenementFormPageState extends ConsumerState<EvenementFormPage> {
-  final _formKey     = GlobalKey<FormState>();
-  final _titreCtrl   = TextEditingController();
-  final _descCtrl    = TextEditingController();
-  final _lieuCtrl    = TextEditingController();
+  final _formKey   = GlobalKey<FormState>();
+  final _titreCtrl = TextEditingController();
+  final _descCtrl  = TextEditingController();
+  final _lieuCtrl  = TextEditingController();
 
   String    _type      = AppEnums.typeAutre;
   DateTime  _dateDebut = DateTime.now().add(const Duration(days: 1));
   DateTime? _dateFin;
+  String?   _uniteId;
 
   @override
   void dispose() {
@@ -66,9 +69,7 @@ class _EvenementFormPageState extends ConsumerState<EvenementFormPage> {
 
   void _soumettre() {
     if (!_formKey.currentState!.validate()) return;
-
-    final utilisateur = ref.read(authProvider).whenOrNull(connecte: (u) => u);
-    if (utilisateur == null) return;
+    if (_uniteId == null) return;
 
     Navigator.of(context).pop(
       ParamsAjouterEvenement(
@@ -78,14 +79,28 @@ class _EvenementFormPageState extends ConsumerState<EvenementFormPage> {
         dateFin:     _dateFin,
         lieu:        _lieuCtrl.text.trim(),
         type:        _type,
-        uniteId:     utilisateur.uniteOrganisationnelleId ?? '',
+        uniteId:     _uniteId!,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final fmt = DateFormat('dd/MM/yyyy HH:mm', 'fr');
+    final utilisateur  = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+    final unitesAsync  = ref.watch(unitesEvenementsProvider);
+    final fmt          = DateFormat('dd/MM/yyyy HH:mm', 'fr');
+
+    // Initialise l'unité sur celle de l'utilisateur connecté dès que la liste est chargée
+    unitesAsync.whenData((unites) {
+      if (_uniteId == null) {
+        final defaut = utilisateur?.uniteOrganisationnelleId;
+        final existe = defaut != null && unites.any((u) => u.id == defaut);
+        if (mounted) {
+          setState(() => _uniteId = existe ? defaut : (unites.isNotEmpty ? unites.first.id : null));
+        }
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -108,24 +123,37 @@ class _EvenementFormPageState extends ConsumerState<EvenementFormPage> {
             const SizedBox(height: 12),
             _DropdownType(valeur: _type, onChanged: (v) => setState(() => _type = v!)),
             const SizedBox(height: 20),
+
+            _Section('Organisateur'),
+            unitesAsync.when(
+              data: (unites) => _SelecteurUnite(
+                unites:   unites,
+                valeur:   _uniteId,
+                onChanged: (id) => setState(() => _uniteId = id),
+              ),
+              loading: () => const _ChargementUnites(),
+              error:   (_, __) => const _ErreurUnites(),
+            ),
+            const SizedBox(height: 20),
+
             _Section('Date et heure'),
             _DateTile(
-              label: 'Début',
-              valeur: fmt.format(_dateDebut),
-              obligatoire: true,
-              onTap: _choisirDateDebut,
+              label:        'Début',
+              valeur:       fmt.format(_dateDebut),
+              obligatoire:  true,
+              onTap:        _choisirDateDebut,
             ),
             const SizedBox(height: 8),
             _DateTile(
-              label: 'Fin (optionnel)',
-              valeur: _dateFin != null ? fmt.format(_dateFin!) : 'Non définie',
+              label:       'Fin (optionnel)',
+              valeur:      _dateFin != null ? fmt.format(_dateFin!) : 'Non définie',
               obligatoire: false,
-              onTap: _choisirDateFin,
+              onTap:       _choisirDateFin,
             ),
             if (_dateFin != null)
               TextButton.icon(
                 onPressed: () => setState(() => _dateFin = null),
-                icon: const Icon(Icons.clear, size: 14),
+                icon:  const Icon(Icons.clear, size: 14),
                 label: const Text('Supprimer la date de fin'),
                 style: TextButton.styleFrom(foregroundColor: AppColors.text2),
               ),
@@ -133,7 +161,7 @@ class _EvenementFormPageState extends ConsumerState<EvenementFormPage> {
             SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: _soumettre,
+                onPressed: _uniteId != null ? _soumettre : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -151,7 +179,137 @@ class _EvenementFormPageState extends ConsumerState<EvenementFormPage> {
   }
 }
 
-// ─── Widgets ──────────────────────────────────────────────────────────────────
+// ─── Sélecteur d'unité organisatrice ─────────────────────────────────────────
+
+class _SelecteurUnite extends StatelessWidget {
+  const _SelecteurUnite({
+    required this.unites,
+    required this.valeur,
+    required this.onChanged,
+  });
+
+  final List<UniteOrganisationnelle> unites;
+  final String?                      valeur;
+  final void Function(String?)       onChanged;
+
+  // Ordre et libellés des groupes
+  static const _groupes = [
+    (AppUniteTypes.bureauExecutif, 'Section France'),
+    (AppUniteTypes.sousSection,    'Sous-sections'),
+    (AppUniteTypes.mouvement,      'Mouvements'),
+    (AppUniteTypes.secretariat,    'Secrétariats'),
+    (AppUniteTypes.cellule,        'Cellules'),
+  ];
+
+  List<DropdownMenuItem<String>> _construireItems() {
+    final items = <DropdownMenuItem<String>>[];
+
+    for (final (typeVal, typeLabel) in _groupes) {
+      final groupe = unites.where((u) => u.type == typeVal).toList();
+      if (groupe.isEmpty) continue;
+
+      // En-tête de groupe (non sélectionnable)
+      items.add(DropdownMenuItem<String>(
+        enabled: false,
+        value: '__header_$typeVal',
+        child: Text(
+          typeLabel.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            color: AppColors.text2,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ));
+
+      for (final u in groupe) {
+        items.add(DropdownMenuItem<String>(
+          value: u.id,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Text(
+              u.nom,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 14, color: AppColors.text),
+            ),
+          ),
+        ));
+      }
+    }
+
+    return items;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _construireItems();
+    // Vérifie que la valeur actuelle est dans les items sélectionnables
+    final valeurValide = items.any((i) => i.value == valeur && i.enabled != false)
+        ? valeur
+        : null;
+
+    return DropdownButtonFormField<String>(
+      value:      valeurValide,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText:  'Entité organisatrice',
+        prefixIcon: const Icon(Icons.account_tree_outlined, color: AppColors.primary),
+        border:     OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled:     true,
+        fillColor:  AppColors.card,
+      ),
+      items:     items,
+      onChanged: onChanged,
+      validator: (v) => v == null ? 'Champ requis' : null,
+    );
+  }
+}
+
+class _ChargementUnites extends StatelessWidget {
+  const _ChargementUnites();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Row(children: [
+          SizedBox(width: 16, height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2)),
+          SizedBox(width: 12),
+          Text('Chargement des unités…',
+              style: TextStyle(fontSize: 14, color: AppColors.text2)),
+        ]),
+      );
+}
+
+class _ErreurUnites extends StatelessWidget {
+  const _ErreurUnites();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          border: Border.all(color: AppColors.secondary),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Row(children: [
+          Icon(Icons.error_outline, size: 18, color: AppColors.secondary),
+          SizedBox(width: 10),
+          Text('Impossible de charger les unités',
+              style: TextStyle(fontSize: 13, color: AppColors.secondary)),
+        ]),
+      );
+}
+
+// ─── Widgets communs ──────────────────────────────────────────────────────────
 
 class _Section extends StatelessWidget {
   const _Section(this.titre);
@@ -161,7 +319,8 @@ class _Section extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Text(titre.toUpperCase(),
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+            style: const TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w700,
                 color: AppColors.text2, letterSpacing: 0.8)),
       );
 }
@@ -181,12 +340,12 @@ class _Champ extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TextFormField(
         controller: ctrl,
-        maxLines: maxLines,
+        maxLines:   maxLines,
         decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          filled: true,
-          fillColor: AppColors.card,
+          filled:     true,
+          fillColor:  AppColors.card,
         ),
         validator: obligatoire
             ? (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null
@@ -206,7 +365,7 @@ class _DropdownType extends StatelessWidget {
         decoration: InputDecoration(
           labelText: 'Type d\'événement',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          filled: true,
+          filled:    true,
           fillColor: AppColors.card,
         ),
         items: AppEnums.typesEvenement
@@ -231,26 +390,27 @@ class _DateTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
+        onTap:        onTap,
         borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color:  AppColors.card,
             border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(children: [
-            Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primary),
+            const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primary),
             const SizedBox(width: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: TextStyle(fontSize: 11, color: AppColors.text2)),
+              Text(label,
+                  style: const TextStyle(fontSize: 11, color: AppColors.text2)),
               Text(valeur,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
-                      color: AppColors.text)),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.text)),
             ]),
             const Spacer(),
-            Icon(Icons.chevron_right_rounded, color: AppColors.text2),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.text2),
           ]),
         ),
       );

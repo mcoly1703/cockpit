@@ -5,6 +5,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../militants/data/models/unite_organisationnelle_model.dart';
+import '../../../militants/domain/entities/unite_organisationnelle.dart';
 import '../../data/datasources/evenements_datasource_impl.dart';
 import '../../data/repositories/evenements_repository_impl.dart';
 import '../../domain/entities/evenement.dart';
@@ -124,6 +126,21 @@ class EvenementsNotifier extends StateNotifier<EvenementsState> {
     return result.map((_) {});
   }
 }
+
+// --- Provider unités (pour le formulaire de création d'événement) ---
+
+final unitesEvenementsProvider = FutureProvider<List<UniteOrganisationnelle>>((ref) async {
+  final client = ref.watch(supabaseClientProvider);
+  final data = await client
+      .from(AppTables.unitesOrganisationnelles)
+      .select()
+      .eq(AppTables.colIsActive, true)
+      .order(AppTables.colType)
+      .order(AppTables.colNom);
+  return (data as List)
+      .map((e) => UniteOrganisationnelleModel.fromJson(e as Map<String, dynamic>).toEntity())
+      .toList();
+});
 
 // --- Notifier présences (par événement) ---
 
