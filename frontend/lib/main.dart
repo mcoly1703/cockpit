@@ -81,17 +81,26 @@ class CockpitApp extends StatelessWidget {
   }
 }
 
+/// Notifie le routeur à chaque changement de session Supabase.
+class _AuthListenable extends ChangeNotifier {
+  _AuthListenable() {
+    Supabase.instance.client.auth.onAuthStateChange.listen((_) {
+      notifyListeners();
+    });
+  }
+}
+
+final _authListenable = _AuthListenable();
+
 /// Routeur central de l'application.
 ///
 /// La fonction [redirect] joue le rôle de garde d'authentification :
 /// - Si pas de session et on va ailleurs que /login → rediriger vers /login
 /// - Si session active et on va sur /login → rediriger vers /dashboard
 /// - Sinon → laisser passer (return null)
-///
-/// Au fil du développement des modules, remplacer les placeholders
-/// par les vraies pages (LoginPage, DashboardPage, etc.)
 final _router = GoRouter(
   initialLocation: AppRoutes.landing,
+  refreshListenable: _authListenable,
   redirect: (context, state) {
     final session     = Supabase.instance.client.auth.currentSession;
     final estConnecte = session != null;

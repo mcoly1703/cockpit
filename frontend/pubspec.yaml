@@ -55,6 +55,9 @@ dependencies:
   # Export / partage de fichiers
   share_plus: ^10.1.4
 
+  # Téléchargement web (remplace dart:html supprimé en Dart 3.x)
+  web: ^1.1.0
+
   # Graphiques KPIs
   fl_chart: ^0.70.2
 

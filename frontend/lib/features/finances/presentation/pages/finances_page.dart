@@ -397,9 +397,9 @@ class _BlocTauxRecouvrement extends StatelessWidget {
         Row(children: [
           _PuceStatut(couleur: const Color(0xFF4CAF50), label: 'À jour : $aJour'),
           const SizedBox(width: 14),
-          _PuceStatut(couleur: AppColors.accent, label: 'Retard : $enRetard'),
+          _PuceStatut(couleur: AppColors.secondary, label: 'Retard : $enRetard'),
           const SizedBox(width: 14),
-          _PuceStatut(couleur: AppColors.secondary, label: 'En attente : $enAttente'),
+          _PuceStatut(couleur: AppColors.accent, label: 'En attente : $enAttente'),
         ]),
       ]),
     );
