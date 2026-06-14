@@ -151,7 +151,6 @@ class AppEnums {
   // sexe_type
   static const String sexeHomme  = 'M';
   static const String sexeFemme  = 'F';
-  static const String sexeAutre  = 'autre';
 
   // transaction_type
   static const String transactionEntree  = 'entree';

@@ -213,9 +213,8 @@ class _DropdownSexe extends StatelessWidget {
           fillColor: AppColors.card,
         ),
         items: const [
-          DropdownMenuItem(value: AppEnums.sexeHomme,  child: Text('Homme')),
-          DropdownMenuItem(value: AppEnums.sexeFemme,  child: Text('Femme')),
-          DropdownMenuItem(value: AppEnums.sexeAutre,  child: Text('Autre')),
+          DropdownMenuItem(value: AppEnums.sexeHomme, child: Text('Masculin')),
+          DropdownMenuItem(value: AppEnums.sexeFemme, child: Text('Féminin')),
         ],
         onChanged: onChanged,
       );
