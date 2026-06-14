@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_routes.dart';
 import '../constants/app_tables.dart';
 import '../../features/auth/domain/entities/utilisateur.dart';
+import '../../features/auth/domain/usecases/upload_photo_profile.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
 class AppShell extends ConsumerWidget {
@@ -20,13 +22,12 @@ class AppShell extends ConsumerWidget {
     AppRoutes.modules,
   ];
 
-  void _showMenuUtilisateur(
-      BuildContext context, WidgetRef ref, Utilisateur? utilisateur) {
+  void _showMenuUtilisateur(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => _MenuUtilisateur(
-        utilisateur: utilisateur,
         onDeconnexion: () async {
           Navigator.of(context).pop();
           await ref.read(authProvider.notifier).seDeconnecter();
@@ -54,7 +55,7 @@ class AppShell extends ConsumerWidget {
           _Topbar(
             utilisateur: utilisateur,
             onScanTap:   () => context.go(AppRoutes.scan),
-            onAvatarTap: () => _showMenuUtilisateur(context, ref, utilisateur),
+            onAvatarTap: () => _showMenuUtilisateur(context, ref),
           ),
           _RoleBanner(utilisateur: utilisateur),
           Expanded(child: child),
@@ -75,6 +76,20 @@ String _initiales(Utilisateur? u) {
   return '$p$n'.toUpperCase();
 }
 
+String _labelRole(String? role) {
+  if (role == null) return '—';
+  return switch (role) {
+    AppRoles.bureauExecutif         => 'Bureau Exécutif',
+    AppRoles.coordinateur           => 'Coordinateur',
+    AppRoles.responsableSousSection => 'Resp. Sous-section',
+    AppRoles.responsableMouvement   => 'Resp. Mouvement',
+    AppRoles.responsableSecretariat => 'Resp. Secrétariat',
+    AppRoles.coordinateurCellule    => 'Coord. Cellule',
+    AppRoles.adminTechnique         => 'Admin Technique',
+    _                               => role,
+  };
+}
+
 // ---------- TOPBAR ----------
 
 class _Topbar extends StatelessWidget {
@@ -90,7 +105,7 @@ class _Topbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initiales = _initiales(utilisateur);
-    const sousTitre = 'Section France';
+    final photoUrl  = utilisateur?.photoUrl;
 
     return Container(
       color: AppColors.primary,
@@ -100,99 +115,71 @@ class _Topbar extends StatelessWidget {
           height: 56,
           child: Stack(
             children: [
-              // Fond bicolore vert | rouge
               Row(children: [
                 Expanded(child: Container(color: AppColors.primary)),
                 Expanded(child: Container(color: AppColors.secondary)),
               ]),
-
-              // Contenu
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  children: [
-                    // Titre gauche
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'PASTEF',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                          Text(
-                            sousTitre.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 8,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Bouton scan
-                    _TopbarBtn(
-                      icon:  Icons.qr_code_scanner_rounded,
-                      onTap: onScanTap,
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Bouton notifications avec point
-                    Stack(
+                child: Row(children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _TopbarBtn(icon: Icons.notifications_outlined, onTap: () {}),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: AppColors.accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
+                        const Text('PASTEF',
+                            style: TextStyle(
+                              color: Colors.white, fontSize: 20,
+                              fontWeight: FontWeight.w900, letterSpacing: 2,
+                            )),
+                        const Text('SECTION FRANCE',
+                            style: TextStyle(
+                              color: Colors.white70, fontSize: 8,
+                              letterSpacing: 1.5,
+                            )),
                       ],
                     ),
-                    const SizedBox(width: 8),
-
-                    // Avatar (tappable → menu utilisateur)
-                    GestureDetector(
-                      onTap: onAvatarTap,
+                  ),
+                  _TopbarBtn(icon: Icons.qr_code_scanner_rounded, onTap: onScanTap),
+                  const SizedBox(width: 8),
+                  Stack(children: [
+                    _TopbarBtn(icon: Icons.notifications_outlined, onTap: () {}),
+                    Positioned(
+                      top: 4, right: 4,
                       child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.4),
-                            width: 2,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            initiales,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
+                        width: 7, height: 7,
+                        decoration: const BoxDecoration(
+                            color: AppColors.accent, shape: BoxShape.circle),
                       ),
                     ),
-                  ],
-                ),
+                  ]),
+                  const SizedBox(width: 8),
+
+                  // Avatar — photo si disponible, sinon initiales
+                  GestureDetector(
+                    onTap: onAvatarTap,
+                    child: Container(
+                      width: 32, height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.4), width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundImage:
+                            photoUrl != null ? NetworkImage(photoUrl) : null,
+                        backgroundColor: Colors.white.withValues(alpha: 0.25),
+                        child: photoUrl == null
+                            ? Text(initiales,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 10,
+                                    fontWeight: FontWeight.w700))
+                            : null,
+                      ),
+                    ),
+                  ),
+                ]),
               ),
             ],
           ),
@@ -208,20 +195,17 @@ class _TopbarBtn extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          shape: BoxShape.circle,
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 32, height: 32,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: 17),
         ),
-        child: Icon(icon, color: Colors.white, size: 17),
-      ),
-    );
-  }
+      );
 }
 
 // ---------- ROLE BANNER ----------
@@ -229,20 +213,6 @@ class _TopbarBtn extends StatelessWidget {
 class _RoleBanner extends StatelessWidget {
   const _RoleBanner({required this.utilisateur});
   final Utilisateur? utilisateur;
-
-  String _labelRole(String? role) {
-    if (role == null) return '—';
-    return switch (role) {
-      AppRoles.bureauExecutif         => 'Bureau Exécutif',
-      AppRoles.coordinateur           => 'Coordinateur',
-      AppRoles.responsableSousSection => 'Resp. Sous-section',
-      AppRoles.responsableMouvement   => 'Resp. Mouvement',
-      AppRoles.responsableSecretariat => 'Resp. Secrétariat',
-      AppRoles.coordinateurCellule    => 'Coord. Cellule',
-      AppRoles.adminTechnique         => 'Admin Technique',
-      _ => role,
-    };
-  }
 
   String _labelPerimetre(Utilisateur? u) {
     if (u == null) return '';
@@ -261,33 +231,22 @@ class _RoleBanner extends StatelessWidget {
     return Container(
       color: AppColors.primary,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-      child: Row(
-        children: [
-          Text(
-            role,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-            ),
+      child: Row(children: [
+        Text(role,
+            style: const TextStyle(color: Colors.white, fontSize: 10)),
+        const SizedBox(width: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              perimetre,
+          child: Text(perimetre,
               style: const TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
+                  color: Colors.white, fontSize: 9,
+                  fontWeight: FontWeight.w600)),
+        ),
+      ]),
     );
   }
 }
@@ -295,24 +254,14 @@ class _RoleBanner extends StatelessWidget {
 // ---------- BOTTOM NAV ----------
 
 class _BottomNav extends StatelessWidget {
-  const _BottomNav({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _BottomNav({required this.currentIndex, required this.onTap});
   final int currentIndex;
   final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
-    const labels = [
-      'Accueil',
-      'Militants',
-      'Finances',
-      'Prospects',
-      'Modules',
-    ];
-
-    const icons = [
+    const labels = ['Accueil', 'Militants', 'Finances', 'Prospects', 'Modules'];
+    const icons  = [
       Icons.home_rounded,
       Icons.people_rounded,
       Icons.account_balance_wallet_rounded,
@@ -328,8 +277,7 @@ class _BottomNav extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            blurRadius: 20, offset: const Offset(0, -4),
           ),
         ],
       ),
@@ -343,48 +291,36 @@ class _BottomNav extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
-                  // Indicateur gradient en haut si actif
                   if (actif)
                     Container(
-                      width: 26,
-                      height: 3,
+                      width: 26, height: 3,
                       decoration: BoxDecoration(
                         gradient: AppColors.topbarGradient,
                         borderRadius: const BorderRadius.vertical(
-                          bottom: Radius.circular(4),
-                        ),
+                            bottom: Radius.circular(4)),
                       ),
                     ),
-
-                  // Icône + label
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         AnimatedScale(
-                          scale: actif ? 1.1 : 1.0,
+                          scale:    actif ? 1.1 : 1.0,
                           duration: const Duration(milliseconds: 150),
-                          child: Icon(
-                            icons[i],
-                            size: 22,
-                            color: actif
-                                ? AppColors.primary
-                                : const Color(0xFF9A9088),
-                          ),
+                          child: Icon(icons[i], size: 22,
+                              color: actif
+                                  ? AppColors.primary
+                                  : const Color(0xFF9A9088)),
                         ),
                         const SizedBox(height: 3),
-                        Text(
-                          labels[i].toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.7,
-                            color: actif
-                                ? AppColors.primary
-                                : const Color(0xFF9A9088),
-                          ),
-                        ),
+                        Text(labels[i].toUpperCase(),
+                            style: TextStyle(
+                                fontSize: 8, fontWeight: FontWeight.w600,
+                                letterSpacing: 0.7,
+                                color: actif
+                                    ? AppColors.primary
+                                    : const Color(0xFF9A9088))),
                       ],
                     ),
                   ),
@@ -398,36 +334,60 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-// ---------- MENU UTILISATEUR ----------
+// ---------- MENU UTILISATEUR (bottom sheet) ----------
 
-class _MenuUtilisateur extends StatelessWidget {
-  const _MenuUtilisateur({
-    required this.utilisateur,
-    required this.onDeconnexion,
-  });
-  final Utilisateur? utilisateur;
+class _MenuUtilisateur extends ConsumerStatefulWidget {
+  const _MenuUtilisateur({required this.onDeconnexion});
   final VoidCallback onDeconnexion;
 
-  String _labelRole(String? role) {
-    if (role == null) return '—';
-    return switch (role) {
-      AppRoles.bureauExecutif         => 'Bureau Exécutif',
-      AppRoles.coordinateur           => 'Coordinateur',
-      AppRoles.responsableSousSection => 'Resp. Sous-section',
-      AppRoles.responsableMouvement   => 'Resp. Mouvement',
-      AppRoles.responsableSecretariat => 'Resp. Secrétariat',
-      AppRoles.coordinateurCellule    => 'Coord. Cellule',
-      AppRoles.adminTechnique         => 'Admin Technique',
-      _ => role,
-    };
+  @override
+  ConsumerState<_MenuUtilisateur> createState() => _MenuUtilisateurState();
+}
+
+class _MenuUtilisateurState extends ConsumerState<_MenuUtilisateur> {
+  bool    _enCours = false;
+  String? _erreur;
+
+  Future<void> _uploaderPhoto() async {
+    final result = await FilePicker.platform.pickFiles(
+      type:          FileType.image,
+      allowMultiple: false,
+      withData:      true,
+    );
+    if (result == null || result.files.single.bytes == null) return;
+
+    setState(() { _enCours = true; _erreur = null; });
+
+    final bytes = result.files.single.bytes!;
+    final ext   = (result.files.single.extension ?? 'jpg').toLowerCase();
+
+    final either = await ref.read(authProvider.notifier).uploaderPhoto(
+      ParamsUploaderPhoto(bytes: bytes, extension: ext),
+    );
+
+    either.fold(
+      (f) => setState(() {
+        _enCours = false;
+        _erreur  = f.when(
+          serveur:     (m) => m,
+          reseau:      () => 'Erreur réseau, réessaie.',
+          nonAutorise: () => 'Non autorisé.',
+          nonTrouve:   () => 'Profil introuvable.',
+          validation:  (m) => m,
+        );
+      }),
+      (_) => setState(() { _enCours = false; }),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final nom       = utilisateur != null
-        ? '${utilisateur!.prenom} ${utilisateur!.nom}'.trim()
+    final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+    final initiales   = _initiales(utilisateur);
+    final photoUrl    = utilisateur?.photoUrl;
+    final nom         = utilisateur != null
+        ? '${utilisateur.prenom} ${utilisateur.nom}'.trim()
         : 'Utilisateur';
-    final initiales = _initiales(utilisateur);
     final role  = _labelRole(utilisateur?.role);
     final email = utilisateur?.email ?? '';
 
@@ -440,6 +400,7 @@ class _MenuUtilisateur extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Poignée
           Center(
             child: Container(
               width: 36, height: 4,
@@ -451,21 +412,41 @@ class _MenuUtilisateur extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Avatar grand format
-          Container(
-            width: 64, height: 64,
-            decoration: const BoxDecoration(
-              gradient: AppColors.kpiVertGradient,
-              shape:    BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                initiales,
-                style: const TextStyle(
-                  color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800,
+          // Avatar avec overlay caméra
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              CircleAvatar(
+                radius: 36,
+                backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                child: photoUrl == null
+                    ? Text(initiales,
+                        style: const TextStyle(
+                            color: AppColors.primary, fontSize: 26,
+                            fontWeight: FontWeight.w800))
+                    : null,
+              ),
+              GestureDetector(
+                onTap: _enCours ? null : _uploaderPhoto,
+                child: Container(
+                  width: 28, height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: _enCours
+                      ? const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.camera_alt_rounded,
+                          color: Colors.white, size: 14),
                 ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 12),
 
@@ -480,7 +461,8 @@ class _MenuUtilisateur extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(role,
-                style: const TextStyle(color: AppColors.primary, fontSize: 12,
+                style: const TextStyle(
+                    color: AppColors.primary, fontSize: 12,
                     fontWeight: FontWeight.w600)),
           ),
           const SizedBox(height: 4),
@@ -489,6 +471,15 @@ class _MenuUtilisateur extends StatelessWidget {
             Text(email,
                 style: const TextStyle(color: Colors.black45, fontSize: 12)),
 
+          // Message d'erreur upload
+          if (_erreur != null) ...[
+            const SizedBox(height: 8),
+            Text(_erreur!,
+                style: const TextStyle(
+                    color: AppColors.secondary, fontSize: 12),
+                textAlign: TextAlign.center),
+          ],
+
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 8),
@@ -496,7 +487,7 @@ class _MenuUtilisateur extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: onDeconnexion,
+              onPressed: widget.onDeconnexion,
               icon:  const Icon(Icons.logout_rounded, size: 18),
               label: const Text('Se déconnecter'),
               style: OutlinedButton.styleFrom(

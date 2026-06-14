@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_tables.dart';
@@ -61,7 +63,38 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     }
   }
 
-  // Cherche d'abord dans profiles (militants), puis dans admins_techniques
+  @override
+  Future<String> uploaderPhoto(Uint8List bytes, String extension) async {
+    try {
+      final userId = supabase.auth.currentUser!.id;
+      final path   = '$userId/avatar.$extension';
+
+      await supabase.storage.from('avatars').uploadBinary(
+        path,
+        bytes,
+        fileOptions: FileOptions(
+          contentType: 'image/$extension',
+          upsert: true,
+        ),
+      );
+
+      final url = supabase.storage.from('avatars').getPublicUrl(path);
+
+      await supabase
+          .from(AppTables.profiles)
+          .update({AppTables.colPhotoUrl: url})
+          .eq(AppTables.colId, userId);
+
+      return url;
+    } on StorageException catch (e) {
+      throw ServerException(message: e.message);
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw const NetworkException();
+    }
+  }
+
   Future<UtilisateurModel> _chargerProfil({
     required String userId,
     required String email,
@@ -85,8 +118,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     if (admin != null) {
       return UtilisateurModel.fromJson({
         ...admin,
-        AppTables.colEmail:                    email,
-        AppTables.colRole:                     AppRoles.adminTechnique,
+        AppTables.colEmail:   email,
+        AppTables.colRole:    AppRoles.adminTechnique,
         AppTables.colUniteId: null,
       });
     }

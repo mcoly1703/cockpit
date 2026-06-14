@@ -53,4 +53,16 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(Failure.reseau());
     }
   }
+
+  @override
+  Future<Either<Failure, String>> uploaderPhoto(ParamsUploaderPhoto params) async {
+    try {
+      final url = await datasource.uploaderPhoto(params.bytes, params.extension);
+      return Right(url);
+    } on ServerException catch (e) {
+      return Left(Failure.serveur(message: e.message));
+    } on NetworkException {
+      return const Left(Failure.reseau());
+    }
+  }
 }
