@@ -176,14 +176,14 @@ VALUES
   (v_ss075, 'entree',  510.00, '2026-05-31', 'cotisation',       'Cotisations mai 2026',                  v_user_id),
   (v_ss075, 'entree',  300.00, '2026-06-10', 'cotisation',       'Cotisations juin 2026 (en cours)',      v_user_id),
   (v_ss075, 'entree',  350.00, '2026-02-08', 'don',              'Don fidèle anonyme',                    v_user_id),
-  (v_ss075, 'entree',  180.00, '2026-03-22', 'benefice_evenement','Recette meeting Paris Est',            v_user_id),
+  (v_ss075, 'entree',  180.00, '2026-03-22', 'benefice_event',   'Recette meeting Paris Est',            v_user_id),
   (v_ss075, 'entree',   95.00, '2026-04-15', 'goodies_vente',    'Vente t-shirts + macarons',             v_user_id),
   -- ── SS-075 Dépenses 2026 ──
   (v_ss075, 'depense', 150.00, '2026-01-20', 'logistique',       'Location salle réunion janvier',        v_user_id),
   (v_ss075, 'depense', 110.00, '2026-02-10', 'materiel',         'Impression tracts ×500',                v_user_id),
   (v_ss075, 'depense',  75.00, '2026-03-05', 'communication',    'Boost publications réseaux',            v_user_id),
   (v_ss075, 'depense', 200.00, '2026-03-28', 'logistique',       'Location salle meeting Paris Est',      v_user_id),
-  (v_ss075, 'depense',  60.00, '2026-04-12', 'admin',            'Fournitures bureau',                    v_user_id),
+  (v_ss075, 'depense',  60.00, '2026-04-12', 'administration',   'Fournitures bureau',                    v_user_id),
   (v_ss075, 'depense',  90.00, '2026-05-18', 'formation',        'Supports pédagogiques formation',       v_user_id),
   (v_ss075, 'depense',  45.00, '2026-06-02', 'deplacements',     'Remboursement transport bénévoles',     v_user_id),
   -- ── SS-093 Entrées 2026 ──
@@ -229,7 +229,7 @@ VALUES
   (v_m02, v_ss075, 2026, 2, 30.00, 30.00, 'especes',  'payee',   '2026-02-18', v_user_id),
   (v_m02, v_ss075, 2026, 3, 30.00, 30.00, 'especes',  'payee',   '2026-03-12', v_user_id),
   (v_m02, v_ss075, 2026, 4, 15.00, 30.00, 'especes',  'partiel', '2026-04-20', v_user_id),
-  (v_m02, v_ss075, 2026, 5,  0.00, 30.00, NULL,       'impayee', NULL,         v_user_id),
+  (v_m02, v_ss075, 2026, 5,  0.00, 30.00, NULL,       'en_retard', NULL,         v_user_id),
   -- m03 — à jour
   (v_m03, v_ss075, 2026, 1, 30.00, 30.00, 'cheque',   'payee',   '2026-01-20', v_user_id),
   (v_m03, v_ss075, 2026, 2, 30.00, 30.00, 'cheque',   'payee',   '2026-02-22', v_user_id),
@@ -239,9 +239,9 @@ VALUES
   -- m04 — impayés depuis mars
   (v_m04, v_ss075, 2026, 1, 30.00, 30.00, 'virement', 'payee',   '2026-01-25', v_user_id),
   (v_m04, v_ss075, 2026, 2, 30.00, 30.00, 'virement', 'payee',   '2026-02-24', v_user_id),
-  (v_m04, v_ss075, 2026, 3,  0.00, 30.00, NULL,       'impayee', NULL,         v_user_id),
-  (v_m04, v_ss075, 2026, 4,  0.00, 30.00, NULL,       'impayee', NULL,         v_user_id),
-  (v_m04, v_ss075, 2026, 5,  0.00, 30.00, NULL,       'impayee', NULL,         v_user_id),
+  (v_m04, v_ss075, 2026, 3,  0.00, 30.00, NULL,       'en_retard', NULL,         v_user_id),
+  (v_m04, v_ss075, 2026, 4,  0.00, 30.00, NULL,       'en_retard', NULL,         v_user_id),
+  (v_m04, v_ss075, 2026, 5,  0.00, 30.00, NULL,       'en_retard', NULL,         v_user_id),
   -- m05 — à jour
   (v_m05, v_ss075, 2026, 1, 30.00, 30.00, 'virement', 'payee',   '2026-01-10', v_user_id),
   (v_m05, v_ss075, 2026, 2, 30.00, 30.00, 'virement', 'payee',   '2026-02-12', v_user_id),
@@ -264,8 +264,8 @@ VALUES
   (v_m10, v_ss093, 2026, 1, 30.00, 30.00, 'cheque',   'payee',   '2026-01-18', v_user_id),
   (v_m10, v_ss093, 2026, 2, 30.00, 30.00, 'cheque',   'payee',   '2026-02-19', v_user_id),
   (v_m10, v_ss093, 2026, 3, 30.00, 30.00, 'cheque',   'payee',   '2026-03-20', v_user_id),
-  (v_m10, v_ss093, 2026, 4,  0.00, 30.00, NULL,       'impayee', NULL,         v_user_id),
-  (v_m10, v_ss093, 2026, 5,  0.00, 30.00, NULL,       'impayee', NULL,         v_user_id),
+  (v_m10, v_ss093, 2026, 4,  0.00, 30.00, NULL,       'en_retard', NULL,         v_user_id),
+  (v_m10, v_ss093, 2026, 5,  0.00, 30.00, NULL,       'en_retard', NULL,         v_user_id),
   -- m21 SS-092
   (v_m21, v_ss092, 2026, 2, 30.00, 30.00, 'virement', 'payee',   '2026-02-20', v_user_id),
   (v_m21, v_ss092, 2026, 3, 30.00, 30.00, 'virement', 'payee',   '2026-03-21', v_user_id),
@@ -290,54 +290,61 @@ VALUES
   (v_e02, v_ss093, 'Porte-à-porte Saint-Denis',         'porte_a_porte',   '2026-03-08 09:00+01', '2026-03-08 13:00+01', 'Quartier Plaine, Saint-Denis',    'Sensibilisation dans le quartier Plaine', v_user_id),
   (v_e03, v_ss075, 'Formation numérique militants',     'formation',        '2026-04-12 10:00+01', '2026-04-12 16:00+01', 'Maison des asso., Paris 19e',     'Formation outils numériques militants', v_user_id),
   (v_e04, v_bex,   'Meeting national Paris Est',        'meeting',          '2026-05-10 15:00+01', '2026-05-10 20:00+01', 'Salle de la Forge, Paris 20e',    'Meeting de mobilisation printemps 2026', v_user_id),
-  (v_e05, v_ss092, 'Réunion SS Hauts-de-Seine',         'reunion_interne',  '2026-05-25 19:00+01', '2026-05-25 21:00+01', 'Espace associatif, Nanterre',     'Réunion mensuelle SS-092', v_user_id),
+  (v_e05, v_ss092, 'Réunion SS Hauts-de-Seine',         'reunion_publique', '2026-05-25 19:00+01', '2026-05-25 21:00+01', 'Espace associatif, Nanterre',     'Réunion mensuelle SS-092', v_user_id),
   -- À venir (testables : QR code, inscription)
   (v_e06, v_ss075, 'Meeting Paris — Mobilisation été',  'meeting',          '2026-07-04 15:00+01', '2026-07-04 19:00+01', 'Salle de la Forge, Paris 20e',    'Meeting avant les vacances d''été', v_user_id),
   (v_e07, v_ss093, 'Marche solidarité Seine-St-Denis',  'marche',           '2026-07-14 10:00+01', '2026-07-14 14:00+01', 'Place République, Saint-Denis',   'Marche citoyenne et festive — ouvert à tous', v_user_id),
-  (v_e08, v_bex,   'Assemblée Générale Pastef France',  'ag',               '2026-09-20 10:00+01', '2026-09-20 18:00+01', 'Palais des Congrès, Paris 17e',   'AG annuelle — bilan et perspectives', v_user_id)
+  (v_e08, v_bex,   'Assemblée Générale Pastef France',  'autre',            '2026-09-20 10:00+01', '2026-09-20 18:00+01', 'Palais des Congrès, Paris 17e',   'AG annuelle — bilan et perspectives', v_user_id)
 ON CONFLICT (id) DO NOTHING;
 
 -- ── Présences sur événements passés ──────────────────────
-INSERT INTO presences (evenement_id, militant_id, mode, created_by)
+INSERT INTO presences (evenement_id, militant_id, nom, prenom, checked_at)
 VALUES
   -- e01 Réunion Bastille : 7 présents
-  (v_e01, v_m01, 'manuel', v_user_id),
-  (v_e01, v_m02, 'manuel', v_user_id),
-  (v_e01, v_m03, 'manuel', v_user_id),
-  (v_e01, v_m04, 'manuel', v_user_id),
-  (v_e01, v_m05, 'manuel', v_user_id),
-  (v_e01, v_m06, 'manuel', v_user_id),
-  (v_e01, v_m08, 'qr',     v_user_id),
+  (v_e01, v_m01, 'Diallo',    'Mamadou',    '2026-02-04 09:05+01'),
+  (v_e01, v_m02, 'Ndiaye',    'Aminata',    '2026-02-04 09:08+01'),
+  (v_e01, v_m03, 'Fall',      'Ousmane',    '2026-02-04 09:10+01'),
+  (v_e01, v_m04, 'Sow',       'Fatou',      '2026-02-04 09:12+01'),
+  (v_e01, v_m05, 'Diop',      'Ibrahima',   '2026-02-04 09:15+01'),
+  (v_e01, v_m06, 'Mbaye',     'Rokhaya',    '2026-02-04 09:20+01'),
+  (v_e01, v_m08, 'Touré',     'Mariama',    '2026-02-04 09:22+01'),
   -- e02 Porte-à-porte Saint-Denis : 5 présents
-  (v_e02, v_m09, 'qr',     v_user_id),
-  (v_e02, v_m10, 'qr',     v_user_id),
-  (v_e02, v_m11, 'manuel', v_user_id),
-  (v_e02, v_m17, 'qr',     v_user_id),
-  (v_e02, v_m18, 'manuel', v_user_id),
+  (v_e02, v_m09, 'Faye',      'Samba',      '2026-03-07 10:03+01'),
+  (v_e02, v_m10, 'Sarr',      'Ndéye',      '2026-03-07 10:05+01'),
+  (v_e02, v_m11, 'Niang',     'Modou',      '2026-03-07 10:10+01'),
+  (v_e02, v_m17, 'Konaté',    'Amadou',     '2026-03-07 10:12+01'),
+  (v_e02, v_m18, 'Diatta',    'Adja',       '2026-03-07 10:15+01'),
   -- e03 Formation numérique : 9 présents (inter-SS)
-  (v_e03, v_m01, 'qr',     v_user_id),
-  (v_e03, v_m03, 'qr',     v_user_id),
-  (v_e03, v_m05, 'qr',     v_user_id),
-  (v_e03, v_m08, 'qr',     v_user_id),
-  (v_e03, v_m13, 'qr',     v_user_id),
-  (v_e03, v_m14, 'qr',     v_user_id),
-  (v_e03, v_m21, 'manuel', v_user_id),
-  (v_e03, v_m22, 'manuel', v_user_id),
-  (v_e03, v_m29, 'qr',     v_user_id),
+  (v_e03, v_m01, 'Diallo',    'Mamadou',    '2026-04-12 10:02+01'),
+  (v_e03, v_m03, 'Fall',      'Ousmane',    '2026-04-12 10:05+01'),
+  (v_e03, v_m05, 'Diop',      'Ibrahima',   '2026-04-12 10:08+01'),
+  (v_e03, v_m08, 'Touré',     'Mariama',    '2026-04-12 10:10+01'),
+  (v_e03, v_m13, 'Diouf',     'Alioune',    '2026-04-12 10:12+01'),
+  (v_e03, v_m14, 'Badji',     'Coumba',     '2026-04-12 10:15+01'),
+  (v_e03, v_m21, 'Traoré',    'Boubacar',   '2026-04-12 10:18+01'),
+  (v_e03, v_m22, 'Coulibaly', 'Fatoumata',  '2026-04-12 10:20+01'),
+  (v_e03, v_m29, 'Seck',      'Oumar',      '2026-04-12 10:25+01'),
   -- e04 Meeting national : 15 présents
-  (v_e04, v_m01, 'qr', v_user_id), (v_e04, v_m02, 'qr', v_user_id),
-  (v_e04, v_m03, 'qr', v_user_id), (v_e04, v_m04, 'qr', v_user_id),
-  (v_e04, v_m05, 'qr', v_user_id), (v_e04, v_m06, 'qr', v_user_id),
-  (v_e04, v_m08, 'qr', v_user_id), (v_e04, v_m09, 'qr', v_user_id),
-  (v_e04, v_m10, 'qr', v_user_id), (v_e04, v_m11, 'qr', v_user_id),
-  (v_e04, v_m17, 'qr', v_user_id), (v_e04, v_m21, 'qr', v_user_id),
-  (v_e04, v_m22, 'qr', v_user_id), (v_e04, v_m26, 'qr', v_user_id),
-  (v_e04, v_m29, 'qr', v_user_id),
+  (v_e04, v_m01, 'Diallo',    'Mamadou',    '2026-05-10 15:02+01'),
+  (v_e04, v_m02, 'Ndiaye',    'Aminata',    '2026-05-10 15:04+01'),
+  (v_e04, v_m03, 'Fall',      'Ousmane',    '2026-05-10 15:06+01'),
+  (v_e04, v_m04, 'Sow',       'Fatou',      '2026-05-10 15:08+01'),
+  (v_e04, v_m05, 'Diop',      'Ibrahima',   '2026-05-10 15:10+01'),
+  (v_e04, v_m06, 'Mbaye',     'Rokhaya',    '2026-05-10 15:12+01'),
+  (v_e04, v_m08, 'Touré',     'Mariama',    '2026-05-10 15:14+01'),
+  (v_e04, v_m09, 'Faye',      'Samba',      '2026-05-10 15:16+01'),
+  (v_e04, v_m10, 'Sarr',      'Ndéye',      '2026-05-10 15:18+01'),
+  (v_e04, v_m11, 'Niang',     'Modou',      '2026-05-10 15:20+01'),
+  (v_e04, v_m17, 'Konaté',    'Amadou',     '2026-05-10 15:22+01'),
+  (v_e04, v_m21, 'Traoré',    'Boubacar',   '2026-05-10 15:25+01'),
+  (v_e04, v_m22, 'Coulibaly', 'Fatoumata',  '2026-05-10 15:28+01'),
+  (v_e04, v_m26, 'Sonko',     'Adama',      '2026-05-10 15:30+01'),
+  (v_e04, v_m29, 'Seck',      'Oumar',      '2026-05-10 15:32+01'),
   -- e05 Réunion SS-092 : 4 présents
-  (v_e05, v_m21, 'manuel', v_user_id),
-  (v_e05, v_m22, 'manuel', v_user_id),
-  (v_e05, v_m23, 'manuel', v_user_id),
-  (v_e05, v_m24, 'qr',     v_user_id)
+  (v_e05, v_m21, 'Traoré',    'Boubacar',   '2026-05-25 19:05+01'),
+  (v_e05, v_m22, 'Coulibaly', 'Fatoumata',  '2026-05-25 19:08+01'),
+  (v_e05, v_m23, 'Bah',       'Thierno',    '2026-05-25 19:10+01'),
+  (v_e05, v_m24, 'Keita',     'Marème',     '2026-05-25 19:12+01')
 ON CONFLICT DO NOTHING;
 
 
@@ -351,7 +358,7 @@ VALUES
   (v_r03, v_ss075, 'Réunion SS Paris — mars 2026',       'sous_section', '2026-03-16 19:30+01', 'Café associatif, Paris 18e',   E'1. Retour porte-à-porte\n2. Planning avril\n3. Cotisations en retard', v_user_id),
   (v_r04, v_ss075, 'Réunion SS Paris — mai 2026',        'sous_section', '2026-05-19 19:30+01', 'Maison des asso., Paris 19e',  E'1. Bilan meeting\n2. Préparation été\n3. Nouveaux membres', v_user_id),
   (v_r05, v_ss093, 'Réunion SS Seine-St-Denis — fév 26', 'sous_section', '2026-02-24 19:00+01', 'Salle polyvalente, St-Denis',  E'1. Porte-à-porte quartier Plaine\n2. Cotisations\n3. Événements à venir', v_user_id),
-  (v_r06, v_jps,   'Réunion JPS — mars 2026',            'mouvement',    '2026-03-22 18:00+01', 'Foyer des jeunes, Paris 19e',  E'1. Recrutement jeunes\n2. Activités printemps\n3. Lien avec cellules', v_user_id)
+  (v_r06, v_jps,   'Réunion JPS — mars 2026',            'autre',        '2026-03-22 18:00+01', 'Foyer des jeunes, Paris 19e',  E'1. Recrutement jeunes\n2. Activités printemps\n3. Lien avec cellules', v_user_id)
 ON CONFLICT (id) DO NOTHING;
 
 -- ── Décisions ────────────────────────────────────────────
@@ -440,10 +447,10 @@ VALUES
   (v_s01, v_ss075, 'Élection bureau SS Paris — mars 2025',   'interne', '2025-03-20', 'clos',
    'Élection du coordinateur et de son adjoint pour la sous-section Paris'),
   -- En cours (vote ouvert)
-  (v_s02, v_ss093, 'Élection bureau SS-093 — juin 2026',     'interne', '2026-06-20', 'en_cours',
+  (v_s02, v_ss093, 'Élection bureau SS-093 — juin 2026',     'interne', '2026-06-20', 'ouvert',
    'Renouvellement du bureau de la sous-section Seine-Saint-Denis'),
   -- À venir (candidatures ouvertes)
-  (v_s03, v_bex,   'Élection bureau exécutif — sept. 2026',  'interne', '2026-09-19', 'a_venir',
+  (v_s03, v_bex,   'Élection bureau exécutif — sept. 2026',  'interne', '2026-09-19', 'en_preparation',
    'Renouvellement du bureau exécutif lors de l''AG annuelle')
 ON CONFLICT (id) DO NOTHING;
 
