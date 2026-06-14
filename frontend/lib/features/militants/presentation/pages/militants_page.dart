@@ -5,8 +5,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/download_csv.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../../core/utils/csv_helper.dart';
@@ -307,7 +307,7 @@ class _BarreActions extends ConsumerWidget {
   Future<void> _exporter(BuildContext context) async {
     final csv      = formaterCsvMilitants(militants, unites);
     final filename = 'militants_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv';
-    await Share.share(csv, subject: filename);
+    await telechargerCsv(csv, filename);
   }
 
   Future<void> _importer(BuildContext context, WidgetRef ref) async {
