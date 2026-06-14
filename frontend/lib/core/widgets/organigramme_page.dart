@@ -9,6 +9,20 @@ import '../../features/militants/domain/entities/militant.dart';
 import '../../features/militants/domain/entities/unite_organisationnelle.dart';
 import '../../features/militants/presentation/providers/militants_provider.dart';
 
+/// Map uniteId → photoUrl des responsables (depuis la table profiles).
+final _photosResponsablesProvider = FutureProvider.autoDispose<Map<String, String>>((ref) async {
+  final client = ref.watch(supabaseClientProvider);
+  final data = await client
+      .from(AppTables.profiles)
+      .select('${AppTables.colUniteId}, ${AppTables.colPhotoUrl}')
+      .not(AppTables.colUniteId, 'is', null)
+      .not(AppTables.colPhotoUrl, 'is', null);
+  return {
+    for (final row in data as List<dynamic>)
+      row[AppTables.colUniteId] as String: row[AppTables.colPhotoUrl] as String,
+  };
+});
+
 class OrganigrammePage extends ConsumerStatefulWidget {
   const OrganigrammePage({super.key});
 
@@ -26,6 +40,7 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
     final role        = utilisateur?.role ?? '';
     final monUniteId  = utilisateur?.uniteOrganisationnelleId;
     final state       = ref.watch(militantsProvider);
+    final photos      = ref.watch(_photosResponsablesProvider).valueOrNull ?? {};
 
     return state.when(
       initial:    () => const SizedBox.shrink(),
@@ -46,6 +61,7 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
         final data = _construire(militants, unites, role, monUniteId);
         return _VueOrganigramme(
           data:     data,
+          photos:   photos,
           expanded: _expanded,
           onToggle: (id) => setState(() {
             if (_expanded.contains(id)) {
@@ -197,12 +213,14 @@ class _OrganigrammeData {
 class _VueOrganigramme extends StatelessWidget {
   const _VueOrganigramme({
     required this.data,
+    required this.photos,
     required this.expanded,
     required this.onToggle,
   });
-  final _OrganigrammeData     data;
-  final Set<String>           expanded;
-  final void Function(String) onToggle;
+  final _OrganigrammeData       data;
+  final Map<String, String>     photos;
+  final Set<String>             expanded;
+  final void Function(String)   onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -219,9 +237,10 @@ class _VueOrganigramme extends StatelessWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (_, i) => _CarteSS(
-                bloc:     data.blocsSSections[i],
-                expanded: expanded.contains(data.blocsSSections[i].unite.id),
-                onToggle: () => onToggle(data.blocsSSections[i].unite.id),
+                bloc:      data.blocsSSections[i],
+                photoUrl:  photos[data.blocsSSections[i].unite.id],
+                expanded:  expanded.contains(data.blocsSSections[i].unite.id),
+                onToggle:  () => onToggle(data.blocsSSections[i].unite.id),
               ),
               childCount: data.blocsSSections.length,
             ),
@@ -233,9 +252,10 @@ class _VueOrganigramme extends StatelessWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (_, i) => _CarteUniteSimple(
-                stat:    data.mouvements[i],
-                couleur: AppColors.accent,
-                icone:   Icons.group_outlined,
+                stat:     data.mouvements[i],
+                photoUrl: photos[data.mouvements[i].unite.id],
+                couleur:  AppColors.accent,
+                icone:    Icons.group_outlined,
               ),
               childCount: data.mouvements.length,
             ),
@@ -247,9 +267,10 @@ class _VueOrganigramme extends StatelessWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (_, i) => _CarteUniteSimple(
-                stat:    data.secretariats[i],
-                couleur: const Color(0xFF1A4A8A),
-                icone:   Icons.folder_outlined,
+                stat:     data.secretariats[i],
+                photoUrl: photos[data.secretariats[i].unite.id],
+                couleur:  const Color(0xFF1A4A8A),
+                icone:    Icons.folder_outlined,
               ),
               childCount: data.secretariats.length,
             ),
@@ -361,8 +382,10 @@ class _CarteSS extends StatelessWidget {
     required this.bloc,
     required this.expanded,
     required this.onToggle,
+    this.photoUrl,
   });
   final _BlocSS      bloc;
+  final String?      photoUrl;
   final bool         expanded;
   final VoidCallback onToggle;
 
@@ -384,14 +407,16 @@ class _CarteSS extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
             child: Row(children: [
-              Container(
-                width: 42, height: 42,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.location_on_outlined,
-                    color: AppColors.primary, size: 20),
+              CircleAvatar(
+                radius: 21,
+                backgroundImage:
+                    photoUrl != null ? NetworkImage(photoUrl!) : null,
+                backgroundColor:
+                    AppColors.primary.withValues(alpha: 0.12),
+                child: photoUrl == null
+                    ? const Icon(Icons.location_on_outlined,
+                        color: AppColors.primary, size: 20)
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -510,8 +535,10 @@ class _CarteUniteSimple extends StatelessWidget {
     required this.stat,
     required this.couleur,
     required this.icone,
+    this.photoUrl,
   });
   final _UniteStat stat;
+  final String?    photoUrl;
   final Color      couleur;
   final IconData   icone;
 
@@ -525,13 +552,14 @@ class _CarteUniteSimple extends StatelessWidget {
           boxShadow:    AppColors.cardShadow,
         ),
         child: Row(children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: couleur.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icone, color: couleur, size: 20),
+          CircleAvatar(
+            radius: 20,
+            backgroundImage:
+                photoUrl != null ? NetworkImage(photoUrl!) : null,
+            backgroundColor: couleur.withValues(alpha: 0.12),
+            child: photoUrl == null
+                ? Icon(icone, color: couleur, size: 20)
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(

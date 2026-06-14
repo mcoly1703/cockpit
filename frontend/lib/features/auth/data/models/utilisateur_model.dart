@@ -9,6 +9,7 @@ class UtilisateurModel {
   final String role;
   final String? uniteOrganisationnelleId;
   final String? entite;
+  final String? photoUrl;
 
   const UtilisateurModel({
     required this.id,
@@ -18,21 +19,22 @@ class UtilisateurModel {
     required this.role,
     this.uniteOrganisationnelleId,
     this.entite,
+    this.photoUrl,
   });
 
   factory UtilisateurModel.fromJson(Map<String, dynamic> json) {
     return UtilisateurModel(
-      id:                       json[AppTables.colId]                       as String,
-      email:                    json[AppTables.colEmail]                    as String,
-      nom:                      json[AppTables.colNom]                      as String,
-      prenom:                   json[AppTables.colPrenom]                   as String,
-      role:                     json[AppTables.colRole]                     as String,
-      uniteOrganisationnelleId: json[AppTables.colUniteId] as String?,
-      entite:                   json[AppTables.colEntite]                   as String?,
+      id:                       json[AppTables.colId]       as String,
+      email:                    json[AppTables.colEmail]    as String,
+      nom:                      json[AppTables.colNom]      as String,
+      prenom:                   json[AppTables.colPrenom]   as String,
+      role:                     json[AppTables.colRole]     as String,
+      uniteOrganisationnelleId: json[AppTables.colUniteId]  as String?,
+      entite:                   json[AppTables.colEntite]   as String?,
+      photoUrl:                 json[AppTables.colPhotoUrl] as String?,
     );
   }
 
-  // Convertit le modèle data en entité domain
   Utilisateur toEntity() {
     return Utilisateur(
       id:                       id,
@@ -42,6 +44,7 @@ class UtilisateurModel {
       role:                     role,
       uniteOrganisationnelleId: uniteOrganisationnelleId,
       entite:                   entite,
+      photoUrl:                 photoUrl,
     );
   }
 }

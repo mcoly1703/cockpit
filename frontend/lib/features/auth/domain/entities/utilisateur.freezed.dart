@@ -24,6 +24,7 @@ mixin _$Utilisateur {
   String get role => throw _privateConstructorUsedError;
   String? get uniteOrganisationnelleId => throw _privateConstructorUsedError;
   String? get entite => throw _privateConstructorUsedError;
+  String? get photoUrl => throw _privateConstructorUsedError;
 
   /// Create a copy of Utilisateur
   /// with the given fields replaced by the non-null parameter values.
@@ -47,6 +48,7 @@ abstract class $UtilisateurCopyWith<$Res> {
     String role,
     String? uniteOrganisationnelleId,
     String? entite,
+    String? photoUrl,
   });
 }
 
@@ -72,6 +74,7 @@ class _$UtilisateurCopyWithImpl<$Res, $Val extends Utilisateur>
     Object? role = null,
     Object? uniteOrganisationnelleId = freezed,
     Object? entite = freezed,
+    Object? photoUrl = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -103,6 +106,10 @@ class _$UtilisateurCopyWithImpl<$Res, $Val extends Utilisateur>
                 ? _value.entite
                 : entite // ignore: cast_nullable_to_non_nullable
                       as String?,
+            photoUrl: freezed == photoUrl
+                ? _value.photoUrl
+                : photoUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -126,6 +133,7 @@ abstract class _$$UtilisateurImplCopyWith<$Res>
     String role,
     String? uniteOrganisationnelleId,
     String? entite,
+    String? photoUrl,
   });
 }
 
@@ -150,6 +158,7 @@ class __$$UtilisateurImplCopyWithImpl<$Res>
     Object? role = null,
     Object? uniteOrganisationnelleId = freezed,
     Object? entite = freezed,
+    Object? photoUrl = freezed,
   }) {
     return _then(
       _$UtilisateurImpl(
@@ -181,6 +190,10 @@ class __$$UtilisateurImplCopyWithImpl<$Res>
             ? _value.entite
             : entite // ignore: cast_nullable_to_non_nullable
                   as String?,
+        photoUrl: freezed == photoUrl
+            ? _value.photoUrl
+            : photoUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -197,6 +210,7 @@ class _$UtilisateurImpl implements _Utilisateur {
     required this.role,
     this.uniteOrganisationnelleId,
     this.entite,
+    this.photoUrl,
   });
 
   @override
@@ -213,10 +227,12 @@ class _$UtilisateurImpl implements _Utilisateur {
   final String? uniteOrganisationnelleId;
   @override
   final String? entite;
+  @override
+  final String? photoUrl;
 
   @override
   String toString() {
-    return 'Utilisateur(id: $id, email: $email, nom: $nom, prenom: $prenom, role: $role, uniteOrganisationnelleId: $uniteOrganisationnelleId, entite: $entite)';
+    return 'Utilisateur(id: $id, email: $email, nom: $nom, prenom: $prenom, role: $role, uniteOrganisationnelleId: $uniteOrganisationnelleId, entite: $entite, photoUrl: $photoUrl)';
   }
 
   @override
@@ -234,7 +250,9 @@ class _$UtilisateurImpl implements _Utilisateur {
                   uniteOrganisationnelleId,
                 ) ||
                 other.uniteOrganisationnelleId == uniteOrganisationnelleId) &&
-            (identical(other.entite, entite) || other.entite == entite));
+            (identical(other.entite, entite) || other.entite == entite) &&
+            (identical(other.photoUrl, photoUrl) ||
+                other.photoUrl == photoUrl));
   }
 
   @override
@@ -247,6 +265,7 @@ class _$UtilisateurImpl implements _Utilisateur {
     role,
     uniteOrganisationnelleId,
     entite,
+    photoUrl,
   );
 
   /// Create a copy of Utilisateur
@@ -267,6 +286,7 @@ abstract class _Utilisateur implements Utilisateur {
     required final String role,
     final String? uniteOrganisationnelleId,
     final String? entite,
+    final String? photoUrl,
   }) = _$UtilisateurImpl;
 
   @override
@@ -283,6 +303,8 @@ abstract class _Utilisateur implements Utilisateur {
   String? get uniteOrganisationnelleId;
   @override
   String? get entite;
+  @override
+  String? get photoUrl;
 
   /// Create a copy of Utilisateur
   /// with the given fields replaced by the non-null parameter values.

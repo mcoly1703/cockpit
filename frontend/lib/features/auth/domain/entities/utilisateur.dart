@@ -12,5 +12,6 @@ class Utilisateur with _$Utilisateur {
     required String role,
     String? uniteOrganisationnelleId,
     String? entite,
+    String? photoUrl,
   }) = _Utilisateur;
 }
