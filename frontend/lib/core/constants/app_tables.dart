@@ -140,36 +140,6 @@ class AppRoles {
   static const String adminTechnique         = 'admin_technique';
 }
 
-/// Rôles MonCap Diaspora (enum user_role en base, préfixe moncap_).
-class AppRolesMoncap {
-  static const String coordo             = 'moncap_coordo';
-  static const String coordoAdj          = 'moncap_coordo_adj';
-  static const String secretaire         = 'moncap_secretaire';
-  static const String secretaireAdj      = 'moncap_secretaire_adj';
-  static const String respMassification  = 'moncap_resp_massification';
-  static const String adjMassification   = 'moncap_adj_massification';
-  static const String respCommunication  = 'moncap_resp_communication';
-  static const String adjCommunication   = 'moncap_adj_communication';
-  static const String respFinance        = 'moncap_resp_finance';
-  static const String adjFinance         = 'moncap_adj_finance';
-  static const String respOrganisation   = 'moncap_resp_organisation';
-  static const String adjOrganisation    = 'moncap_adj_organisation';
-  static const String respScientifique   = 'moncap_resp_scientifique';
-  static const String adjScientifique    = 'moncap_adj_scientifique';
-  static const String respCommission     = 'moncap_resp_commission';
-  static const String adjCommission      = 'moncap_adj_commission';
-
-  /// Retourne true si le rôle a accès à la plateforme.
-  /// Règle : coordo/adj, secrétaire/adj, resp+adj pôles, resp+adj commissions → accès.
-  /// Membres simples des commissions → pas de rôle moncap_, donc exclus automatiquement.
-  static bool aAcces(String role) => role.startsWith('moncap_');
-}
-
-/// Identifiants des deux entités de la plateforme.
-class AppEntites {
-  static const String pastef  = 'pastef_france';
-  static const String moncap  = 'moncap_diaspora';
-}
 
 /// Valeurs des enums Supabase.
 class AppEnums {

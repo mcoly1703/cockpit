@@ -24,10 +24,6 @@ class AuthState with _$AuthState {
   const factory AuthState.erreur({required Failure failure}) = AuthErreur;
 }
 
-// --- Entité sélectionnée sur la landing page ---
-
-final selectedEntiteProvider = StateProvider<String?>((ref) => null);
-
 // --- Providers d'infrastructure ---
 
 final supabaseClientProvider = Provider<SupabaseClient>(

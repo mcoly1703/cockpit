@@ -45,8 +45,6 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
-    final entite      = utilisateur?.entite ?? ref.watch(selectedEntiteProvider);
-    final estMoncap   = entite == AppEntites.moncap;
     final location    = GoRouterState.of(context).uri.path;
 
     return Scaffold(
@@ -54,18 +52,16 @@ class AppShell extends ConsumerWidget {
       body: Column(
         children: [
           _Topbar(
-            utilisateur:  utilisateur,
-            estMoncap:    estMoncap,
-            onScanTap:    () => context.go(AppRoutes.scan),
-            onAvatarTap:  () => _showMenuUtilisateur(context, ref, utilisateur),
+            utilisateur: utilisateur,
+            onScanTap:   () => context.go(AppRoutes.scan),
+            onAvatarTap: () => _showMenuUtilisateur(context, ref, utilisateur),
           ),
-          _RoleBanner(utilisateur: utilisateur, estMoncap: estMoncap),
+          _RoleBanner(utilisateur: utilisateur),
           Expanded(child: child),
         ],
       ),
       bottomNavigationBar: _BottomNav(
         currentIndex: _tabIndex(location),
-        estMoncap: estMoncap,
         onTap: (i) => context.go(_tabRoutes[i]),
       ),
     );
@@ -84,19 +80,17 @@ String _initiales(Utilisateur? u) {
 class _Topbar extends StatelessWidget {
   const _Topbar({
     required this.utilisateur,
-    required this.estMoncap,
     required this.onScanTap,
     required this.onAvatarTap,
   });
   final Utilisateur? utilisateur;
-  final bool         estMoncap;
   final VoidCallback onScanTap;
   final VoidCallback onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
     final initiales = _initiales(utilisateur);
-    final sousTitre = estMoncap ? 'MonCap Diaspora' : 'Section France';
+    const sousTitre = 'Section France';
 
     return Container(
       color: AppColors.primary,
@@ -233,9 +227,8 @@ class _TopbarBtn extends StatelessWidget {
 // ---------- ROLE BANNER ----------
 
 class _RoleBanner extends StatelessWidget {
-  const _RoleBanner({required this.utilisateur, required this.estMoncap});
+  const _RoleBanner({required this.utilisateur});
   final Utilisateur? utilisateur;
-  final bool estMoncap;
 
   String _labelRole(String? role) {
     if (role == null) return '—';
@@ -247,18 +240,11 @@ class _RoleBanner extends StatelessWidget {
       AppRoles.responsableSecretariat => 'Resp. Secrétariat',
       AppRoles.coordinateurCellule    => 'Coord. Cellule',
       AppRoles.adminTechnique         => 'Admin Technique',
-      AppRolesMoncap.coordo           => 'Coordinateur',
-      AppRolesMoncap.coordoAdj        => 'Coord. Adjoint',
-      AppRolesMoncap.secretaire       => 'Secrétaire',
-      AppRolesMoncap.secretaireAdj    => 'Secrétaire Adj.',
-      _ when role.startsWith('moncap_resp_') => 'Resp. Pôle',
-      _ when role.startsWith('moncap_adj_')  => 'Adjoint Pôle',
       _ => role,
     };
   }
 
-  String _labelPerimetre(Utilisateur? u, bool moncap) {
-    if (moncap) return 'MonCap Diaspora';
+  String _labelPerimetre(Utilisateur? u) {
     if (u == null) return '';
     final role = u.role;
     if (role == AppRoles.bureauExecutif || role == AppRoles.coordinateur) {
@@ -270,7 +256,7 @@ class _RoleBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final role      = _labelRole(utilisateur?.role);
-    final perimetre = _labelPerimetre(utilisateur, estMoncap);
+    final perimetre = _labelPerimetre(utilisateur);
 
     return Container(
       color: AppColors.primary,
@@ -311,18 +297,16 @@ class _RoleBanner extends StatelessWidget {
 class _BottomNav extends StatelessWidget {
   const _BottomNav({
     required this.currentIndex,
-    required this.estMoncap,
     required this.onTap,
   });
   final int currentIndex;
-  final bool estMoncap;
   final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
-    final labels = [
+    const labels = [
       'Accueil',
-      estMoncap ? 'Cadres' : 'Militants',
+      'Militants',
       'Finances',
       'Prospects',
       'Modules',
@@ -434,7 +418,6 @@ class _MenuUtilisateur extends StatelessWidget {
       AppRoles.responsableSecretariat => 'Resp. Secrétariat',
       AppRoles.coordinateurCellule    => 'Coord. Cellule',
       AppRoles.adminTechnique         => 'Admin Technique',
-      _ when role.startsWith('moncap_') => 'MonCap Diaspora',
       _ => role,
     };
   }

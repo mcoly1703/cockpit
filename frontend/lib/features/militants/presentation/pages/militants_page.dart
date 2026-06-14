@@ -804,7 +804,7 @@ class _LigneSS extends StatelessWidget {
   static const _palette = [
     AppColors.secondary,
     AppColors.accent,
-    AppColors.moncapPrimary,
+    Color(0xFF1A4A8A),
     AppColors.primary,
     Color(0xFF5B2D8B),
     Color(0xFF0D7377),
