@@ -29,12 +29,16 @@ class DashboardDatasourceImpl implements DashboardDatasource {
         _getFinancesStats(filtrer, uniteId),
         _getEvolutionMilitants(filtrer, uniteId),
         _getEvolutionFinances(filtrer, uniteId),
+        _getCellulesCount(filtrer, uniteId),
       ]);
+
+      final activite = _activiteVide()
+        ..['nombre_cellules'] = results[4] as int;
 
       return DashboardStatsModel.fromSupabase(
         militants:             results[0] as Map<String, dynamic>,
         finances:              results[1] as Map<String, dynamic>,
-        activite:              _activiteVide(), // modules prospects/events à venir
+        activite:              activite,
         evolutionMilitantsRaw: results[2] as List<Map<String, dynamic>>,
         evolutionFinancesRaw:  results[3] as List<Map<String, dynamic>>,
       );
@@ -175,6 +179,18 @@ class DashboardDatasourceImpl implements DashboardDatasource {
       mois['${m.year}-${m.month.toString().padLeft(2, '0')}-01'] = 0;
     }
     return mois;
+  }
+
+  Future<int> _getCellulesCount(bool filtrer, String? uniteId) async {
+    var query = supabase
+        .from(AppTables.unitesOrganisationnelles)
+        .select('id')
+        .eq(AppTables.colType, AppUniteTypes.cellule);
+    if (filtrer && uniteId != null) {
+      query = query.eq(AppTables.colParentId, uniteId);
+    }
+    final data = await query;
+    return data.length;
   }
 
   Map<String, dynamic> _activiteVide() => {

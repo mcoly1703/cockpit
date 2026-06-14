@@ -52,6 +52,10 @@ class DashboardPage extends ConsumerWidget {
               _KpiGrid(stats: stats),
               const SizedBox(height: 11),
 
+              // Détail cellules par section
+              const _CellulesSection(),
+              const SizedBox(height: 11),
+
               // Graphique évolution militants
               _GraphiqueCard(stats: stats),
               const SizedBox(height: 11),
@@ -582,6 +586,125 @@ class _ErreurView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ---------- CELLULES PAR SECTION ----------
+
+class _CellulesSection extends ConsumerWidget {
+  const _CellulesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(cellulesParSectionProvider);
+
+    return async.when(
+      loading: () => const SizedBox.shrink(),
+      error:   (e, s) => const SizedBox.shrink(),
+      data: (parSection) {
+        if (parSection.isEmpty) return const SizedBox.shrink();
+        final total = parSection.values.fold(0, (a, b) => a + b);
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: AppColors.cardShadow,
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.location_city_rounded, size: 16, color: AppColors.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'CELLULES PAR SECTION',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text2,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '$total au total',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...parSection.entries.map((e) => _LigneCellule(
+                nom:    e.key,
+                count:  e.value,
+                total:  total,
+              )),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LigneCellule extends StatelessWidget {
+  const _LigneCellule({required this.nom, required this.count, required this.total});
+  final String nom;
+  final int    count;
+  final int    total;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = total > 0 ? count / total : 0.0;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  nom,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                '$count cellule${count > 1 ? 's' : ''}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: pct,
+              minHeight: 5,
+              backgroundColor: AppColors.border,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+            ),
+          ),
+        ],
       ),
     );
   }
