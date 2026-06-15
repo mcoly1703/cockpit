@@ -1,14 +1,18 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../../core/utils/format_helper.dart';
 import '../../../../core/widgets/kpi_card.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../evenements/domain/entities/evenement.dart';
+import '../../../evenements/presentation/providers/evenements_provider.dart';
 import '../../../rapports/presentation/pages/rapport_activite_form_page.dart';
 import '../providers/dashboard_provider.dart';
 
@@ -323,9 +327,9 @@ class _KpiGrid extends ConsumerWidget {
         KpiCard(
           titre:     'Activités',
           valeur:    '$totalActivites',
-          icone:     Icons.event_rounded,
+          icone:     Icons.campaign_rounded,
           evolution: '${stats.evenementsCeMois} ce mois',
-          emoji:     '📅',
+          emoji:     '📣',
           gradient:  AppColors.kpiOrGradient,
         ),
       ],
@@ -527,11 +531,20 @@ class _AlerteItem extends StatelessWidget {
 
 // ---------- PROCHAINS ÉVÉNEMENTS ----------
 
-class _ProchainEvenementsCard extends StatelessWidget {
+class _ProchainEvenementsCard extends ConsumerWidget {
   const _ProchainEvenementsCard();
 
+  static const _moisAbbrv = [
+    '', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
+    'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+  ];
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state   = ref.watch(evenementsProvider);
+    final aVenir  = state.aVenir.take(4).toList();
+    final enCharge = state.maybeWhen(chargement: () => true, orElse: () => false);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
@@ -547,20 +560,147 @@ class _ProchainEvenementsCard extends StatelessWidget {
             children: [
               const Text(
                 'PROCHAINS ÉVÉNEMENTS',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1, color: AppColors.text2),
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                    letterSpacing: 1, color: AppColors.text2),
               ),
-              Text(
-                'Voir →',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
+              GestureDetector(
+                onTap: () => context.go(AppRoutes.evenements),
+                child: const Text(
+                  'Voir tout →',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                      color: AppColors.primary),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 11),
-          const Center(
-            child: Text(
-              'Module événements à venir',
-              style: TextStyle(fontSize: 12, color: AppColors.text2),
+          const SizedBox(height: 12),
+          if (enCharge)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: CircularProgressIndicator(strokeWidth: 2,
+                    color: AppColors.primary),
+              ),
+            )
+          else if (aVenir.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.event_available_outlined,
+                      color: AppColors.primary, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Text('Aucun événement à venir',
+                    style: TextStyle(fontSize: 13, color: AppColors.text2)),
+              ]),
+            )
+          else
+            Column(
+              children: [
+                for (int i = 0; i < aVenir.length; i++) ...[
+                  _EvenementLigne(aVenir[i], moisAbbrv: _moisAbbrv),
+                  if (i < aVenir.length - 1)
+                    const Divider(height: 1, indent: 56),
+                  if (i < aVenir.length - 1) const SizedBox(height: 10),
+                ],
+              ],
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EvenementLigne extends StatelessWidget {
+  const _EvenementLigne(this.ev, {required this.moisAbbrv});
+  final Evenement   ev;
+  final List<String> moisAbbrv;
+
+  Color _couleur() {
+    if (ev.type == AppEnums.typeMeeting)         return AppColors.primary;
+    if (ev.type == AppEnums.typeMarche)          return AppColors.secondary;
+    if (ev.type == AppEnums.typeFormation)       return const Color(0xFF1565C0);
+    if (ev.type == AppEnums.typeReunionPublique) return AppColors.accent;
+    if (ev.type == AppEnums.typePorteAPorte)     return const Color(0xFF6A1B9A);
+    return AppColors.text2;
+  }
+
+  String _typeLabel() => AppEnums.typesEvenement
+      .firstWhere((t) => t.$1 == ev.type, orElse: () => (ev.type, ev.type))
+      .$2;
+
+  @override
+  Widget build(BuildContext context) {
+    final couleur = _couleur();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Badge date
+          Container(
+            width: 44, height: 44,
+            decoration: BoxDecoration(
+              color: couleur.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${ev.dateDebut.day}',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900,
+                      color: couleur, height: 1.1),
+                ),
+                Text(
+                  moisAbbrv[ev.dateDebut.month],
+                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                      color: couleur),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Titre + lieu
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(ev.titre,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                        color: AppColors.text),
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Row(children: [
+                  const Icon(Icons.location_on_outlined, size: 11,
+                      color: AppColors.text2),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    child: Text(ev.lieu,
+                        style: const TextStyle(fontSize: 11, color: AppColors.text2),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Badge type
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: couleur.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(_typeLabel(),
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                    color: couleur)),
           ),
         ],
       ),
