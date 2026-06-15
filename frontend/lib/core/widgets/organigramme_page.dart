@@ -548,52 +548,31 @@ class _LigneCellule extends StatelessWidget {
   final _UniteStat stat;
 
   @override
-  Widget build(BuildContext context) {
-    final count = stat.count;
-    final Color couleur;
-    final String label;
-    if (count >= AppConstants.seuilPleineCellule) {
-      couleur = AppColors.secondary; label = '⚠ Pleine';
-    } else if (count >= AppConstants.seuilActiveCellule) {
-      couleur = AppColors.primary; label = 'Active';
-    } else {
-      couleur = AppColors.accent; label = 'En cours';
-    }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 14, 0),
-      child: Row(children: [
-        const Icon(Icons.subdirectory_arrow_right_rounded,
-            size: 16, color: AppColors.border),
-        const SizedBox(width: 8),
-        Container(
-          width: 8, height: 8,
-          decoration: const BoxDecoration(
-              color: AppColors.accent, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(stat.unite.nom,
-              style: const TextStyle(fontSize: 13, color: AppColors.text),
-              overflow: TextOverflow.ellipsis),
-        ),
-        Text('$count',
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w700,
-                color: AppColors.text)),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: couleur.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  fontSize: 9, fontWeight: FontWeight.w700, color: couleur)),
-        ),
-      ]),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 10, 14, 0),
+    child: Row(children: [
+      const Icon(Icons.subdirectory_arrow_right_rounded,
+          size: 16, color: AppColors.border),
+      const SizedBox(width: 8),
+      Container(
+        width: 8, height: 8,
+        decoration: const BoxDecoration(
+            color: AppColors.accent, shape: BoxShape.circle),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Text(stat.unite.nom,
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            overflow: TextOverflow.ellipsis),
+      ),
+      Text('${stat.count}',
+          style: const TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w700,
+              color: AppColors.text)),
+      const SizedBox(width: 8),
+      _BadgeStatutCellule(stat.count),
+    ]),
+  );
 }
 
 class _CarteUniteSimple extends StatelessWidget {
@@ -650,6 +629,35 @@ class _CarteUniteSimple extends StatelessWidget {
       );
 }
 
+// Badge statut cellule partagé entre vue liste et vue arbre
+class _BadgeStatutCellule extends StatelessWidget {
+  const _BadgeStatutCellule(this.count);
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color couleur;
+    final String label;
+    if (count >= AppConstants.seuilPleineCellule) {
+      couleur = AppColors.secondary; label = 'Pleine';
+    } else if (count >= AppConstants.seuilActiveCellule) {
+      couleur = AppColors.primary;   label = 'Active';
+    } else {
+      couleur = AppColors.accent;    label = 'En création';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: couleur.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 9, fontWeight: FontWeight.w700, color: couleur)),
+    );
+  }
+}
+
 class _BadgeCode extends StatelessWidget {
   const _BadgeCode(this.code);
   final String code;
@@ -683,6 +691,7 @@ class _NoeudArbre {
   final Color couleur;
   final int count;
   final List<_NoeudArbre> enfants;
+  final bool estCellule;
 
   const _NoeudArbre({
     required this.id,
@@ -692,6 +701,7 @@ class _NoeudArbre {
     required this.couleur,
     required this.count,
     this.enfants = const [],
+    this.estCellule = false,
   });
 
   bool get estFeuille => enfants.isEmpty;
@@ -703,7 +713,8 @@ _NoeudArbre _buildArbre(_OrganigrammeData data, int countAG) {
   // Cellules
   _NoeudArbre noeudCellule(_UniteStat c) => _NoeudArbre(
     id: c.unite.id, label: c.unite.nom,
-    icone: Icons.circle, couleur: AppColors.accent, count: c.count,
+    icone: Icons.circle, couleur: AppColors.accent,
+    count: c.count, estCellule: true,
   );
 
   // SS → cellules
@@ -963,6 +974,11 @@ class _CarteArbre extends StatelessWidget {
                   )),
             ),
             const SizedBox(width: 4),
+          ],
+          // Badge statut cellule
+          if (noeud.estCellule) ...[
+            _BadgeStatutCellule(noeud.count),
+            const SizedBox(width: 2),
           ],
           // Flèche expand/collapse
           if (onToggle != null)

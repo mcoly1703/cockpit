@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -141,6 +142,56 @@ final cellulesParSectionProvider = FutureProvider<Map<String, int>>((ref) async 
   return Map.fromEntries(
     result.entries.toList()..sort((a, b) => b.value.compareTo(a.value)),
   );
+});
+
+// --- Provider statuts cellules (en_creation / active / pleine) ---
+
+typedef CellulesStatut = ({int enCreation, int active, int pleines});
+
+final cellulesStatutProvider = FutureProvider<CellulesStatut>((ref) async {
+  final client      = ref.watch(supabaseClientProvider);
+  final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+  if (utilisateur == null) return (enCreation: 0, active: 0, pleines: 0);
+
+  final estGlobal = utilisateur.role == AppRoles.bureauExecutif ||
+                    utilisateur.role == AppRoles.coordinateur  ||
+                    utilisateur.role == AppRoles.adminTechnique;
+
+  var cellulesQuery = client
+      .from(AppTables.unitesOrganisationnelles)
+      .select(AppTables.colId)
+      .eq(AppTables.colType, AppUniteTypes.cellule)
+      .eq(AppTables.colIsActive, true);
+  if (!estGlobal && utilisateur.uniteOrganisationnelleId != null) {
+    cellulesQuery = cellulesQuery.eq(
+      AppTables.colParentId,
+      utilisateur.uniteOrganisationnelleId!,
+    );
+  }
+  final cellules = await cellulesQuery;
+  final celluleIds = (cellules as List).map((c) => c[AppTables.colId] as String).toList();
+  if (celluleIds.isEmpty) return (enCreation: 0, active: 0, pleines: 0);
+
+  final militants = await client
+      .from(AppTables.militants)
+      .select(AppTables.colUniteId)
+      .eq(AppTables.colStatut, AppEnums.militantActif)
+      .inFilter(AppTables.colUniteId, celluleIds);
+
+  final countParId = <String, int>{};
+  for (final m in militants as List) {
+    final uid = m[AppTables.colUniteId] as String;
+    countParId[uid] = (countParId[uid] ?? 0) + 1;
+  }
+
+  int enCreation = 0, active = 0, pleines = 0;
+  for (final id in celluleIds) {
+    final n = countParId[id] ?? 0;
+    if (n >= AppConstants.seuilPleineCellule)      { pleines++; }
+    else if (n >= AppConstants.seuilActiveCellule) { active++; }
+    else                                           { enCreation++; }
+  }
+  return (enCreation: enCreation, active: active, pleines: pleines);
 });
 
 class DashboardNotifier extends StateNotifier<DashboardState> {

@@ -61,6 +61,10 @@ class DashboardPage extends ConsumerWidget {
               const _CellulesSection(),
               const SizedBox(height: 11),
 
+              // Santé des cellules
+              const _SanteCellulesCard(),
+              const SizedBox(height: 11),
+
               // Graphique évolution militants
               _GraphiqueCard(stats: stats),
               const SizedBox(height: 11),
@@ -527,6 +531,167 @@ class _AlerteItem extends StatelessWidget {
       ),
     );
   }
+}
+
+// ---------- SANTÉ DES CELLULES ----------
+
+class _SanteCellulesCard extends ConsumerWidget {
+  const _SanteCellulesCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(cellulesStatutProvider);
+    return async.when(
+      loading: () => const SizedBox.shrink(),
+      error:   (e, _) => const SizedBox.shrink(),
+      data: (statut) {
+        final total = statut.enCreation + statut.active + statut.pleines;
+        if (total == 0) return const SizedBox.shrink();
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: AppColors.cardShadow,
+          ),
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                const Icon(Icons.location_city_rounded,
+                    size: 14, color: AppColors.text2),
+                const SizedBox(width: 6),
+                const Text('SANTÉ DES CELLULES',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                        letterSpacing: 1, color: AppColors.text2)),
+                const Spacer(),
+                Text('$total cellule${total > 1 ? 's' : ''}',
+                    style: const TextStyle(fontSize: 11,
+                        fontWeight: FontWeight.w600, color: AppColors.text2)),
+              ]),
+              const SizedBox(height: 12),
+              Row(children: [
+                _TuileStatut(
+                  label:   'En création',
+                  valeur:  statut.enCreation,
+                  couleur: AppColors.accent,
+                  icone:   Icons.construction_rounded,
+                ),
+                const SizedBox(width: 8),
+                _TuileStatut(
+                  label:   'Actives',
+                  valeur:  statut.active,
+                  couleur: AppColors.primary,
+                  icone:   Icons.check_circle_outline_rounded,
+                ),
+                const SizedBox(width: 8),
+                _TuileStatut(
+                  label:   'Pleines',
+                  valeur:  statut.pleines,
+                  couleur: AppColors.secondary,
+                  icone:   Icons.people_alt_rounded,
+                ),
+              ]),
+              if (statut.pleines > 0) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border(
+                      left: BorderSide(color: AppColors.secondary, width: 3),
+                    ),
+                  ),
+                  child: Row(children: [
+                    Icon(Icons.warning_amber_rounded,
+                        size: 14, color: AppColors.secondary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${statut.pleines} cellule${statut.pleines > 1 ? 's' : ''} '
+                        'pleine${statut.pleines > 1 ? 's' : ''} — '
+                        'envisager la création d\'une nouvelle cellule',
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.secondary),
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+              if (statut.enCreation > 0) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border(
+                      left: BorderSide(color: AppColors.accent, width: 3),
+                    ),
+                  ),
+                  child: Row(children: [
+                    Icon(Icons.info_outline_rounded,
+                        size: 14, color: AppColors.accent),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${statut.enCreation} cellule${statut.enCreation > 1 ? 's' : ''} '
+                        'en création — objectif : atteindre 25 membres actifs',
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.accent),
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TuileStatut extends StatelessWidget {
+  const _TuileStatut({
+    required this.label,
+    required this.valeur,
+    required this.couleur,
+    required this.icone,
+  });
+  final String   label;
+  final int      valeur;
+  final Color    couleur;
+  final IconData icone;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      decoration: BoxDecoration(
+        color: couleur.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: couleur.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icone, size: 16, color: couleur),
+          const SizedBox(height: 6),
+          Text('$valeur',
+              style: TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.w900, color: couleur)),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.w600,
+                  color: couleur.withValues(alpha: 0.8))),
+        ],
+      ),
+    ),
+  );
 }
 
 // ---------- PROCHAINS ÉVÉNEMENTS ----------
