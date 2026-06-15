@@ -171,23 +171,19 @@ class AppEnums {
   static const String carteEnAttente = 'en_attente';
 
   // type_reunion
-  static const String typeReunionBureau           = 'bureau';
-  static const String typeReunionCellule          = 'cellule';
-  static const String typeReunionSousSection      = 'sous_section';
-  static const String typeReunionCommission       = 'commission';
+  static const String typeReunionInterne          = 'reunion_interne';
   static const String typeReunionAssembleeGen     = 'assemblee_generale';
-  static const String typeReunionMouvement        = 'mouvement';
-  static const String typeReunionSecretariat      = 'secretariat';
+  static const String typeReunionCommission       = 'commission';
+  static const String typeReunionCoordination     = 'coordination';
+  static const String typeReunionCampagne         = 'campagne_electorale';
   static const String typeReunionAutre            = 'autre';
 
   static const List<(String, String)> typesReunion = [
-    (typeReunionBureau,       'Bureau'),
-    (typeReunionCellule,      'Cellule'),
-    (typeReunionSousSection,  'Sous-section'),
-    (typeReunionCommission,   'Commission'),
+    (typeReunionInterne,      'Réunion interne'),
     (typeReunionAssembleeGen, 'Assemblée générale'),
-    (typeReunionMouvement,    'Mouvement'),
-    (typeReunionSecretariat,  'Secrétariat'),
+    (typeReunionCommission,   'Commission'),
+    (typeReunionCoordination, 'Coordination'),
+    (typeReunionCampagne,     'Campagne électorale'),
     (typeReunionAutre,        'Autre'),
   ];
 

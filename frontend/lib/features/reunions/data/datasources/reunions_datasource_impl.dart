@@ -37,14 +37,15 @@ class ReunionsDatasourceImpl implements ReunionsDatasource {
       final result = await supabase
           .from(AppTables.reunions)
           .insert({
-            AppTables.colTitre:      params.titre,
-            AppTables.colType:       params.type,
-            AppTables.colDate:       params.date.toIso8601String(),
-            AppTables.colLieu:       params.lieu,
+            AppTables.colTitre:            params.titre,
+            AppTables.colType:             params.type,
+            AppTables.colDate:             params.date.toIso8601String(),
+            AppTables.colLieu:             params.lieu,
             if (params.ordreJour != null)
-              AppTables.colOrdreJour: params.ordreJour,
-            AppTables.colUniteId:    params.uniteId,
-            AppTables.colCreatedBy:  supabase.auth.currentUser!.id,
+              AppTables.colOrdreJour:      params.ordreJour,
+            AppTables.colUniteId:          params.uniteId,
+            AppTables.colCreatedBy:        supabase.auth.currentUser!.id,
+            'is_extraordinaire':           params.isExtraordinaire,
           })
           .select()
           .single();

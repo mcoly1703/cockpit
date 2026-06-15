@@ -724,7 +724,7 @@ class _ProchainEvenementsCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'PROCHAINS ÉVÉNEMENTS',
+                'À VOS AGENDAS — PROCHAINS ÉVÉNEMENTS',
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
                     letterSpacing: 1, color: AppColors.text2),
               ),

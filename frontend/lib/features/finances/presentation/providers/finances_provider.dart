@@ -219,6 +219,9 @@ class FinancesNotifier extends StateNotifier<FinancesState> {
         _enregistrerCotisation = enregistrerCotisation,
         _ref                  = ref,
         super(const FinancesState.initial()) {
+    _ref.listen<AuthState>(authProvider, (_, next) {
+      next.whenOrNull(connecte: (_) => charger());
+    });
     charger();
   }
 
@@ -230,9 +233,11 @@ class FinancesNotifier extends StateNotifier<FinancesState> {
   Future<void> charger() async {
     state = const FinancesState.chargement();
 
-    final utilisateur = _ref.read(authProvider).whenOrNull(connecte: (u) => u);
+    final authState   = _ref.read(authProvider);
+    final utilisateur = authState.whenOrNull(connecte: (u) => u);
     if (utilisateur == null) {
-      state = const FinancesState.erreur(failure: Failure.nonAutorise());
+      final enAttente = authState.whenOrNull(initial: () => true, chargement: () => true) ?? false;
+      if (!enAttente) { state = const FinancesState.erreur(failure: Failure.nonAutorise()); }
       return;
     }
 

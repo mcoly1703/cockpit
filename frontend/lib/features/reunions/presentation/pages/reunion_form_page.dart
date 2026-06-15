@@ -22,7 +22,8 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
   final _lieuCtrl       = TextEditingController();
   final _ordreJourCtrl  = TextEditingController();
 
-  String _type = AppEnums.typeReunionAutre;
+  String _type             = AppEnums.typeReunionInterne;
+  bool   _isExtraordinaire = false;
   DateTime _date = DateTime.now().add(const Duration(days: 1));
 
   // Sélection en cascade
@@ -79,14 +80,15 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
     }
     Navigator.of(context).pop(
       ParamsAjouterReunion(
-        titre:     _titreCtrl.text.trim(),
-        type:      _type,
-        date:      _date,
-        lieu:      _lieuCtrl.text.trim(),
-        ordreJour: _ordreJourCtrl.text.trim().isEmpty
+        titre:            _titreCtrl.text.trim(),
+        type:             _type,
+        date:             _date,
+        lieu:             _lieuCtrl.text.trim(),
+        ordreJour:        _ordreJourCtrl.text.trim().isEmpty
             ? null
             : _ordreJourCtrl.text.trim(),
-        uniteId:   _resolveUniteId(fallbackUniteId),
+        uniteId:          _resolveUniteId(fallbackUniteId),
+        isExtraordinaire: _isExtraordinaire,
       ),
     );
   }
@@ -164,6 +166,11 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
             _DropdownType(
               valeur:    _type,
               onChanged: (v) => setState(() => _type = v!),
+            ),
+            const SizedBox(height: 12),
+            _ToggleExtraordinaire(
+              valeur:    _isExtraordinaire,
+              onChanged: (v) => setState(() => _isExtraordinaire = v),
             ),
             const SizedBox(height: 20),
 
@@ -488,6 +495,32 @@ class _Champ extends StatelessWidget {
         validator: obligatoire
             ? (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null
             : null,
+      );
+}
+
+class _ToggleExtraordinaire extends StatelessWidget {
+  const _ToggleExtraordinaire({required this.valeur, required this.onChanged});
+  final bool valeur;
+  final void Function(bool) onChanged;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color:        AppColors.card,
+          border:       Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: SwitchListTile(
+          value:         valeur,
+          onChanged:     onChanged,
+          activeThumbColor:  AppColors.secondary,
+          activeTrackColor:  AppColors.secondary.withValues(alpha: 0.3),
+          title: const Text('Réunion extraordinaire',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          subtitle: const Text('Convocation exceptionnelle hors calendrier habituel',
+              style: TextStyle(fontSize: 11, color: AppColors.text2)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        ),
       );
 }
 

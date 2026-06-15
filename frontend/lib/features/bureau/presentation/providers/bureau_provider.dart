@@ -84,6 +84,9 @@ class BureauNotifier extends StateNotifier<BureauState> {
         _searchMilitants = searchMilitants,
         _ref = ref,
         super(const BureauState.initial()) {
+    _ref.listen<AuthState>(authProvider, (_, next) {
+      next.whenOrNull(connecte: (_) => charger());
+    });
     charger();
   }
 
@@ -94,9 +97,11 @@ class BureauNotifier extends StateNotifier<BureauState> {
 
   Future<void> charger() async {
     state = const BureauState.chargement();
-    final utilisateur = _ref.read(authProvider).whenOrNull(connecte: (u) => u);
+    final authState   = _ref.read(authProvider);
+    final utilisateur = authState.whenOrNull(connecte: (u) => u);
     if (utilisateur == null) {
-      state = const BureauState.erreur(failure: Failure.nonAutorise());
+      final enAttente = authState.whenOrNull(initial: () => true, chargement: () => true) ?? false;
+      if (!enAttente) { state = const BureauState.erreur(failure: Failure.nonAutorise()); }
       return;
     }
     final uniteId = utilisateur.uniteOrganisationnelleId;

@@ -16,5 +16,6 @@ class Reunion with _$Reunion {
     required DateTime createdAt,
     String?           compteRendu,
     String?           compteRenduUrl,
+    @Default(false) bool isExtraordinaire,
   }) = _Reunion;
 }

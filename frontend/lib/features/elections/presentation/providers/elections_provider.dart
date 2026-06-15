@@ -96,6 +96,9 @@ class ElectionsNotifier extends StateNotifier<ElectionsState> {
         _changerStatut  = changerStatut,
         _ref            = ref,
         super(const ElectionsState.initial()) {
+    _ref.listen<AuthState>(authProvider, (_, next) {
+      next.whenOrNull(connecte: (_) => charger());
+    });
     charger();
   }
 
@@ -106,9 +109,11 @@ class ElectionsNotifier extends StateNotifier<ElectionsState> {
 
   Future<void> charger() async {
     state = const ElectionsState.chargement();
-    final utilisateur = _ref.read(authProvider).whenOrNull(connecte: (u) => u);
+    final authState   = _ref.read(authProvider);
+    final utilisateur = authState.whenOrNull(connecte: (u) => u);
     if (utilisateur == null) {
-      state = const ElectionsState.erreur(failure: Failure.nonAutorise());
+      final enAttente = authState.whenOrNull(initial: () => true, chargement: () => true) ?? false;
+      if (!enAttente) { state = const ElectionsState.erreur(failure: Failure.nonAutorise()); }
       return;
     }
     final filtrer = !_estAccesGlobal(utilisateur.role);

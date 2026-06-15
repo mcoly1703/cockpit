@@ -304,16 +304,29 @@ class _ReunionCard extends StatelessWidget {
                 style: const TextStyle(fontSize: 11, color: AppColors.text2),
                 overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(6),
+            Wrap(spacing: 4, children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(_labelType(reunion.type),
+                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                        color: AppColors.accent)),
               ),
-              child: Text(_labelType(reunion.type),
-                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                      color: AppColors.accent)),
-            ),
+              if (reunion.isExtraordinaire)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text('Extraordinaire',
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                          color: AppColors.secondary)),
+                ),
+            ]),
           ])),
           const Icon(Icons.chevron_right_rounded, color: AppColors.border, size: 20),
         ]),

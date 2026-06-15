@@ -28,6 +28,7 @@ mixin _$Reunion {
   DateTime get createdAt => throw _privateConstructorUsedError;
   String? get compteRendu => throw _privateConstructorUsedError;
   String? get compteRenduUrl => throw _privateConstructorUsedError;
+  bool get isExtraordinaire => throw _privateConstructorUsedError;
 
   /// Create a copy of Reunion
   /// with the given fields replaced by the non-null parameter values.
@@ -52,6 +53,7 @@ abstract class $ReunionCopyWith<$Res> {
     DateTime createdAt,
     String? compteRendu,
     String? compteRenduUrl,
+    bool isExtraordinaire,
   });
 }
 
@@ -81,6 +83,7 @@ class _$ReunionCopyWithImpl<$Res, $Val extends Reunion>
     Object? createdAt = null,
     Object? compteRendu = freezed,
     Object? compteRenduUrl = freezed,
+    Object? isExtraordinaire = null,
   }) {
     return _then(
       _value.copyWith(
@@ -128,6 +131,10 @@ class _$ReunionCopyWithImpl<$Res, $Val extends Reunion>
                 ? _value.compteRenduUrl
                 : compteRenduUrl // ignore: cast_nullable_to_non_nullable
                       as String?,
+            isExtraordinaire: null == isExtraordinaire
+                ? _value.isExtraordinaire
+                : isExtraordinaire // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -154,6 +161,7 @@ abstract class _$$ReunionImplCopyWith<$Res> implements $ReunionCopyWith<$Res> {
     DateTime createdAt,
     String? compteRendu,
     String? compteRenduUrl,
+    bool isExtraordinaire,
   });
 }
 
@@ -182,6 +190,7 @@ class __$$ReunionImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? compteRendu = freezed,
     Object? compteRenduUrl = freezed,
+    Object? isExtraordinaire = null,
   }) {
     return _then(
       _$ReunionImpl(
@@ -229,6 +238,10 @@ class __$$ReunionImplCopyWithImpl<$Res>
             ? _value.compteRenduUrl
             : compteRenduUrl // ignore: cast_nullable_to_non_nullable
                   as String?,
+        isExtraordinaire: null == isExtraordinaire
+            ? _value.isExtraordinaire
+            : isExtraordinaire // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -249,6 +262,7 @@ class _$ReunionImpl implements _Reunion {
     required this.createdAt,
     this.compteRendu,
     this.compteRenduUrl,
+    this.isExtraordinaire = false,
   });
 
   @override
@@ -273,10 +287,13 @@ class _$ReunionImpl implements _Reunion {
   final String? compteRendu;
   @override
   final String? compteRenduUrl;
+  @override
+  @JsonKey()
+  final bool isExtraordinaire;
 
   @override
   String toString() {
-    return 'Reunion(id: $id, titre: $titre, type: $type, date: $date, lieu: $lieu, ordreJour: $ordreJour, uniteId: $uniteId, createdBy: $createdBy, createdAt: $createdAt, compteRendu: $compteRendu, compteRenduUrl: $compteRenduUrl)';
+    return 'Reunion(id: $id, titre: $titre, type: $type, date: $date, lieu: $lieu, ordreJour: $ordreJour, uniteId: $uniteId, createdBy: $createdBy, createdAt: $createdAt, compteRendu: $compteRendu, compteRenduUrl: $compteRenduUrl, isExtraordinaire: $isExtraordinaire)';
   }
 
   @override
@@ -299,7 +316,9 @@ class _$ReunionImpl implements _Reunion {
             (identical(other.compteRendu, compteRendu) ||
                 other.compteRendu == compteRendu) &&
             (identical(other.compteRenduUrl, compteRenduUrl) ||
-                other.compteRenduUrl == compteRenduUrl));
+                other.compteRenduUrl == compteRenduUrl) &&
+            (identical(other.isExtraordinaire, isExtraordinaire) ||
+                other.isExtraordinaire == isExtraordinaire));
   }
 
   @override
@@ -316,6 +335,7 @@ class _$ReunionImpl implements _Reunion {
     createdAt,
     compteRendu,
     compteRenduUrl,
+    isExtraordinaire,
   );
 
   /// Create a copy of Reunion
@@ -340,6 +360,7 @@ abstract class _Reunion implements Reunion {
     required final DateTime createdAt,
     final String? compteRendu,
     final String? compteRenduUrl,
+    final bool isExtraordinaire,
   }) = _$ReunionImpl;
 
   @override
@@ -364,6 +385,8 @@ abstract class _Reunion implements Reunion {
   String? get compteRendu;
   @override
   String? get compteRenduUrl;
+  @override
+  bool get isExtraordinaire;
 
   /// Create a copy of Reunion
   /// with the given fields replaced by the non-null parameter values.

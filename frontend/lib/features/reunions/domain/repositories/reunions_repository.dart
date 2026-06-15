@@ -13,6 +13,7 @@ class ParamsAjouterReunion {
   final String   lieu;
   final String?  ordreJour;
   final String   uniteId;
+  final bool     isExtraordinaire;
 
   const ParamsAjouterReunion({
     required this.titre,
@@ -21,6 +22,7 @@ class ParamsAjouterReunion {
     required this.lieu,
     this.ordreJour,
     required this.uniteId,
+    this.isExtraordinaire = false,
   });
 }
 

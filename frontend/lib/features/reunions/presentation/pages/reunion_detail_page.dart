@@ -97,16 +97,29 @@ class _InfoCard extends StatelessWidget {
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+          Wrap(spacing: 8, children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(_labelType(reunion.type),
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                      color: AppColors.primary)),
             ),
-            child: Text(_labelType(reunion.type),
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                    color: AppColors.primary)),
-          ),
+            if (reunion.isExtraordinaire)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('EXTRAORDINAIRE',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: AppColors.secondary)),
+              ),
+          ]),
           const SizedBox(height: 12),
           _InfoLigne(Icons.calendar_today_outlined, fmt.format(reunion.date)),
           const SizedBox(height: 6),

@@ -204,6 +204,9 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   })  : _getDashboardStats = getDashboardStats,
         _ref = ref,
         super(const DashboardState.initial()) {
+    _ref.listen<AuthState>(authProvider, (_, next) {
+      next.whenOrNull(connecte: (_) => charger());
+    });
     charger();
   }
 
@@ -214,7 +217,8 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     final utilisateur = authState.whenOrNull(connecte: (user) => user);
 
     if (utilisateur == null) {
-      state = const DashboardState.erreur(failure: Failure.nonAutorise());
+      final enAttente = authState.whenOrNull(initial: () => true, chargement: () => true) ?? false;
+      if (!enAttente) { state = const DashboardState.erreur(failure: Failure.nonAutorise()); }
       return;
     }
 
