@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../militants/domain/entities/unite_organisationnelle.dart';
+import '../../../militants/presentation/providers/militants_provider.dart';
 import '../../domain/repositories/reunions_repository.dart';
 
 class ReunionFormPage extends ConsumerStatefulWidget {
@@ -15,13 +17,14 @@ class ReunionFormPage extends ConsumerStatefulWidget {
 }
 
 class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
-  final _formKey      = GlobalKey<FormState>();
-  final _titreCtrl    = TextEditingController();
-  final _lieuCtrl     = TextEditingController();
+  final _formKey       = GlobalKey<FormState>();
+  final _titreCtrl     = TextEditingController();
+  final _lieuCtrl      = TextEditingController();
   final _ordreJourCtrl = TextEditingController();
 
-  String   _type = AppEnums.typeReunionAutre;
-  DateTime _date = DateTime.now().add(const Duration(days: 1));
+  String   _type    = AppEnums.typeReunionAutre;
+  DateTime _date    = DateTime.now().add(const Duration(days: 1));
+  String?  _uniteId;  // null → auto depuis le profil
 
   @override
   void dispose() {
@@ -47,11 +50,10 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
     setState(() => _date = DateTime(d.year, d.month, d.day, t.hour, t.minute));
   }
 
-  void _soumettre() {
+  void _soumettre(String fallbackUniteId) {
     if (!_formKey.currentState!.validate()) return;
-
-    final utilisateur = ref.read(authProvider).whenOrNull(connecte: (u) => u);
-    if (utilisateur == null) return;
+    final uniteId = _uniteId ?? fallbackUniteId;
+    if (uniteId.isEmpty) return;
 
     Navigator.of(context).pop(
       ParamsAjouterReunion(
@@ -60,14 +62,28 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
         date:      _date,
         lieu:      _lieuCtrl.text.trim(),
         ordreJour: _ordreJourCtrl.text.trim().isEmpty ? null : _ordreJourCtrl.text.trim(),
-        uniteId:   utilisateur.uniteOrganisationnelleId ?? '',
+        uniteId:   uniteId,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final fmt = DateFormat('dd/MM/yyyy HH:mm', 'fr');
+    final fmt          = DateFormat('dd/MM/yyyy HH:mm', 'fr');
+    final utilisateur  = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
+    final role         = utilisateur?.role ?? '';
+    final monUniteId   = utilisateur?.uniteOrganisationnelleId ?? '';
+    final estGlobal    = role == AppRoles.bureauExecutif ||
+                         role == AppRoles.coordinateur   ||
+                         role == AppRoles.adminTechnique;
+
+    // Unités disponibles pour le sélecteur (rôles globaux uniquement)
+    final militantsState = ref.watch(militantsProvider);
+    final unites = militantsState.maybeWhen(
+      charge: (_, u, a, b) => u,
+      orElse: () => <UniteOrganisationnelle>[],
+    );
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -86,8 +102,30 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
             const SizedBox(height: 12),
             _Champ(ctrl: _lieuCtrl, label: 'Lieu', obligatoire: true),
             const SizedBox(height: 12),
-            _DropdownType(valeur: _type, onChanged: (v) => setState(() => _type = v!)),
+            _DropdownType(
+              valeur:    _type,
+              onChanged: (v) => setState(() => _type = v!),
+            ),
             const SizedBox(height: 20),
+
+            _Section('Entité organisatrice'),
+            if (estGlobal && unites.isNotEmpty)
+              _DropdownUnite(
+                unites:    unites,
+                valeur:    _uniteId,
+                onChanged: (v) => setState(() => _uniteId = v),
+              )
+            else
+              _UniteLectureSeule(
+                nomUnite: unites.isEmpty
+                    ? monUniteId
+                    : unites
+                          .where((u) => u.id == monUniteId)
+                          .map((u) => u.nom)
+                          .firstOrNull ?? monUniteId,
+              ),
+            const SizedBox(height: 20),
+
             _Section('Date et heure'),
             _DateTile(
               label:  'Date de la réunion',
@@ -95,6 +133,7 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
               onTap:  _choisirDate,
             ),
             const SizedBox(height: 20),
+
             _Section('Ordre du jour (optionnel)'),
             _Champ(
               ctrl:     _ordreJourCtrl,
@@ -102,10 +141,11 @@ class _ReunionFormPageState extends ConsumerState<ReunionFormPage> {
               maxLines: 5,
             ),
             const SizedBox(height: 28),
+
             SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: _soumettre,
+                onPressed: () => _soumettre(monUniteId),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -189,6 +229,88 @@ class _DropdownType extends StatelessWidget {
       );
 }
 
+String _labelTypeUnite(String type) => switch (type) {
+  AppUniteTypes.bureauExecutif => 'Bureau Exécutif',
+  AppUniteTypes.sousSection    => 'Sous-section',
+  AppUniteTypes.mouvement      => 'Mouvement',
+  AppUniteTypes.secretariat    => 'Secrétariat',
+  AppUniteTypes.cellule        => 'Cellule',
+  _                            => type,
+};
+
+class _DropdownUnite extends StatelessWidget {
+  const _DropdownUnite({
+    required this.unites,
+    required this.valeur,
+    required this.onChanged,
+  });
+  final List<UniteOrganisationnelle> unites;
+  final String?                      valeur;
+  final void Function(String?)       onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = [...unites]..sort((a, b) {
+        const ordre = [
+          AppUniteTypes.bureauExecutif,
+          AppUniteTypes.sousSection,
+          AppUniteTypes.mouvement,
+          AppUniteTypes.secretariat,
+          AppUniteTypes.cellule,
+        ];
+        final ia = ordre.indexOf(a.type);
+        final ib = ordre.indexOf(b.type);
+        if (ia != ib) return ia.compareTo(ib);
+        return a.nom.compareTo(b.nom);
+      });
+
+    return DropdownButtonFormField<String>(
+      // ignore: deprecated_member_use
+      value: valeur,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'Entité organisatrice',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled: true,
+        fillColor: AppColors.card,
+      ),
+      items: sorted.map((u) => DropdownMenuItem(
+        value: u.id,
+        child: Text(
+          '${_labelTypeUnite(u.type)} · ${u.nom}',
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 13),
+        ),
+      )).toList(),
+      onChanged: onChanged,
+      validator: (v) => v == null ? 'Champ requis' : null,
+    );
+  }
+}
+
+class _UniteLectureSeule extends StatelessWidget {
+  const _UniteLectureSeule({required this.nomUnite});
+  final String nomUnite;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(children: [
+          const Icon(Icons.business_outlined, size: 18, color: AppColors.text2),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(nomUnite,
+                style: const TextStyle(fontSize: 14, color: AppColors.text)),
+          ),
+        ]),
+      );
+}
+
 class _DateTile extends StatelessWidget {
   const _DateTile({
     required this.label,
@@ -211,7 +333,8 @@ class _DateTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(children: [
-            const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primary),
+            const Icon(Icons.calendar_today_outlined,
+                size: 18, color: AppColors.primary),
             const SizedBox(width: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(label,

@@ -1,6 +1,8 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:web/web.dart' as web;
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_tables.dart';
@@ -15,13 +17,17 @@ class ReunionDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Toujours lire la version la plus récente depuis le provider
+    final reunionCourante = ref.watch(reunionsProvider).toutes
+        .firstWhere((r) => r.id == reunion.id, orElse: () => reunion);
+
     final decisionsState = ref.watch(decisionsProvider(reunion.id));
     final fmt = DateFormat('EEEE dd MMMM yyyy · HH:mm', 'fr');
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(reunion.titre, overflow: TextOverflow.ellipsis),
+        title: Text(reunionCourante.titre, overflow: TextOverflow.ellipsis),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -29,16 +35,18 @@ class ReunionDetailPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _InfoCard(reunion: reunion, fmt: fmt),
+          _InfoCard(reunion: reunionCourante, fmt: fmt),
+          const SizedBox(height: 12),
+          _CompteRenduCard(reunion: reunionCourante),
           const SizedBox(height: 12),
           decisionsState.when(
             initial:    () => const SizedBox.shrink(),
             chargement: () => const Center(child: CircularProgressIndicator()),
-            erreur: (f) => Text('Erreur chargement décisions',
-                style: const TextStyle(color: AppColors.secondary)),
+            erreur: (_) => const Text('Erreur chargement décisions',
+                style: TextStyle(color: AppColors.secondary)),
             charge: (decisions) => _DecisionsCard(
               decisions: decisions,
-              reunion:   reunion,
+              reunion:   reunionCourante,
               onAjouter: () => _ajouterDecision(context, ref),
             ),
           ),
@@ -59,11 +67,11 @@ class ReunionDetailPage extends ConsumerWidget {
         .ajouterDecision(params);
     if (!context.mounted) return;
     result.fold(
-      (f) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Erreur'),
+      (_) => ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur'),
               backgroundColor: AppColors.secondary)),
       (_) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('Décision ajoutée'),
+          const SnackBar(content: Text('Décision ajoutée'),
               backgroundColor: AppColors.primary)),
     );
   }
@@ -105,8 +113,8 @@ class _InfoCard extends StatelessWidget {
           _InfoLigne(Icons.location_on_outlined, reunion.lieu),
           if (reunion.ordreJour != null) ...[
             const Divider(height: 20),
-            Text('ORDRE DU JOUR',
-                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+            const Text('ORDRE DU JOUR',
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
                     color: AppColors.text2, letterSpacing: 0.8)),
             const SizedBox(height: 6),
             Text(reunion.ordreJour!,
@@ -128,6 +136,242 @@ class _InfoLigne extends StatelessWidget {
         Expanded(child: Text(texte,
             style: const TextStyle(fontSize: 13, color: AppColors.text))),
       ]);
+}
+
+// ─── Compte Rendu ─────────────────────────────────────────────────────────────
+
+class _CompteRenduCard extends ConsumerStatefulWidget {
+  const _CompteRenduCard({required this.reunion});
+  final Reunion reunion;
+
+  @override
+  ConsumerState<_CompteRenduCard> createState() => _CompteRenduCardState();
+}
+
+class _CompteRenduCardState extends ConsumerState<_CompteRenduCard> {
+  bool    _enCours = false;
+  String? _erreur;
+
+  Future<void> _redigerCR() async {
+    final texte = await showDialog<String>(
+      context: context,
+      builder: (_) => _DialogCR(texteInitial: widget.reunion.compteRendu),
+    );
+    if (texte == null || !mounted) return;
+
+    setState(() { _enCours = true; _erreur = null; });
+    final result = await ref.read(reunionsProvider.notifier).mettreAJourCR(
+      ParamsMettreAJourCR(
+        reunionId:   widget.reunion.id,
+        compteRendu: texte,
+      ),
+    );
+    result.fold(
+      (f) => setState(() { _enCours = false; _erreur = 'Erreur enregistrement'; }),
+      (_) => setState(() { _enCours = false; }),
+    );
+  }
+
+  Future<void> _uploaderCR() async {
+    final result = await FilePicker.platform.pickFiles(
+      type:          FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+      allowMultiple: false,
+      withData:      true,
+    );
+    if (result == null || result.files.single.bytes == null || !mounted) return;
+
+    setState(() { _enCours = true; _erreur = null; });
+    final bytes = result.files.single.bytes!;
+    final ext   = (result.files.single.extension ?? 'pdf').toLowerCase();
+
+    final either = await ref.read(reunionsProvider.notifier).uploaderEtSauvegarderCR(
+      ParamsUploaderFichierCR(
+        reunionId: widget.reunion.id,
+        bytes:     bytes,
+        extension: ext,
+      ),
+    );
+    either.fold(
+      (_) => setState(() { _enCours = false; _erreur = 'Erreur upload'; }),
+      (_) => setState(() { _enCours = false; }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reunion = ref.watch(reunionsProvider).toutes
+        .firstWhere((r) => r.id == widget.reunion.id, orElse: () => widget.reunion);
+    final hasCR    = (reunion.compteRendu?.isNotEmpty ?? false);
+    final hasFile  = reunion.compteRenduUrl != null;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('COMPTE RENDU',
+                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                    color: AppColors.text2, letterSpacing: 0.8)),
+            Text(hasCR || hasFile ? 'Disponible' : 'Non rédigé',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700,
+                    color: hasCR || hasFile
+                        ? AppColors.primary
+                        : AppColors.text2)),
+          ])),
+          if (_enCours) const SizedBox(
+            width: 20, height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+          else ...[
+            _BoutonCR(
+              icone:   Icons.edit_note_rounded,
+              label:   hasCR ? 'Modifier' : 'Rédiger',
+              couleur: AppColors.primary,
+              onTap:   _redigerCR,
+            ),
+            const SizedBox(width: 8),
+            _BoutonCR(
+              icone:   Icons.upload_file_rounded,
+              label:   hasFile ? 'Remplacer' : 'Uploader',
+              couleur: AppColors.accent,
+              onTap:   _uploaderCR,
+            ),
+          ],
+        ]),
+
+        if (_erreur != null) ...[
+          const SizedBox(height: 8),
+          Text(_erreur!,
+              style: const TextStyle(fontSize: 12, color: AppColors.secondary)),
+        ],
+
+        if (hasCR) ...[
+          const Divider(height: 20),
+          Text(reunion.compteRendu!,
+              style: const TextStyle(fontSize: 13, color: AppColors.text, height: 1.5)),
+        ],
+
+        if (hasFile) ...[
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () => web.window.open(reunion.compteRenduUrl!, '_blank'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withValues(alpha: 0.08),
+                border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(children: [
+                const Icon(Icons.description_outlined,
+                    size: 16, color: AppColors.accent),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text('Fichier CR joint — Ouvrir',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.accent,
+                          fontWeight: FontWeight.w600)),
+                ),
+                const Icon(Icons.open_in_new_rounded,
+                    size: 14, color: AppColors.accent),
+              ]),
+            ),
+          ),
+        ],
+      ]),
+    );
+  }
+}
+
+class _BoutonCR extends StatelessWidget {
+  const _BoutonCR({
+    required this.icone,
+    required this.label,
+    required this.couleur,
+    required this.onTap,
+  });
+  final IconData     icone;
+  final String       label;
+  final Color        couleur;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: couleur.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: couleur.withValues(alpha: 0.3)),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icone, size: 14, color: couleur),
+            const SizedBox(width: 4),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w600, color: couleur)),
+          ]),
+        ),
+      );
+}
+
+// ─── Dialog rédaction CR ──────────────────────────────────────────────────────
+
+class _DialogCR extends StatefulWidget {
+  const _DialogCR({this.texteInitial});
+  final String? texteInitial;
+
+  @override
+  State<_DialogCR> createState() => _DialogCRState();
+}
+
+class _DialogCRState extends State<_DialogCR> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: widget.texteInitial ?? '');
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Compte rendu de réunion'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: TextField(
+            controller: _ctrl,
+            maxLines: 10,
+            decoration: const InputDecoration(
+              hintText: 'Rédigez le compte rendu…',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(_ctrl.text.trim()),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      );
 }
 
 // ─── Décisions ────────────────────────────────────────────────────────────────
@@ -174,8 +418,8 @@ class _DecisionsCard extends ConsumerWidget {
           ]),
           if (decisions.isEmpty) ...[
             const SizedBox(height: 16),
-            Center(child: Text('Aucune décision enregistrée',
-                style: const TextStyle(fontSize: 13, color: AppColors.text2))),
+            const Center(child: Text('Aucune décision enregistrée',
+                style: TextStyle(fontSize: 13, color: AppColors.text2))),
           ] else ...[
             const Divider(height: 20),
             ...decisions.map((d) => _DecisionTile(
@@ -220,9 +464,7 @@ class _DecisionTile extends ConsumerWidget {
         Container(
           width: 4, height: 60,
           decoration: BoxDecoration(
-            color: couleur,
-            borderRadius: BorderRadius.circular(2),
-          ),
+            color: couleur, borderRadius: BorderRadius.circular(2)),
         ),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -238,7 +480,8 @@ class _DecisionTile extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(_labelStatut(decision.statut),
-                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: couleur)),
+                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                      color: couleur)),
             ),
             if (decision.responsable != null) ...[
               const SizedBox(width: 6),

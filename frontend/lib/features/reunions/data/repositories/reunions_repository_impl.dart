@@ -7,6 +7,9 @@ import '../../domain/entities/reunion.dart';
 import '../../domain/repositories/reunions_repository.dart';
 import '../datasources/reunions_datasource.dart';
 
+export '../../domain/repositories/reunions_repository.dart'
+    show ParamsMettreAJourCR, ParamsUploaderFichierCR;
+
 class ReunionsRepositoryImpl implements ReunionsRepository {
   final ReunionsDatasource datasource;
   ReunionsRepositoryImpl(this.datasource);
@@ -62,6 +65,29 @@ class ReunionsRepositoryImpl implements ReunionsRepository {
   }) async {
     try {
       return Right(await datasource.modifierStatutDecision(id: id, statut: statut));
+    } on ServerException catch (e) {
+      return Left(Failure.serveur(message: e.message));
+    } on NetworkException {
+      return const Left(Failure.reseau());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Reunion>> mettreAJourCR(ParamsMettreAJourCR params) async {
+    try {
+      return Right(await datasource.mettreAJourCR(params));
+    } on ServerException catch (e) {
+      return Left(Failure.serveur(message: e.message));
+    } on NetworkException {
+      return const Left(Failure.reseau());
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploaderFichierCR(ParamsUploaderFichierCR params) async {
+    try {
+      return Right(await datasource.uploaderFichierCR(
+          params.reunionId, params.bytes, params.extension));
     } on ServerException catch (e) {
       return Left(Failure.serveur(message: e.message));
     } on NetworkException {

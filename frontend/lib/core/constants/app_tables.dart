@@ -64,14 +64,16 @@ class AppTables {
   static const String colStatutCarte    = 'statut_carte';
 
   // Table reunions
-  static const String reunions         = 'reunions';
-  static const String decisions        = 'decisions';
+  static const String reunions          = 'reunions';
+  static const String decisions         = 'decisions';
   static const String colDate           = 'date';
-  static const String colOrdreJour     = 'ordre_du_jour';
-  static const String colReunionId     = 'reunion_id';
-  static const String colTexte         = 'texte';
-  static const String colResponsable   = 'responsable';
-  static const String colEcheance      = 'echeance';
+  static const String colOrdreJour      = 'ordre_du_jour';
+  static const String colReunionId      = 'reunion_id';
+  static const String colTexte          = 'texte';
+  static const String colResponsable    = 'responsable';
+  static const String colEcheance       = 'echeance';
+  static const String colCompteRendu    = 'compte_rendu';
+  static const String colCompteRenduUrl = 'compte_rendu_url';
 
   // Table evenements
   static const String evenements             = 'evenements';
@@ -174,6 +176,8 @@ class AppEnums {
   static const String typeReunionSousSection      = 'sous_section';
   static const String typeReunionCommission       = 'commission';
   static const String typeReunionAssembleeGen     = 'assemblee_generale';
+  static const String typeReunionMouvement        = 'mouvement';
+  static const String typeReunionSecretariat      = 'secretariat';
   static const String typeReunionAutre            = 'autre';
 
   static const List<(String, String)> typesReunion = [
@@ -182,6 +186,8 @@ class AppEnums {
     (typeReunionSousSection,  'Sous-section'),
     (typeReunionCommission,   'Commission'),
     (typeReunionAssembleeGen, 'Assemblée générale'),
+    (typeReunionMouvement,    'Mouvement'),
+    (typeReunionSecretariat,  'Secrétariat'),
     (typeReunionAutre,        'Autre'),
   ];
 

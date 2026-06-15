@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_tables.dart';
@@ -115,6 +117,46 @@ class ReunionsDatasourceImpl implements ReunionsDatasource {
     } catch (e, stack) {
       // ignore: avoid_print
       print('[Reunions] modifierStatutDecision: $e\n$stack');
+      throw const NetworkException();
+    }
+  }
+
+  @override
+  Future<Reunion> mettreAJourCR(ParamsMettreAJourCR params) async {
+    try {
+      final data = <String, dynamic>{};
+      if (params.compteRendu != null)    data[AppTables.colCompteRendu]    = params.compteRendu;
+      if (params.compteRenduUrl != null) data[AppTables.colCompteRenduUrl] = params.compteRenduUrl;
+      final result = await supabase
+          .from(AppTables.reunions)
+          .update(data)
+          .eq(AppTables.colId, params.reunionId)
+          .select()
+          .single();
+      return ReunionModel.fromJson(result).toEntity();
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('[Reunions] mettreAJourCR: $e\n$stack');
+      throw const NetworkException();
+    }
+  }
+
+  @override
+  Future<String> uploaderFichierCR(String reunionId, Uint8List bytes, String extension) async {
+    try {
+      final path = '$reunionId/cr.$extension';
+      await supabase.storage
+          .from('comptes-rendus')
+          .uploadBinary(path, bytes,
+              fileOptions: FileOptions(upsert: true));
+      return supabase.storage.from('comptes-rendus').getPublicUrl(path);
+    } on StorageException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('[Reunions] uploaderFichierCR: $e\n$stack');
       throw const NetworkException();
     }
   }

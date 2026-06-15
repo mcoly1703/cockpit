@@ -14,5 +14,7 @@ class Reunion with _$Reunion {
     required String   uniteId,
     required String   createdBy,
     required DateTime createdAt,
+    String?           compteRendu,
+    String?           compteRenduUrl,
   }) = _Reunion;
 }

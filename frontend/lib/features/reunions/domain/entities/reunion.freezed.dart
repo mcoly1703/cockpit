@@ -26,6 +26,8 @@ mixin _$Reunion {
   String get uniteId => throw _privateConstructorUsedError;
   String get createdBy => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
+  String? get compteRendu => throw _privateConstructorUsedError;
+  String? get compteRenduUrl => throw _privateConstructorUsedError;
 
   /// Create a copy of Reunion
   /// with the given fields replaced by the non-null parameter values.
@@ -48,6 +50,8 @@ abstract class $ReunionCopyWith<$Res> {
     String uniteId,
     String createdBy,
     DateTime createdAt,
+    String? compteRendu,
+    String? compteRenduUrl,
   });
 }
 
@@ -75,6 +79,8 @@ class _$ReunionCopyWithImpl<$Res, $Val extends Reunion>
     Object? uniteId = null,
     Object? createdBy = null,
     Object? createdAt = null,
+    Object? compteRendu = freezed,
+    Object? compteRenduUrl = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -114,6 +120,14 @@ class _$ReunionCopyWithImpl<$Res, $Val extends Reunion>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as DateTime,
+            compteRendu: freezed == compteRendu
+                ? _value.compteRendu
+                : compteRendu // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            compteRenduUrl: freezed == compteRenduUrl
+                ? _value.compteRenduUrl
+                : compteRenduUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -138,6 +152,8 @@ abstract class _$$ReunionImplCopyWith<$Res> implements $ReunionCopyWith<$Res> {
     String uniteId,
     String createdBy,
     DateTime createdAt,
+    String? compteRendu,
+    String? compteRenduUrl,
   });
 }
 
@@ -164,6 +180,8 @@ class __$$ReunionImplCopyWithImpl<$Res>
     Object? uniteId = null,
     Object? createdBy = null,
     Object? createdAt = null,
+    Object? compteRendu = freezed,
+    Object? compteRenduUrl = freezed,
   }) {
     return _then(
       _$ReunionImpl(
@@ -203,6 +221,14 @@ class __$$ReunionImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as DateTime,
+        compteRendu: freezed == compteRendu
+            ? _value.compteRendu
+            : compteRendu // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        compteRenduUrl: freezed == compteRenduUrl
+            ? _value.compteRenduUrl
+            : compteRenduUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -221,6 +247,8 @@ class _$ReunionImpl implements _Reunion {
     required this.uniteId,
     required this.createdBy,
     required this.createdAt,
+    this.compteRendu,
+    this.compteRenduUrl,
   });
 
   @override
@@ -241,10 +269,14 @@ class _$ReunionImpl implements _Reunion {
   final String createdBy;
   @override
   final DateTime createdAt;
+  @override
+  final String? compteRendu;
+  @override
+  final String? compteRenduUrl;
 
   @override
   String toString() {
-    return 'Reunion(id: $id, titre: $titre, type: $type, date: $date, lieu: $lieu, ordreJour: $ordreJour, uniteId: $uniteId, createdBy: $createdBy, createdAt: $createdAt)';
+    return 'Reunion(id: $id, titre: $titre, type: $type, date: $date, lieu: $lieu, ordreJour: $ordreJour, uniteId: $uniteId, createdBy: $createdBy, createdAt: $createdAt, compteRendu: $compteRendu, compteRenduUrl: $compteRenduUrl)';
   }
 
   @override
@@ -263,7 +295,11 @@ class _$ReunionImpl implements _Reunion {
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.compteRendu, compteRendu) ||
+                other.compteRendu == compteRendu) &&
+            (identical(other.compteRenduUrl, compteRenduUrl) ||
+                other.compteRenduUrl == compteRenduUrl));
   }
 
   @override
@@ -278,6 +314,8 @@ class _$ReunionImpl implements _Reunion {
     uniteId,
     createdBy,
     createdAt,
+    compteRendu,
+    compteRenduUrl,
   );
 
   /// Create a copy of Reunion
@@ -300,6 +338,8 @@ abstract class _Reunion implements Reunion {
     required final String uniteId,
     required final String createdBy,
     required final DateTime createdAt,
+    final String? compteRendu,
+    final String? compteRenduUrl,
   }) = _$ReunionImpl;
 
   @override
@@ -320,6 +360,10 @@ abstract class _Reunion implements Reunion {
   String get createdBy;
   @override
   DateTime get createdAt;
+  @override
+  String? get compteRendu;
+  @override
+  String? get compteRenduUrl;
 
   /// Create a copy of Reunion
   /// with the given fields replaced by the non-null parameter values.

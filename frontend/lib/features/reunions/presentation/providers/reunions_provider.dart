@@ -13,7 +13,9 @@ import '../../domain/usecases/ajouter_decision.dart';
 import '../../domain/usecases/ajouter_reunion.dart';
 import '../../domain/usecases/get_decisions.dart';
 import '../../domain/usecases/get_reunions.dart';
+import '../../domain/usecases/mettre_a_jour_cr.dart';
 import '../../domain/usecases/modifier_statut_decision.dart';
+import '../../domain/usecases/uploader_fichier_cr.dart';
 
 part 'reunions_provider.freezed.dart';
 
@@ -84,24 +86,32 @@ final reunionsRepositoryProvider = Provider(
 
 final reunionsProvider = StateNotifierProvider<ReunionsNotifier, ReunionsState>(
   (ref) => ReunionsNotifier(
-    getReunions:    GetReunions(ref.watch(reunionsRepositoryProvider)),
-    ajouterReunion: AjouterReunion(ref.watch(reunionsRepositoryProvider)),
+    getReunions:      GetReunions(ref.watch(reunionsRepositoryProvider)),
+    ajouterReunion:   AjouterReunion(ref.watch(reunionsRepositoryProvider)),
+    mettreAJourCR:    MettreAJourCR(ref.watch(reunionsRepositoryProvider)),
+    uploaderFichierCR: UploaderFichierCR(ref.watch(reunionsRepositoryProvider)),
     ref: ref,
   ),
 );
 
 class ReunionsNotifier extends StateNotifier<ReunionsState> {
-  final GetReunions    _getReunions;
-  final AjouterReunion _ajouterReunion;
-  final Ref            _ref;
+  final GetReunions      _getReunions;
+  final AjouterReunion   _ajouterReunion;
+  final MettreAJourCR    _mettreAJourCR;
+  final UploaderFichierCR _uploaderFichierCR;
+  final Ref              _ref;
 
   ReunionsNotifier({
     required GetReunions getReunions,
     required AjouterReunion ajouterReunion,
+    required MettreAJourCR mettreAJourCR,
+    required UploaderFichierCR uploaderFichierCR,
     required Ref ref,
-  })  : _getReunions = getReunions,
-        _ajouterReunion = ajouterReunion,
-        _ref = ref,
+  })  : _getReunions       = getReunions,
+        _ajouterReunion    = ajouterReunion,
+        _mettreAJourCR     = mettreAJourCR,
+        _uploaderFichierCR = uploaderFichierCR,
+        _ref               = ref,
         super(const ReunionsState.initial()) {
     charger();
   }
@@ -132,6 +142,33 @@ class ReunionsNotifier extends StateNotifier<ReunionsState> {
     final result = await _ajouterReunion(params);
     if (result.isRight()) await charger();
     return result.map((_) {});
+  }
+
+  Future<Either<Failure, void>> mettreAJourCR(ParamsMettreAJourCR params) async {
+    final result = await _mettreAJourCR(params);
+    result.fold(
+      (_) {},
+      (reunion) => state.maybeWhen(
+        charge: (reunions) {
+          final updated = reunions
+              .map((r) => r.id == reunion.id ? reunion : r)
+              .toList();
+          state = ReunionsState.charge(reunions: updated);
+        },
+        orElse: () {},
+      ),
+    );
+    return result.map((_) {});
+  }
+
+  Future<Either<Failure, void>> uploaderEtSauvegarderCR(ParamsUploaderFichierCR params) async {
+    final urlResult = await _uploaderFichierCR(params);
+    if (urlResult.isLeft()) return urlResult.map((_) {});
+    final url = urlResult.getOrElse(() => '');
+    return mettreAJourCR(ParamsMettreAJourCR(
+      reunionId:      params.reunionId,
+      compteRenduUrl: url,
+    ));
   }
 }
 

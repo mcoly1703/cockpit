@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -22,6 +24,30 @@ class ParamsAjouterReunion {
   });
 }
 
+class ParamsMettreAJourCR {
+  final String  reunionId;
+  final String? compteRendu;
+  final String? compteRenduUrl;
+
+  const ParamsMettreAJourCR({
+    required this.reunionId,
+    this.compteRendu,
+    this.compteRenduUrl,
+  });
+}
+
+class ParamsUploaderFichierCR {
+  final String    reunionId;
+  final Uint8List bytes;
+  final String    extension;
+
+  const ParamsUploaderFichierCR({
+    required this.reunionId,
+    required this.bytes,
+    required this.extension,
+  });
+}
+
 class ParamsAjouterDecision {
   final String    reunionId;
   final String    texte;
@@ -42,4 +68,6 @@ abstract class ReunionsRepository {
   Future<Either<Failure, List<Decision>>> getDecisions(String reunionId);
   Future<Either<Failure, Decision>>       ajouterDecision(ParamsAjouterDecision params);
   Future<Either<Failure, Decision>>       modifierStatutDecision({required String id, required String statut});
+  Future<Either<Failure, Reunion>>        mettreAJourCR(ParamsMettreAJourCR params);
+  Future<Either<Failure, String>>         uploaderFichierCR(ParamsUploaderFichierCR params);
 }
