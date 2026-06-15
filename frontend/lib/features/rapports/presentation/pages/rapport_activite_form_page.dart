@@ -35,10 +35,46 @@ class _RapportActiviteFormPageState
   String? _uniteId; // null = global
 
   // Période
+  int _debutJour  = 1;
   int _debutMois  = 1;
   int _debutAnnee = DateTime.now().year;
+  int _finJour    = DateTime.now().day;
   int _finMois    = DateTime.now().month;
   int _finAnnee   = DateTime.now().year;
+
+  static int _nbJours(int mois, int annee) => DateTime(annee, mois + 1, 0).day;
+
+  void _setDebutMois(int? v) {
+    if (v == null) return;
+    setState(() {
+      _debutMois = v;
+      _debutJour = _debutJour.clamp(1, _nbJours(v, _debutAnnee));
+    });
+  }
+
+  void _setDebutAnnee(int? v) {
+    if (v == null) return;
+    setState(() {
+      _debutAnnee = v;
+      _debutJour  = _debutJour.clamp(1, _nbJours(_debutMois, v));
+    });
+  }
+
+  void _setFinMois(int? v) {
+    if (v == null) return;
+    setState(() {
+      _finMois = v;
+      _finJour = _finJour.clamp(1, _nbJours(v, _finAnnee));
+    });
+  }
+
+  void _setFinAnnee(int? v) {
+    if (v == null) return;
+    setState(() {
+      _finAnnee = v;
+      _finJour  = _finJour.clamp(1, _nbJours(_finMois, v));
+    });
+  }
 
   // Sections
   bool _militants  = true;
@@ -80,8 +116,8 @@ class _RapportActiviteFormPageState
   }
 
   void _generer() {
-    final debut = DateTime(_debutAnnee, _debutMois, 1);
-    final fin   = DateTime(_finAnnee, _finMois + 1, 0, 23, 59, 59);
+    final debut = DateTime(_debutAnnee, _debutMois, _debutJour);
+    final fin   = DateTime(_finAnnee,   _finMois,   _finJour, 23, 59, 59);
     if (fin.isBefore(debut)) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('La date de fin doit être après la date de début'),
@@ -147,32 +183,50 @@ class _RapportActiviteFormPageState
           // ── Période ─────────────────────────────────────────────────────
           _Carte(
             titre: 'PÉRIODE',
-            child: Column(children: [
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Du',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                      color: AppColors.text2)),
+              const SizedBox(height: 6),
               Row(children: [
-                const Text('Du', style: TextStyle(fontSize: 12, color: AppColors.text2)),
-                const SizedBox(width: 10),
-                Expanded(child: _DropdownMois(
-                  valeur: _debutMois,
-                  onChanged: (v) => setState(() => _debutMois = v!),
+                Expanded(flex: 1, child: _DropdownJour(
+                  valeur:   _debutJour,
+                  mois:     _debutMois,
+                  annee:    _debutAnnee,
+                  onChanged: (v) => setState(() => _debutJour = v!),
                 )),
-                const SizedBox(width: 8),
-                Expanded(child: _DropdownAnnee(
-                  valeur: _debutAnnee,
-                  onChanged: (v) => setState(() => _debutAnnee = v!),
+                const SizedBox(width: 6),
+                Expanded(flex: 2, child: _DropdownMois(
+                  valeur:    _debutMois,
+                  onChanged: _setDebutMois,
+                )),
+                const SizedBox(width: 6),
+                Expanded(flex: 2, child: _DropdownAnnee(
+                  valeur:    _debutAnnee,
+                  onChanged: _setDebutAnnee,
                 )),
               ]),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
+              const Text('Au',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                      color: AppColors.text2)),
+              const SizedBox(height: 6),
               Row(children: [
-                const Text('Au', style: TextStyle(fontSize: 12, color: AppColors.text2)),
-                const SizedBox(width: 10),
-                Expanded(child: _DropdownMois(
-                  valeur: _finMois,
-                  onChanged: (v) => setState(() => _finMois = v!),
+                Expanded(flex: 1, child: _DropdownJour(
+                  valeur:    _finJour,
+                  mois:      _finMois,
+                  annee:     _finAnnee,
+                  onChanged: (v) => setState(() => _finJour = v!),
                 )),
-                const SizedBox(width: 8),
-                Expanded(child: _DropdownAnnee(
-                  valeur: _finAnnee,
-                  onChanged: (v) => setState(() => _finAnnee = v!),
+                const SizedBox(width: 6),
+                Expanded(flex: 2, child: _DropdownMois(
+                  valeur:    _finMois,
+                  onChanged: _setFinMois,
+                )),
+                const SizedBox(width: 6),
+                Expanded(flex: 2, child: _DropdownAnnee(
+                  valeur:    _finAnnee,
+                  onChanged: _setFinAnnee,
                 )),
               ]),
             ]),
@@ -305,7 +359,7 @@ class _PerimetreGlobal extends ConsumerWidget {
     final unites = ref.watch(_unitesDispoProvider);
     return unites.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Text('Impossible de charger les unités',
+      error: (e, _) => const Text('Impossible de charger les unités',
           style: TextStyle(color: AppColors.secondary)),
       data: (list) => DropdownButtonFormField<String?>(
         value: uniteId,
@@ -400,6 +454,37 @@ class _SectionSwitch extends StatelessWidget {
         ]),
         if (!derniere) const Divider(height: 16, indent: 48),
       ]);
+}
+
+class _DropdownJour extends StatelessWidget {
+  const _DropdownJour({
+    required this.valeur,
+    required this.mois,
+    required this.annee,
+    required this.onChanged,
+  });
+  final int valeur;
+  final int mois;
+  final int annee;
+  final ValueChanged<int?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final nbJours = DateTime(annee, mois + 1, 0).day;
+    return DropdownButtonFormField<int>(
+      value: valeur.clamp(1, nbJours),
+      decoration: InputDecoration(
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled: true,
+        fillColor: AppColors.card,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      ),
+      items: List.generate(nbJours, (i) => i + 1)
+          .map((j) => DropdownMenuItem(value: j, child: Text('$j')))
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
 }
 
 class _DropdownMois extends StatelessWidget {
