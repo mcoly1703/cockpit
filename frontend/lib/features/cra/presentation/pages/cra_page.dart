@@ -26,6 +26,9 @@ class CraPage extends ConsumerWidget {
           title: const Text('Comptes Rendus d\'Activité'),
           bottom: TabBar(
             isScrollable: true,
+            labelColor:           Colors.white,
+            unselectedLabelColor: Colors.white60,
+            indicatorColor:       Colors.white,
             tabs: [
               const Tab(text: 'Brouillons'),
               const Tab(text: 'Soumis'),
