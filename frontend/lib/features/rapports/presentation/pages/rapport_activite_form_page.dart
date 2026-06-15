@@ -8,15 +8,18 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/rapports_provider.dart';
 
 // Provider liste des unités accessibles
-final _unitesDispoProvider = FutureProvider.autoDispose<List<({String id, String code})>>(
+final _unitesDispoProvider = FutureProvider.autoDispose<List<({String id, String label})>>(
   (ref) async {
     final supabase = ref.watch(supabaseClientProvider);
     final data = await supabase
         .from(AppTables.unitesOrganisationnelles)
-        .select('${AppTables.colId}, ${AppTables.colCode}')
-        .order(AppTables.colCode);
+        .select('${AppTables.colId}, ${AppTables.colNom}, ${AppTables.colCode}')
+        .order(AppTables.colNom);
     return (data as List)
-        .map((u) => (id: u[AppTables.colId] as String, code: u[AppTables.colCode] as String))
+        .map((u) => (
+          id:    u[AppTables.colId]  as String,
+          label: (u[AppTables.colCode] as String?) ?? (u[AppTables.colNom] as String),
+        ))
         .toList();
   },
 );
@@ -376,7 +379,7 @@ class _PerimetreGlobal extends ConsumerWidget {
           ),
           ...list.map((u) => DropdownMenuItem<String?>(
             value: u.id,
-            child: Text(u.code, overflow: TextOverflow.ellipsis),
+            child: Text(u.label, overflow: TextOverflow.ellipsis),
           )),
         ],
         onChanged: onChanged,

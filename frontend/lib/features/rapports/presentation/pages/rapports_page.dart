@@ -17,8 +17,14 @@ class RapportsPage extends ConsumerStatefulWidget {
 
 class _RapportsPageState extends ConsumerState<RapportsPage> {
   TypeRapport _type  = TypeRapport.cra;
-  int  _annee        = DateTime.now().year;
-  int  _mois         = DateTime.now().month;
+
+  int _debutJour   = 1;
+  int _debutMois   = DateTime.now().month;
+  int _debutAnnee  = DateTime.now().year;
+  int _finJour     = DateTime.now().day;
+  int _finMois     = DateTime.now().month;
+  int _finAnnee    = DateTime.now().year;
+
   String? _reunionId;
   String? _evenementId;
   String? _reunionTitre;
@@ -28,6 +34,26 @@ class _RapportsPageState extends ConsumerState<RapportsPage> {
     '', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
   ];
+
+  static int _nbJours(int mois, int annee) =>
+      DateTime(annee, mois + 1, 0).day;
+
+  void _setDebutMois(int v) => setState(() {
+    _debutMois = v;
+    _debutJour = _debutJour.clamp(1, _nbJours(v, _debutAnnee));
+  });
+  void _setDebutAnnee(int v) => setState(() {
+    _debutAnnee = v;
+    _debutJour  = _debutJour.clamp(1, _nbJours(_debutMois, v));
+  });
+  void _setFinMois(int v) => setState(() {
+    _finMois = v;
+    _finJour = _finJour.clamp(1, _nbJours(v, _finAnnee));
+  });
+  void _setFinAnnee(int v) => setState(() {
+    _finAnnee = v;
+    _finJour  = _finJour.clamp(1, _nbJours(_finMois, v));
+  });
 
   @override
   void initState() {
@@ -62,8 +88,8 @@ class _RapportsPageState extends ConsumerState<RapportsPage> {
 
   Future<void> _generer() async {
     final notifier = ref.read(rapportsProvider.notifier);
-    final debut = DateTime(_annee, _mois, 1);
-    final fin   = DateTime(_annee, _mois + 1, 0, 23, 59, 59);
+    final debut = DateTime(_debutAnnee, _debutMois, _debutJour);
+    final fin   = DateTime(_finAnnee, _finMois, _finJour, 23, 59, 59);
 
     switch (_type) {
       case TypeRapport.cra:
@@ -71,7 +97,7 @@ class _RapportsPageState extends ConsumerState<RapportsPage> {
       case TypeRapport.financier:
         await notifier.genererFinancier(debut: debut, fin: fin);
       case TypeRapport.cotisations:
-        await notifier.genererCotisations(annee: _annee, mois: _mois);
+        await notifier.genererCotisations(annee: _debutAnnee, mois: _debutMois);
       case TypeRapport.reunion:
         if (_reunionId == null) return _snackErreur('Sélectionnez une réunion');
         await notifier.genererReunion(reunionId: _reunionId!, titre: _reunionTitre ?? '');
@@ -154,26 +180,80 @@ class _RapportsPageState extends ConsumerState<RapportsPage> {
           if (_avecPeriode) ...[
             _Carte(
               titre: 'PÉRIODE',
-              child: Row(children: [
-                Expanded(
-                  child: _DropdownSimple<int>(
-                    label: 'Mois',
-                    valeur: _mois,
-                    items: List.generate(12, (i) => i + 1),
-                    labelBuilder: (m) => _moisLabels[m],
-                    onChanged: (v) => setState(() => _mois = v!),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Du', style: TextStyle(fontSize: 11,
+                    color: AppColors.text2, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Row(children: [
+                  Expanded(
+                    flex: 1,
+                    child: _DropdownJour(
+                      valeur: _debutJour,
+                      mois: _debutMois,
+                      annee: _debutAnnee,
+                      onChanged: (v) => setState(() => _debutJour = v!),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _DropdownSimple<int>(
-                    label: 'Année',
-                    valeur: _annee,
-                    items: List.generate(5, (i) => DateTime.now().year - i),
-                    labelBuilder: (a) => '$a',
-                    onChanged: (v) => setState(() => _annee = v!),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: _DropdownSimple<int>(
+                      label: 'Mois',
+                      valeur: _debutMois,
+                      items: List.generate(12, (i) => i + 1),
+                      labelBuilder: (m) => _moisLabels[m],
+                      onChanged: (v) => _setDebutMois(v!),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: _DropdownSimple<int>(
+                      label: 'Année',
+                      valeur: _debutAnnee,
+                      items: List.generate(5, (i) => DateTime.now().year - i),
+                      labelBuilder: (a) => '$a',
+                      onChanged: (v) => _setDebutAnnee(v!),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 12),
+                const Text('Au', style: TextStyle(fontSize: 11,
+                    color: AppColors.text2, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Row(children: [
+                  Expanded(
+                    flex: 1,
+                    child: _DropdownJour(
+                      valeur: _finJour,
+                      mois: _finMois,
+                      annee: _finAnnee,
+                      onChanged: (v) => setState(() => _finJour = v!),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: _DropdownSimple<int>(
+                      label: 'Mois',
+                      valeur: _finMois,
+                      items: List.generate(12, (i) => i + 1),
+                      labelBuilder: (m) => _moisLabels[m],
+                      onChanged: (v) => _setFinMois(v!),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: _DropdownSimple<int>(
+                      label: 'Année',
+                      valeur: _finAnnee,
+                      items: List.generate(5, (i) => DateTime.now().year - i),
+                      labelBuilder: (a) => '$a',
+                      onChanged: (v) => _setFinAnnee(v!),
+                    ),
+                  ),
+                ]),
               ]),
             ),
             const SizedBox(height: 12),
@@ -441,4 +521,34 @@ class _DropdownSimple<T> extends StatelessWidget {
             .toList(),
         onChanged: onChanged,
       );
+}
+
+class _DropdownJour extends StatelessWidget {
+  const _DropdownJour({
+    required this.valeur,
+    required this.mois,
+    required this.annee,
+    required this.onChanged,
+  });
+  final int  valeur;
+  final int  mois;
+  final int  annee;
+  final void Function(int?) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final nbJours = DateTime(annee, mois + 1, 0).day;
+    final jours   = List.generate(nbJours, (i) => i + 1);
+    return DropdownButtonFormField<int>(
+      // ignore: deprecated_member_use
+      value: valeur.clamp(1, nbJours),
+      decoration: InputDecoration(
+        labelText: 'Jour',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled: true, fillColor: AppColors.card,
+      ),
+      items: jours.map((j) => DropdownMenuItem(value: j, child: Text('$j'))).toList(),
+      onChanged: onChanged,
+    );
+  }
 }
