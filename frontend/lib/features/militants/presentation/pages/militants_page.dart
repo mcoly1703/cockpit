@@ -71,12 +71,30 @@ class _PageContenu extends ConsumerStatefulWidget {
 
 class _PageContenuState extends ConsumerState<_PageContenu> {
   String? _filtreUniteType = AppUniteTypes.sousSection;
-  String? _filtreUniteId;
+  String? _filtreSSId;       // unité niveau 2 sélectionnée
+  String? _filtreCelluleId;  // cellule niveau 3 (seulement sous une SS)
 
   bool get _afficherListe =>
       widget.recherche.trim().length >= 2 ||
       widget.filtreStatut != null ||
-      _filtreUniteId != null;
+      _filtreSSId != null;
+
+  List<Militant> _appliquerFiltreUnite(List<Militant> liste) {
+    if (_filtreSSId == null) return liste;
+    if (_filtreCelluleId != null) {
+      return liste.where((m) => m.uniteId == _filtreCelluleId).toList();
+    }
+    if (_filtreUniteType == AppUniteTypes.sousSection) {
+      final ids = {
+        _filtreSSId!,
+        ...widget.unites
+            .where((u) => u.type == AppUniteTypes.cellule && u.parentId == _filtreSSId)
+            .map((u) => u.id),
+      };
+      return liste.where((m) => ids.contains(m.uniteId)).toList();
+    }
+    return liste.where((m) => m.uniteId == _filtreSSId).toList();
+  }
 
   void _snack(BuildContext ctx, String msg, {bool isError = false}) {
     ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
@@ -91,9 +109,7 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
     final notifier = ref.read(militantsProvider.notifier);
     final filtres  = state.militantsFiltres;
 
-    final filtresAvecUnite = _filtreUniteId == null
-        ? filtres
-        : filtres.where((m) => m.uniteId == _filtreUniteId).toList();
+    final filtresAvecUnite = _appliquerFiltreUnite(filtres);
     final affichage = filtresAvecUnite.take(100).toList();
 
     final statsFiltered = switch (_filtreUniteType) {
@@ -163,21 +179,27 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
             child: _BarreActions(militants: widget.militants, unites: widget.unites),
           ),
 
-          // Sélecteur unité 2 niveaux
+          // Sélecteur unité 3 niveaux
           SliverToBoxAdapter(
             child: _FiltreUniteSelector(
-              filtreType:    _filtreUniteType,
-              filtreUniteId: _filtreUniteId,
-              unites:        widget.unites,
+              filtreType:      _filtreUniteType,
+              filtreSSId:      _filtreSSId,
+              filtreCelluleId: _filtreCelluleId,
+              unites:          widget.unites,
               onTypeChanged: (t) => setState(() {
                 _filtreUniteType = t;
-                _filtreUniteId   = null;
+                _filtreSSId      = null;
+                _filtreCelluleId = null;
               }),
-              onUniteChanged: (id) => setState(() => _filtreUniteId = id),
+              onSSChanged: (id) => setState(() {
+                _filtreSSId      = id;
+                _filtreCelluleId = null;
+              }),
+              onCelluleChanged: (id) => setState(() => _filtreCelluleId = id),
             ),
           ),
 
-          // Stats (filtrées) — toujours visible quand un type est sélectionné
+          // Stats (filtrées) — visible quand un type est sélectionné
           if (_filtreUniteType != null)
             SliverToBoxAdapter(
               child: _StatsSousSections(
@@ -1241,36 +1263,48 @@ class _SearchBarState extends State<_SearchBar> {
   }
 }
 
-// ─── Sélecteur unité 2 niveaux ───────────────────────────────────────────────
+// ─── Sélecteur unité 3 niveaux ───────────────────────────────────────────────
 
 class _FiltreUniteSelector extends StatelessWidget {
   const _FiltreUniteSelector({
     required this.filtreType,
-    required this.filtreUniteId,
+    required this.filtreSSId,
+    required this.filtreCelluleId,
     required this.unites,
     required this.onTypeChanged,
-    required this.onUniteChanged,
+    required this.onSSChanged,
+    required this.onCelluleChanged,
   });
-  final String?                       filtreType;
-  final String?                       filtreUniteId;
-  final List<UniteOrganisationnelle>  unites;
-  final void Function(String?)        onTypeChanged;
-  final void Function(String?)        onUniteChanged;
+  final String?                      filtreType;
+  final String?                      filtreSSId;
+  final String?                      filtreCelluleId;
+  final List<UniteOrganisationnelle> unites;
+  final void Function(String?)       onTypeChanged;
+  final void Function(String?)       onSSChanged;
+  final void Function(String?)       onCelluleChanged;
 
   static const _types = [
-    (null,                         'Tous',          Icons.public),
-    (AppUniteTypes.sousSection,    'Sous-sections', Icons.account_tree_outlined),
-    (AppUniteTypes.mouvement,      'Mouvements',    Icons.groups_outlined),
-    (AppUniteTypes.secretariat,    'Secrétariats',  Icons.corporate_fare_outlined),
-    (AppUniteTypes.cellule,        'Cellules',      Icons.location_city_outlined),
+    (null,                      'Tous',          Icons.public),
+    (AppUniteTypes.sousSection, 'Sous-sections', Icons.account_tree_outlined),
+    (AppUniteTypes.mouvement,   'Mouvements',    Icons.groups_outlined),
+    (AppUniteTypes.secretariat, 'Secrétariats',  Icons.corporate_fare_outlined),
+    (AppUniteTypes.cellule,     'Cellules',      Icons.location_city_outlined),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final unitesType = filtreType == null
+    final unitesNiveau2 = filtreType == null
         ? <UniteOrganisationnelle>[]
         : (unites.where((u) => u.type == filtreType).toList()
           ..sort((a, b) => a.nom.compareTo(b.nom)));
+
+    // Cellules appartenant à la SS sélectionnée (niveau 3)
+    final cellulesDeSS = filtreType == AppUniteTypes.sousSection && filtreSSId != null
+        ? (unites
+            .where((u) => u.type == AppUniteTypes.cellule && u.parentId == filtreSSId)
+            .toList()
+          ..sort((a, b) => a.nom.compareTo(b.nom)))
+        : <UniteOrganisationnelle>[];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1286,16 +1320,14 @@ class _FiltreUniteSelector extends StatelessWidget {
           ),
         ),
 
-        // Niveau 1 — type
-        SizedBox(
-          height: 36,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding:          const EdgeInsets.symmetric(horizontal: 14),
-            itemCount:        _types.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (_, i) {
-              final (valeur, label, icone) = _types[i];
+        // Niveau 1 — type (Wrap pour s'adapter à la largeur)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: _types.map((t) {
+              final (valeur, label, icone) = t;
               final actif = filtreType == valeur;
               return ChoiceChip(
                 avatar: Icon(icone, size: 13,
@@ -1311,63 +1343,114 @@ class _FiltreUniteSelector extends StatelessWidget {
                     color: actif ? AppColors.accent : AppColors.border),
                 padding: const EdgeInsets.symmetric(horizontal: 4),
               );
-            },
+            }).toList(),
           ),
         ),
 
-        // Niveau 2 — unité spécifique
-        if (filtreType != null && unitesType.isNotEmpty) ...[
+        // Niveau 2 — unités du type sélectionné (Wrap responsive)
+        if (filtreType != null && unitesNiveau2.isNotEmpty) ...[
           const SizedBox(height: 6),
-          SizedBox(
-            height: 34,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding:          const EdgeInsets.symmetric(horizontal: 14),
-              itemCount:        unitesType.length + 1,
-              separatorBuilder: (_, __) => const SizedBox(width: 6),
-              itemBuilder: (_, i) {
-                if (i == 0) {
-                  final actif = filtreUniteId == null;
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                // Chip "Toutes"
+                ChoiceChip(
+                  label: Text('Toutes', style: TextStyle(
+                      fontSize: 11,
+                      color: filtreSSId == null ? Colors.white : AppColors.text2)),
+                  selected:        filtreSSId == null,
+                  onSelected:      (_) => onSSChanged(null),
+                  selectedColor:   AppColors.primary,
+                  backgroundColor: AppColors.card,
+                  side: BorderSide(
+                      color: filtreSSId == null ? AppColors.primary : AppColors.border),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                ),
+                ...unitesNiveau2.map((u) {
+                  final actif = filtreSSId == u.id;
                   return ChoiceChip(
-                    label: Text('Toutes', style: TextStyle(
+                    label: Text(_labelCourt(u), style: TextStyle(
                         fontSize: 11,
-                        color: actif ? Colors.white : AppColors.text2)),
+                        color: actif ? Colors.white : AppColors.text)),
                     selected:        actif,
-                    onSelected:      (_) => onUniteChanged(null),
+                    onSelected:      (_) => onSSChanged(actif ? null : u.id),
                     selectedColor:   AppColors.primary,
                     backgroundColor: AppColors.card,
                     side: BorderSide(
                         color: actif ? AppColors.primary : AppColors.border),
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                   );
-                }
-                final u     = unitesType[i - 1];
-                final actif = filtreUniteId == u.id;
-                return ChoiceChip(
-                  label: Text(_labelCourt(u), style: TextStyle(
-                      fontSize: 11,
-                      color: actif ? Colors.white : AppColors.text)),
-                  selected:        actif,
-                  onSelected:      (_) => onUniteChanged(actif ? null : u.id),
-                  selectedColor:   AppColors.primary,
-                  backgroundColor: AppColors.card,
-                  side: BorderSide(
-                      color: actif ? AppColors.primary : AppColors.border),
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                );
-              },
+                }),
+              ],
             ),
           ),
         ],
+
+        // Niveau 3 — cellules de la SS sélectionnée (Wrap responsive)
+        if (cellulesDeSS.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+            child: Text(
+              'CELLULES',
+              style: const TextStyle(
+                  fontSize: 9, fontWeight: FontWeight.w700,
+                  color: AppColors.text2, letterSpacing: 0.8),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ChoiceChip(
+                  label: Text('Toutes', style: TextStyle(
+                      fontSize: 11,
+                      color: filtreCelluleId == null ? Colors.white : AppColors.text2)),
+                  selected:        filtreCelluleId == null,
+                  onSelected:      (_) => onCelluleChanged(null),
+                  selectedColor:   AppColors.primary.withValues(alpha: 0.7),
+                  backgroundColor: AppColors.card,
+                  side: BorderSide(
+                      color: filtreCelluleId == null
+                          ? AppColors.primary
+                          : AppColors.border),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                ),
+                ...cellulesDeSS.map((c) {
+                  final actif = filtreCelluleId == c.id;
+                  return ChoiceChip(
+                    label: Text(_labelCourt(c), style: TextStyle(
+                        fontSize: 11,
+                        color: actif ? Colors.white : AppColors.text)),
+                    selected:        actif,
+                    onSelected:      (_) => onCelluleChanged(actif ? null : c.id),
+                    selectedColor:   AppColors.primary,
+                    backgroundColor: AppColors.card,
+                    side: BorderSide(
+                        color: actif ? AppColors.primary : AppColors.border),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 8),
       ],
     );
   }
 
-  // Libellé court : code dept. si dispo (SS-093 → 93), sinon 2 premiers mots
   static String _labelCourt(UniteOrganisationnelle u) {
     if (u.code != null) {
       final suffix = u.code!.split('-').last;
-      return int.tryParse(suffix) != null ? suffix : suffix;
+      return suffix;
     }
     final mots = u.nom.trim().split(RegExp(r'\s+'));
     final label = mots.take(2).join(' ');
