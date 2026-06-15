@@ -156,10 +156,10 @@ BEGIN
     FOR v_i IN 1..v_cellule.quota LOOP
       -- Genre : 55 % hommes, 45 % femmes
       IF random() < 0.55 THEN
-        v_sexe   := 'homme';
+        v_sexe   := 'M';
         v_prenom := v_prenoms_m[1 + (floor(random() * array_length(v_prenoms_m, 1)))::INT];
       ELSE
-        v_sexe   := 'femme';
+        v_sexe   := 'F';
         v_prenom := v_prenoms_f[1 + (floor(random() * array_length(v_prenoms_f, 1)))::INT];
       END IF;
 
