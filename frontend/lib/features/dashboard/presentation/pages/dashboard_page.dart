@@ -369,7 +369,7 @@ class _GraphiqueCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'ÉVOLUTION MILITANTS — 6 MOIS',
+            'ÉVOLUTION MILITANTS — 12 MOIS',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1, color: AppColors.text2),
           ),
           const SizedBox(height: 11),

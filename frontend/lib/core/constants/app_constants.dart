@@ -8,7 +8,7 @@ class AppConstants {
   static const double objectifRecouvrement  = 80.0;
 
   // Graphiques
-  static const int nombreMoisGraphique      = 6;   // dashboard + militants
+  static const int nombreMoisGraphique      = 12;  // dashboard + militants
   static const int nombreMoisGraphiqueAnnuel = 12; // finances
 
   // Seuils d'objectif minimum par type d'unité (pour le calcul proportionnel)

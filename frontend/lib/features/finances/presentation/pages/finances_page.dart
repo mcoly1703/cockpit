@@ -607,14 +607,17 @@ class _GraphiqueEvolution extends StatelessWidget {
                     )),
                     bottomTitles: AxisTitles(sideTitles: SideTitles(
                       showTitles: true,
+                      interval: 1,
                       getTitlesWidget: (v, _) {
-                        final i = v.toInt();
+                        final i = v.round();
+                        if (v != i.toDouble()) return const SizedBox.shrink();
                         if (i < 0 || i >= evolution.length) return const SizedBox.shrink();
-                        // n'affiche qu'un mois sur deux pour éviter l'overlap
-                        if (i % 2 != 0) return const SizedBox.shrink();
-                        return Text(
-                          DateFormat('MMM', 'fr').format(evolution[i].$1),
-                          style: TextStyle(fontSize: 9, color: AppColors.text2),
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            DateFormat('MMM', 'fr').format(evolution[i].$1),
+                            style: TextStyle(fontSize: 9, color: AppColors.text2),
+                          ),
                         );
                       },
                     )),
@@ -945,7 +948,7 @@ class _BarreActions extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onAjouter,
             icon:  const Icon(Icons.add, size: 18),
-            label: const Text('+ Ajouter une transaction',
+            label: const Text('Ajouter une transaction',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

@@ -833,7 +833,7 @@ class _TendanceChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('NOUVEAUX MILITANTS — 6 MOIS',
+          Text('NOUVEAUX MILITANTS — 12 MOIS',
               style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
