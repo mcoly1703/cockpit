@@ -71,6 +71,12 @@ class _PageContenu extends ConsumerStatefulWidget {
 
 class _PageContenuState extends ConsumerState<_PageContenu> {
   String? _filtreUniteType = AppUniteTypes.sousSection;
+  String? _filtreUniteId;
+
+  bool get _afficherListe =>
+      widget.recherche.trim().length >= 2 ||
+      widget.filtreStatut != null ||
+      _filtreUniteId != null;
 
   void _snack(BuildContext ctx, String msg, {bool isError = false}) {
     ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
@@ -84,6 +90,11 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
     final state    = widget.state;
     final notifier = ref.read(militantsProvider.notifier);
     final filtres  = state.militantsFiltres;
+
+    final filtresAvecUnite = _filtreUniteId == null
+        ? filtres
+        : filtres.where((m) => m.uniteId == _filtreUniteId).toList();
+    final affichage = filtresAvecUnite.take(100).toList();
 
     final statsFiltered = switch (_filtreUniteType) {
       AppUniteTypes.sousSection => state.statsParSousSection,
@@ -152,11 +163,17 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
             child: _BarreActions(militants: widget.militants, unites: widget.unites),
           ),
 
-          // Chips filtre unité
+          // Sélecteur unité 2 niveaux
           SliverToBoxAdapter(
-            child: _FiltreUniteChips(
-              filtreActif: _filtreUniteType,
-              onChanged:   (t) => setState(() => _filtreUniteType = t),
+            child: _FiltreUniteSelector(
+              filtreType:    _filtreUniteType,
+              filtreUniteId: _filtreUniteId,
+              unites:        widget.unites,
+              onTypeChanged: (t) => setState(() {
+                _filtreUniteType = t;
+                _filtreUniteId   = null;
+              }),
+              onUniteChanged: (id) => setState(() => _filtreUniteId = id),
             ),
           ),
 
@@ -170,11 +187,15 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
               ),
             ),
 
-          // Séparateur + titre liste
+          // Titre liste
           SliverToBoxAdapter(
             child: _TitreSection(
               titre:  'LISTE DES MILITANTS',
-              suffix: '${filtres.length} résultat${filtres.length > 1 ? 's' : ''}',
+              suffix: _afficherListe
+                  ? '${affichage.length}'
+                    '${filtresAvecUnite.length > 100 ? "/${filtresAvecUnite.length}" : ""}'
+                    ' résultat${affichage.length > 1 ? "s" : ""}'
+                  : null,
             ),
           ),
 
@@ -194,42 +215,53 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
             ),
           ),
 
-          // Liste
-          filtres.isEmpty
-              ? SliverFillRemaining(
-                  child: _EtatVide(
-                    recherche:    widget.recherche,
-                    filtreStatut: widget.filtreStatut,
-                  ),
-                )
-              : SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 24),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (_, i) => _MilitantCard(
-                        militant: filtres[i],
-                        unites:   widget.unites,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MilitantFormPage(
-                              militant: filtres[i],
-                              unites:   widget.unites,
-                            ),
-                          ),
+          // Liste conditionnelle
+          if (!_afficherListe)
+            const SliverToBoxAdapter(child: _PrompteRecherche())
+          else if (affichage.isEmpty)
+            SliverFillRemaining(
+              child: _EtatVide(
+                recherche:    widget.recherche,
+                filtreStatut: widget.filtreStatut,
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (_, i) => _MilitantCard(
+                    militant: affichage[i],
+                    unites:   widget.unites,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => MilitantFormPage(
+                          militant: affichage[i],
+                          unites:   widget.unites,
                         ),
-                        onToggleStatut: (s) async {
-                          final res = await notifier.toggleStatut(filtres[i].id, s);
-                          if (!context.mounted) return;
-                          res.fold(
-                            (f) => _snack(context, 'Erreur', isError: true),
-                            (_) => _snack(context, 'Statut mis à jour'),
-                          );
-                        },
                       ),
-                      childCount: filtres.length,
                     ),
+                    onToggleStatut: (s) async {
+                      final res = await notifier.toggleStatut(affichage[i].id, s);
+                      if (!context.mounted) return;
+                      res.fold(
+                        (f) => _snack(context, 'Erreur', isError: true),
+                        (_) => _snack(context, 'Statut mis à jour'),
+                      );
+                    },
                   ),
+                  childCount: affichage.length,
                 ),
+              ),
+            ),
+
+          // Note si tronqué à 100
+          if (_afficherListe && filtresAvecUnite.length > 100)
+            SliverToBoxAdapter(
+              child: _NoteTronquee(total: filtresAvecUnite.length),
+            ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
       floatingActionButton: null,
@@ -1209,15 +1241,24 @@ class _SearchBarState extends State<_SearchBar> {
   }
 }
 
-// ─── Chips filtre type d'unité ────────────────────────────────────────────────
+// ─── Sélecteur unité 2 niveaux ───────────────────────────────────────────────
 
-class _FiltreUniteChips extends StatelessWidget {
-  const _FiltreUniteChips({required this.filtreActif, required this.onChanged});
-  final String? filtreActif;
-  final void Function(String?) onChanged;
+class _FiltreUniteSelector extends StatelessWidget {
+  const _FiltreUniteSelector({
+    required this.filtreType,
+    required this.filtreUniteId,
+    required this.unites,
+    required this.onTypeChanged,
+    required this.onUniteChanged,
+  });
+  final String?                       filtreType;
+  final String?                       filtreUniteId;
+  final List<UniteOrganisationnelle>  unites;
+  final void Function(String?)        onTypeChanged;
+  final void Function(String?)        onUniteChanged;
 
-  static const _items = [
-    (null,                         'Tous',         Icons.public),
+  static const _types = [
+    (null,                         'Tous',          Icons.public),
     (AppUniteTypes.sousSection,    'Sous-sections', Icons.account_tree_outlined),
     (AppUniteTypes.mouvement,      'Mouvements',    Icons.groups_outlined),
     (AppUniteTypes.secretariat,    'Secrétariats',  Icons.corporate_fare_outlined),
@@ -1226,40 +1267,44 @@ class _FiltreUniteChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unitesType = filtreType == null
+        ? <UniteOrganisationnelle>[]
+        : (unites.where((u) => u.type == filtreType).toList()
+          ..sort((a, b) => a.nom.compareTo(b.nom)));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Label
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
           child: Text(
-            'VUE PAR TYPE D\'UNITÉ',
-            style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: AppColors.text2,
-                letterSpacing: 0.8),
+            'FILTRER PAR UNITÉ',
+            style: const TextStyle(
+                fontSize: 9, fontWeight: FontWeight.w700,
+                color: AppColors.text2, letterSpacing: 0.8),
           ),
         ),
+
+        // Niveau 1 — type
         SizedBox(
           height: 36,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding:         const EdgeInsets.symmetric(horizontal: 14),
-            itemCount:       _items.length,
+            padding:          const EdgeInsets.symmetric(horizontal: 14),
+            itemCount:        _types.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (_, i) {
-              final (valeur, label, icone) = _items[i];
-              final actif = filtreActif == valeur;
+              final (valeur, label, icone) = _types[i];
+              final actif = filtreType == valeur;
               return ChoiceChip(
-                avatar: Icon(icone,
-                    size:  13,
+                avatar: Icon(icone, size: 13,
                     color: actif ? Colors.white : AppColors.text2),
-                label: Text(label,
-                    style: TextStyle(
-                        fontSize: 11,
-                        color: actif ? Colors.white : AppColors.text2)),
+                label: Text(label, style: TextStyle(
+                    fontSize: 11,
+                    color: actif ? Colors.white : AppColors.text2)),
                 selected:        actif,
-                onSelected:      (_) => onChanged(valeur),
+                onSelected:      (_) => onTypeChanged(valeur),
                 selectedColor:   AppColors.accent,
                 backgroundColor: AppColors.card,
                 side: BorderSide(
@@ -1269,9 +1314,144 @@ class _FiltreUniteChips extends StatelessWidget {
             },
           ),
         ),
+
+        // Niveau 2 — unité spécifique
+        if (filtreType != null && unitesType.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 34,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding:          const EdgeInsets.symmetric(horizontal: 14),
+              itemCount:        unitesType.length + 1,
+              separatorBuilder: (_, __) => const SizedBox(width: 6),
+              itemBuilder: (_, i) {
+                if (i == 0) {
+                  final actif = filtreUniteId == null;
+                  return ChoiceChip(
+                    label: Text('Toutes', style: TextStyle(
+                        fontSize: 11,
+                        color: actif ? Colors.white : AppColors.text2)),
+                    selected:        actif,
+                    onSelected:      (_) => onUniteChanged(null),
+                    selectedColor:   AppColors.primary,
+                    backgroundColor: AppColors.card,
+                    side: BorderSide(
+                        color: actif ? AppColors.primary : AppColors.border),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                  );
+                }
+                final u     = unitesType[i - 1];
+                final actif = filtreUniteId == u.id;
+                return ChoiceChip(
+                  label: Text(_labelCourt(u), style: TextStyle(
+                      fontSize: 11,
+                      color: actif ? Colors.white : AppColors.text)),
+                  selected:        actif,
+                  onSelected:      (_) => onUniteChanged(actif ? null : u.id),
+                  selectedColor:   AppColors.primary,
+                  backgroundColor: AppColors.card,
+                  side: BorderSide(
+                      color: actif ? AppColors.primary : AppColors.border),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                );
+              },
+            ),
+          ),
+        ],
       ],
     );
   }
+
+  // Libellé court : code dept. si dispo (SS-093 → 93), sinon 2 premiers mots
+  static String _labelCourt(UniteOrganisationnelle u) {
+    if (u.code != null) {
+      final suffix = u.code!.split('-').last;
+      return int.tryParse(suffix) != null ? suffix : suffix;
+    }
+    final mots = u.nom.trim().split(RegExp(r'\s+'));
+    final label = mots.take(2).join(' ');
+    return label.length > 14 ? '${label.substring(0, 13)}…' : label;
+  }
+}
+
+// ─── Prompt recherche (liste masquée par défaut) ──────────────────────────────
+
+class _PrompteRecherche extends StatelessWidget {
+  const _PrompteRecherche();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(13),
+            boxShadow: AppColors.cardShadow,
+          ),
+          child: Row(children: [
+            Container(
+              width: 44, height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.manage_search_rounded,
+                  color: AppColors.primary, size: 22),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Trouver un militant',
+                      style: TextStyle(fontSize: 14,
+                          fontWeight: FontWeight.w700, color: AppColors.text)),
+                  SizedBox(height: 3),
+                  Text(
+                    'Recherchez par nom, ville ou téléphone, '
+                    'ou sélectionnez une unité ci-dessus',
+                    style: TextStyle(fontSize: 12, color: AppColors.text2),
+                  ),
+                ],
+              ),
+            ),
+          ]),
+        ),
+      );
+}
+
+// ─── Note résultats tronqués ──────────────────────────────────────────────────
+
+class _NoteTronquee extends StatelessWidget {
+  const _NoteTronquee({required this.total});
+  final int total;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.accent.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(8),
+            border: const Border(
+                left: BorderSide(color: AppColors.accent, width: 3)),
+          ),
+          child: Row(children: [
+            const Icon(Icons.info_outline_rounded,
+                size: 14, color: AppColors.accent),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '100 premiers résultats sur $total — affinez la recherche ou le filtre',
+                style: const TextStyle(fontSize: 11, color: AppColors.accent),
+              ),
+            ),
+          ]),
+        ),
+      );
 }
 
 // ─── Chips de filtre statut ───────────────────────────────────────────────────
