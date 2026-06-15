@@ -1,37 +1,17 @@
 -- ============================================================
--- SEED 500 militants répartis sur toutes les sous-sections
--- Version dynamique : aucun UUID hardcodé, lookup par code SS
--- Total visé : ~500 (ajusté selon les cellules présentes)
+-- SEED ~500 militants répartis sur toutes les sous-sections
+-- Version robuste : aucun UUID ni filtre JSONB fragile
 -- ============================================================
 
 -- ── 1. Nettoyage dans l'ordre des dépendances FK ────────────
 DELETE FROM postes_bureau;
 DELETE FROM cotisations;
 DELETE FROM presences;
-UPDATE transactions      SET militant_id            = NULL WHERE militant_id            IS NOT NULL;
-UPDATE prospects         SET converti_en_militant_id = NULL WHERE converti_en_militant_id IS NOT NULL;
+UPDATE transactions  SET militant_id             = NULL WHERE militant_id             IS NOT NULL;
+UPDATE prospects     SET converti_en_militant_id  = NULL WHERE converti_en_militant_id  IS NOT NULL;
 DELETE FROM militants;
 
--- ── 2. Cellules manquantes — créées via lookup code SS ───────
-INSERT INTO unites_organisationnelles (type, nom, code, parent_id)
-SELECT 'cellule', 'Cellule Dijon', 'C-BFC-01', id
-FROM   unites_organisationnelles WHERE code = 'SS-BFC'
-AND NOT EXISTS (
-  SELECT 1 FROM unites_organisationnelles c
-  WHERE c.type = 'cellule'
-  AND   c.parent_id = (SELECT id FROM unites_organisationnelles WHERE code = 'SS-BFC')
-);
-
-INSERT INTO unites_organisationnelles (type, nom, code, parent_id)
-SELECT 'cellule', 'Cellule Orléans', 'C-CVL-01', id
-FROM   unites_organisationnelles WHERE code = 'SS-CVL'
-AND NOT EXISTS (
-  SELECT 1 FROM unites_organisationnelles c
-  WHERE c.type = 'cellule'
-  AND   c.parent_id = (SELECT id FROM unites_organisationnelles WHERE code = 'SS-CVL')
-);
-
--- ── 3. Génération des militants ───────────────────────────────
+-- ── 2. Génération ────────────────────────────────────────────
 DO $$
 DECLARE
   v_user_id    UUID;
@@ -40,12 +20,14 @@ DECLARE
   v_n_cel      INT;
   v_quota_ss   INT;
   v_i          INT;
+  v_cel_id     UUID;
   v_sexe       TEXT;
   v_nom        TEXT;
   v_prenom     TEXT;
   v_ville      TEXT;
   v_date_adh   DATE;
   v_statut     TEXT;
+  v_total      INT := 0;
 
   v_noms TEXT[] := ARRAY[
     'Diallo','Ndiaye','Fall','Sow','Diop','Mbaye','Gaye','Touré','Faye','Sarr',
@@ -83,17 +65,11 @@ DECLARE
     'actif','actif','actif','actif','actif','actif','actif','inactif','suspendu'
   ];
 
-  -- Quota par code SS (total SS / nombre de cellules = quota par cellule)
-  v_quotas JSONB := '{
-    "SS-075": 68, "SS-077": 27, "SS-078": 20, "SS-091": 30,
-    "SS-092": 39, "SS-093": 72, "SS-094": 39, "SS-095": 33,
-    "SS-ARA": 22, "SS-BFC": 10, "SS-BRE": 12, "SS-CVL": 10,
-    "SS-GRE": 16, "SS-HDF": 22, "SS-NOR": 12, "SS-NAQ": 12,
-    "SS-OCC": 16, "SS-PAM": 22, "SS-PAN":  8, "SS-PDL": 10
-  }';
 
-  -- IDF SS codes
-  v_idf_codes TEXT[] := ARRAY['SS-075','SS-077','SS-078','SS-091','SS-092','SS-093','SS-094','SS-095'];
+  -- Codes IDF (pour choisir les villes appropriées)
+  v_idf_codes TEXT[] := ARRAY[
+    'SS-075','SS-077','SS-078','SS-091','SS-092','SS-093','SS-094','SS-095'
+  ];
 
 BEGIN
   SELECT id INTO v_user_id FROM auth.users ORDER BY created_at LIMIT 1;
@@ -101,26 +77,46 @@ BEGIN
     RAISE EXCEPTION 'Aucun utilisateur trouvé — connectez-vous d''abord';
   END IF;
 
-  -- Itère sur chaque sous-section définie dans les quotas
+  -- Pour chaque sous-section
   FOR v_ss IN
-    SELECT id, code FROM unites_organisationnelles
+    SELECT id, code, nom FROM unites_organisationnelles
     WHERE type = 'sous_section'
-    AND   code = ANY(ARRAY(SELECT jsonb_object_keys(v_quotas)))
-    ORDER BY code
+    ORDER BY code NULLS LAST
   LOOP
-    v_quota_ss := (v_quotas ->> v_ss.code)::INT;
+    -- Quota pour cette SS selon son code (défaut 25 si code inconnu)
+    v_quota_ss := CASE v_ss.code
+      WHEN 'SS-075' THEN 68   WHEN 'SS-077' THEN 27
+      WHEN 'SS-078' THEN 20   WHEN 'SS-091' THEN 30
+      WHEN 'SS-092' THEN 39   WHEN 'SS-093' THEN 72
+      WHEN 'SS-094' THEN 39   WHEN 'SS-095' THEN 33
+      WHEN 'SS-ARA' THEN 22   WHEN 'SS-BFC' THEN 10
+      WHEN 'SS-BRE' THEN 12   WHEN 'SS-CVL' THEN 10
+      WHEN 'SS-GRE' THEN 16   WHEN 'SS-HDF' THEN 22
+      WHEN 'SS-NOR' THEN 12   WHEN 'SS-NAQ' THEN 12
+      WHEN 'SS-OCC' THEN 16   WHEN 'SS-PAM' THEN 22
+      WHEN 'SS-PAN' THEN 8    WHEN 'SS-PDL' THEN 10
+      ELSE 25
+    END;
 
-    -- Compte les cellules rattachées à cette SS
+    -- Crée une cellule si la SS n'en a aucune
     SELECT COUNT(*) INTO v_n_cel
     FROM unites_organisationnelles
     WHERE type = 'cellule' AND parent_id = v_ss.id;
 
     IF v_n_cel = 0 THEN
-      RAISE NOTICE 'SS % : aucune cellule, ignorée', v_ss.code;
-      CONTINUE;
+      INSERT INTO unites_organisationnelles (type, nom, code, parent_id)
+      VALUES (
+        'cellule',
+        'Cellule ' || COALESCE(v_ss.nom, 'principale'),
+        'C-' || COALESCE(v_ss.code, v_ss.id::TEXT) || '-01',
+        v_ss.id
+      )
+      RETURNING id INTO v_cel_id;
+      v_n_cel := 1;
+      RAISE NOTICE 'SS % : cellule créée automatiquement', v_ss.code;
     END IF;
 
-    -- Distribue les militants équitablement entre les cellules de la SS
+    -- Insère les militants, répartis équitablement entre cellules
     FOR v_cel IN
       SELECT id FROM unites_organisationnelles
       WHERE type = 'cellule' AND parent_id = v_ss.id
@@ -150,23 +146,20 @@ BEGIN
           nom, prenom, sexe, telephone, email,
           ville, date_adhesion, statut, unite_id, created_by
         ) VALUES (
-          v_nom,
-          v_prenom,
-          v_sexe::sexe_type,
+          v_nom, v_prenom, v_sexe::sexe_type,
           '+336' || lpad((10000000 + floor(random() * 89999999)::INT)::TEXT, 8, '0'),
           lower(v_prenom) || '.' || lower(v_nom) || '.'
             || left(replace(gen_random_uuid()::TEXT, '-', ''), 5) || '@test.fr',
-          v_ville,
-          v_date_adh,
-          v_statut::statut_militant,
-          v_cel.id,
-          v_user_id
+          v_ville, v_date_adh, v_statut::statut_militant,
+          v_cel.id, v_user_id
         );
+        v_total := v_total + 1;
       END LOOP;
     END LOOP;
 
-    RAISE NOTICE 'SS % : % militants insérés (%  cellules)', v_ss.code, v_quota_ss, v_n_cel;
+    RAISE NOTICE 'SS % (%) : % militants, % cellule(s)',
+      v_ss.code, v_ss.nom, v_quota_ss, v_n_cel;
   END LOOP;
 
-  RAISE NOTICE '✓ Génération terminée — vérifier avec : SELECT COUNT(*) FROM militants';
+  RAISE NOTICE '✓ Total inséré : % militants', v_total;
 END $$;
