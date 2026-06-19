@@ -14,7 +14,7 @@ class ProspectsDatasourceImpl implements ProspectsDatasource {
   @override
   Future<List<Prospect>> getProspects({String? uniteId}) async {
     try {
-      var query = supabase.from(AppTables.prospects).select();
+      var query = supabase.from(AppTables.prospects).select('*, profiles:created_by(nom, prenom)');
       if (uniteId != null) query = query.eq(AppTables.colUniteId, uniteId);
 
       final data = await query.order(AppTables.colCreatedAt, ascending: false);

@@ -15,6 +15,7 @@ class MilitantModel {
   final String statut;
   final DateTime dateAdhesion;
   final String? photoUrl;
+  final String? parrainId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -38,6 +39,7 @@ class MilitantModel {
     this.statutCarte = 'en_attente',
     required this.dateAdhesion,
     this.photoUrl,
+    this.parrainId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -61,6 +63,7 @@ class MilitantModel {
         statutCarte:   json['statut_carte'] as String? ?? 'en_attente',
         dateAdhesion:  DateTime.parse(json['date_adhesion'] as String),
         photoUrl:      json['photo_url'] as String?,
+        parrainId:     json['parrain_id'] as String?,
         createdAt:     DateTime.parse(json['created_at'] as String),
         updatedAt:     DateTime.parse(json['updated_at'] as String),
       );
@@ -82,6 +85,7 @@ class MilitantModel {
         statutCarte:   statutCarte,
         dateAdhesion:  dateAdhesion,
         photoUrl:      photoUrl,
+        parrainId:     parrainId,
         createdAt:     createdAt,
         updatedAt:     updatedAt,
       );

@@ -9,7 +9,8 @@ import '../../domain/repositories/prospects_repository.dart';
 const _mouvements = ['JPS', 'MOJIP', 'Cadres', 'Foyers', 'Maggi Pastef'];
 
 class ProspectFormPage extends ConsumerStatefulWidget {
-  const ProspectFormPage({super.key});
+  const ProspectFormPage({super.key, this.mouvementPreselectionne});
+  final String? mouvementPreselectionne;
 
   @override
   ConsumerState<ProspectFormPage> createState() => _ProspectFormPageState();
@@ -25,7 +26,7 @@ class _ProspectFormPageState extends ConsumerState<ProspectFormPage> {
   final _notesCtrl = TextEditingController();
 
   String? _sexe;
-  String? _mouvementInteret;
+  late String? _mouvementInteret = widget.mouvementPreselectionne;
 
   @override
   void dispose() {
@@ -113,10 +114,26 @@ class _ProspectFormPageState extends ConsumerState<ProspectFormPage> {
             ),
             const SizedBox(height: 20),
             _Section(titre: 'Intérêt'),
-            _DropdownMouvement(
-              valeur: _mouvementInteret,
-              onChanged: (v) => setState(() => _mouvementInteret = v),
-            ),
+            if (widget.mouvementPreselectionne != null)
+              InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Mouvement d\'intérêt',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  filled: true,
+                  fillColor: AppColors.card,
+                ),
+                child: Row(children: [
+                  const Icon(Icons.group_outlined, size: 16, color: AppColors.accent),
+                  const SizedBox(width: 8),
+                  Text(widget.mouvementPreselectionne!,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                ]),
+              )
+            else
+              _DropdownMouvement(
+                valeur: _mouvementInteret,
+                onChanged: (v) => setState(() => _mouvementInteret = v),
+              ),
             const SizedBox(height: 12),
             _Champ(
               ctrl: _notesCtrl,

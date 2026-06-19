@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_tables.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../militants/presentation/providers/militants_provider.dart';
 import '../../domain/entities/prospect.dart';
 import '../providers/prospects_provider.dart';
 import 'prospect_form_page.dart';
@@ -74,9 +76,29 @@ class _EntonniorViewState extends ConsumerState<_EntonniorView>
     ));
   }
 
+  static const _mouvementsNoms = ['JPS', 'MOJIP', 'Cadres', 'Foyers', 'Maggi Pastef'];
+
+  String? _detecterMouvement() {
+    final utilisateur = ref.read(authProvider).whenOrNull(connecte: (u) => u);
+    if (utilisateur == null || utilisateur.role != AppRoles.responsableMouvement) return null;
+    final uniteId = utilisateur.uniteOrganisationnelleId;
+    if (uniteId == null) return null;
+    final unites = ref.read(militantsProvider).maybeWhen(
+        charge: (_, u, __, ___) => u, orElse: () => []);
+    final monUnite = unites.where((u) => u.id == uniteId).firstOrNull;
+    if (monUnite == null) return null;
+    final lower = monUnite.nom.toLowerCase();
+    for (final m in _mouvementsNoms) {
+      if (lower.contains(m.toLowerCase())) return m;
+    }
+    return null;
+  }
+
   Future<void> _ajouterProspect() async {
     final params = await Navigator.of(context).push<dynamic>(
-      MaterialPageRoute(builder: (_) => const ProspectFormPage()),
+      MaterialPageRoute(builder: (_) => ProspectFormPage(
+        mouvementPreselectionne: _detecterMouvement(),
+      )),
     );
     if (params == null || !mounted) return;
     final result = await ref.read(prospectsProvider.notifier).ajouterProspect(params);
@@ -331,8 +353,13 @@ class _ProspectCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 2),
-          Text('Contact le ${fmt.format(prospect.dateContact)}',
-              style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+          Text(
+            [
+              'Contact le ${fmt.format(prospect.dateContact)}',
+              if (prospect.createdByNom != null) 'par ${prospect.createdByNom}',
+            ].join(' · '),
+            style: const TextStyle(fontSize: 10, color: AppColors.text2),
+          ),
         ])),
         // Actions
         Column(mainAxisSize: MainAxisSize.min, children: [

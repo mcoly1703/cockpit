@@ -15,10 +15,12 @@ class MilitantFormPage extends ConsumerStatefulWidget {
     super.key,
     this.militant,
     required this.unites,
+    this.militants = const [],
   });
 
   final Militant? militant;
   final List<UniteOrganisationnelle> unites;
+  final List<Militant> militants;
 
   @override
   ConsumerState<MilitantFormPage> createState() => _MilitantFormPageState();
@@ -41,6 +43,7 @@ class _MilitantFormPageState extends ConsumerState<MilitantFormPage> {
   DateTime  _dateAdhesion = DateTime.now();
   String?   _sexe;
   String?   _uniteId;
+  String?   _parrainId;
 
   bool get _estModification => widget.militant != null;
 
@@ -58,6 +61,7 @@ class _MilitantFormPageState extends ConsumerState<MilitantFormPage> {
     _dateAdhesion  = m?.dateAdhesion ?? DateTime.now();
     _sexe          = m?.sexe;
     _uniteId       = m?.uniteId;
+    _parrainId     = m?.parrainId;
   }
 
   @override
@@ -110,6 +114,7 @@ class _MilitantFormPageState extends ConsumerState<MilitantFormPage> {
             codePostal:    _cpCtrl.text.trim().isEmpty ? null : _cpCtrl.text.trim(),
             uniteId:       _uniteId!,
             dateAdhesion:  _dateAdhesion,
+            parrainId:     _parrainId,
           ))
         : await notifier.ajouterMilitant(ParamsAjouterMilitant(
             nom:           _nomCtrl.text.trim(),
@@ -122,6 +127,7 @@ class _MilitantFormPageState extends ConsumerState<MilitantFormPage> {
             codePostal:    _cpCtrl.text.trim().isEmpty ? null : _cpCtrl.text.trim(),
             uniteId:       _uniteId!,
             dateAdhesion:  _dateAdhesion,
+            parrainId:     _parrainId,
           ));
 
     if (!mounted) return;
@@ -267,6 +273,13 @@ class _MilitantFormPageState extends ConsumerState<MilitantFormPage> {
                 derniere: DateTime.now(),
                 onChoisie: (d) => _dateAdhesion = d,
               ),
+            ),
+            const SizedBox(height: 12),
+            _ParrainField(
+              parrainId: _parrainId,
+              militants: widget.militants,
+              militantActuelId: widget.militant?.id,
+              onChanged: (id) => setState(() => _parrainId = id),
             ),
             if (_estModification) ...[
               const SizedBox(height: 20),
@@ -456,6 +469,142 @@ class _BoutonStatut extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ParrainField extends StatefulWidget {
+  const _ParrainField({
+    required this.parrainId,
+    required this.militants,
+    this.militantActuelId,
+    required this.onChanged,
+  });
+  final String? parrainId;
+  final List<Militant> militants;
+  final String? militantActuelId;
+  final void Function(String?) onChanged;
+
+  @override
+  State<_ParrainField> createState() => _ParrainFieldState();
+}
+
+class _ParrainFieldState extends State<_ParrainField> {
+  final _ctrl = TextEditingController();
+  List<Militant> _suggestions = [];
+  bool _showSuggestions = false;
+
+  String? _nomParrain() {
+    if (widget.parrainId == null) return null;
+    final p = widget.militants.where((m) => m.id == widget.parrainId).firstOrNull;
+    return p != null ? '${p.prenom} ${p.nom}' : null;
+  }
+
+  void _rechercher(String query) {
+    if (query.length < 2) {
+      setState(() { _suggestions = []; _showSuggestions = false; });
+      return;
+    }
+    final q = query.toLowerCase();
+    setState(() {
+      _suggestions = widget.militants
+          .where((m) =>
+              m.id != widget.militantActuelId &&
+              ('${m.nom} ${m.prenom}'.toLowerCase().contains(q) ||
+               '${m.prenom} ${m.nom}'.toLowerCase().contains(q)))
+          .take(8)
+          .toList();
+      _showSuggestions = _suggestions.isNotEmpty;
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nom = _nomParrain();
+
+    if (nom != null && _ctrl.text.isEmpty) {
+      _ctrl.text = nom;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: _ctrl,
+          onChanged: (v) {
+            if (widget.parrainId != null && v != nom) {
+              widget.onChanged(null);
+            }
+            _rechercher(v);
+          },
+          decoration: InputDecoration(
+            labelText: 'Parrainé par (optionnel)',
+            hintText: 'Rechercher un militant…',
+            prefixIcon: const Icon(Icons.person_search_outlined, size: 18, color: AppColors.text2),
+            suffixIcon: widget.parrainId != null
+                ? IconButton(
+                    icon: const Icon(Icons.clear, size: 18),
+                    onPressed: () {
+                      _ctrl.clear();
+                      widget.onChanged(null);
+                      setState(() { _suggestions = []; _showSuggestions = false; });
+                    },
+                  )
+                : null,
+            filled: true,
+            fillColor: AppColors.card,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: AppColors.border)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: widget.parrainId != null ? AppColors.primary : AppColors.border)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+        ),
+        if (_showSuggestions)
+          Container(
+            margin: const EdgeInsets.only(top: 2),
+            constraints: const BoxConstraints(maxHeight: 200),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+              boxShadow: AppColors.cardShadow,
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: _suggestions.length,
+              itemBuilder: (_, i) {
+                final m = _suggestions[i];
+                return ListTile(
+                  dense: true,
+                  leading: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                    child: Text(
+                      '${m.prenom.isNotEmpty ? m.prenom[0] : ''}${m.nom.isNotEmpty ? m.nom[0] : ''}',
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.primary),
+                    ),
+                  ),
+                  title: Text('${m.prenom} ${m.nom}',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  subtitle: Text(m.ville ?? '', style: const TextStyle(fontSize: 11)),
+                  onTap: () {
+                    _ctrl.text = '${m.prenom} ${m.nom}';
+                    widget.onChanged(m.id);
+                    setState(() { _suggestions = []; _showSuggestions = false; });
+                  },
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 }

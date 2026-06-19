@@ -69,6 +69,8 @@ class MilitantsDatasourceImpl implements MilitantsDatasource {
         AppTables.colDateAdhesion: params.dateAdhesion
             .toIso8601String()
             .substring(0, 10),
+        if (params.parrainId != null)
+          'parrain_id':            params.parrainId,
         AppTables.colCreatedBy:    userId,
       }).select().single();
       return MilitantModel.fromJson(data).toEntity();
@@ -97,6 +99,7 @@ class MilitantsDatasourceImpl implements MilitantsDatasource {
         AppTables.colDateAdhesion: params.dateAdhesion
             .toIso8601String()
             .substring(0, 10),
+        'parrain_id':              params.parrainId,
       }).eq(AppTables.colId, params.id).select().single();
       return MilitantModel.fromJson(data).toEntity();
     } on PostgrestException catch (e) {

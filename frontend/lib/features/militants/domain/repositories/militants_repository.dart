@@ -17,6 +17,7 @@ class ParamsAjouterMilitant {
   final String? codePostal;
   final String uniteId;
   final DateTime dateAdhesion;
+  final String? parrainId;
 
   const ParamsAjouterMilitant({
     required this.nom,
@@ -29,6 +30,7 @@ class ParamsAjouterMilitant {
     this.codePostal,
     required this.uniteId,
     required this.dateAdhesion,
+    this.parrainId,
   });
 }
 
@@ -44,6 +46,7 @@ class ParamsModifierMilitant {
   final String? codePostal;
   final String uniteId;
   final DateTime dateAdhesion;
+  final String? parrainId;
 
   const ParamsModifierMilitant({
     required this.id,
@@ -57,6 +60,7 @@ class ParamsModifierMilitant {
     this.codePostal,
     required this.uniteId,
     required this.dateAdhesion,
+    this.parrainId,
   });
 }
 

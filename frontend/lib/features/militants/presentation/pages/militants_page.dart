@@ -315,8 +315,9 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => MilitantFormPage(
-                          militant: affichage[i],
-                          unites:   widget.unites,
+                          militant:  affichage[i],
+                          unites:    widget.unites,
+                          militants: widget.militants,
                         ),
                       ),
                     ),
@@ -360,51 +361,55 @@ class _BarreActions extends ConsumerWidget {
     final utilisateur = ref.watch(authProvider).whenOrNull(connecte: (u) => u);
     final role        = utilisateur?.role;
 
+    final peutAjouter = _peutAjouterMilitant(role);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
       child: Column(
         children: [
           Row(
             children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon:  const Icon(Icons.person_add, size: 18),
-                  label: const Text('Ajouter un militant'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    textStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          MilitantFormPage(militant: null, unites: unites),
+              if (peutAjouter) ...[
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon:  const Icon(Icons.person_add, size: 18),
+                    label: const Text('Ajouter un militant'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      textStyle: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            MilitantFormPage(militant: null, unites: unites, militants: militants),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  icon:  const Icon(Icons.upload_file, size: 18),
-                  label: const Text('Import'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    textStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon:  const Icon(Icons.upload_file, size: 18),
+                    label: const Text('Import'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      textStyle: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
+                    onPressed: () => _importer(context, ref),
                   ),
-                  onPressed: () => _importer(context, ref),
                 ),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
               Expanded(
                 child: ElevatedButton.icon(
                   icon:  const Icon(Icons.download, size: 18),
@@ -458,6 +463,13 @@ class _BarreActions extends ConsumerWidget {
     final filename = 'militants_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv';
     await telechargerCsv(csv, filename);
   }
+
+  bool _peutAjouterMilitant(String? role) =>
+      role == AppRoles.bureauExecutif ||
+      role == AppRoles.coordinateur ||
+      role == AppRoles.adminTechnique ||
+      role == AppRoles.responsableSousSection ||
+      role == AppRoles.coordinateurCellule;
 
   bool _peutCreerCellule(String? role) =>
       role == AppRoles.bureauExecutif ||

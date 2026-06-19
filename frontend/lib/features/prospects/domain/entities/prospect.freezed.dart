@@ -30,6 +30,7 @@ mixin _$Prospect {
   String? get notes => throw _privateConstructorUsedError;
   String get uniteId => throw _privateConstructorUsedError;
   String? get convertiEnMilitantId => throw _privateConstructorUsedError;
+  String? get createdByNom => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
 
   /// Create a copy of Prospect
@@ -58,6 +59,7 @@ abstract class $ProspectCopyWith<$Res> {
     String? notes,
     String uniteId,
     String? convertiEnMilitantId,
+    String? createdByNom,
     DateTime createdAt,
   });
 }
@@ -90,6 +92,7 @@ class _$ProspectCopyWithImpl<$Res, $Val extends Prospect>
     Object? notes = freezed,
     Object? uniteId = null,
     Object? convertiEnMilitantId = freezed,
+    Object? createdByNom = freezed,
     Object? createdAt = null,
   }) {
     return _then(
@@ -146,6 +149,10 @@ class _$ProspectCopyWithImpl<$Res, $Val extends Prospect>
                 ? _value.convertiEnMilitantId
                 : convertiEnMilitantId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            createdByNom: freezed == createdByNom
+                ? _value.createdByNom
+                : createdByNom // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -179,6 +186,7 @@ abstract class _$$ProspectImplCopyWith<$Res>
     String? notes,
     String uniteId,
     String? convertiEnMilitantId,
+    String? createdByNom,
     DateTime createdAt,
   });
 }
@@ -210,6 +218,7 @@ class __$$ProspectImplCopyWithImpl<$Res>
     Object? notes = freezed,
     Object? uniteId = null,
     Object? convertiEnMilitantId = freezed,
+    Object? createdByNom = freezed,
     Object? createdAt = null,
   }) {
     return _then(
@@ -266,6 +275,10 @@ class __$$ProspectImplCopyWithImpl<$Res>
             ? _value.convertiEnMilitantId
             : convertiEnMilitantId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        createdByNom: freezed == createdByNom
+            ? _value.createdByNom
+            : createdByNom // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -292,6 +305,7 @@ class _$ProspectImpl implements _Prospect {
     this.notes,
     required this.uniteId,
     this.convertiEnMilitantId,
+    this.createdByNom,
     required this.createdAt,
   });
 
@@ -322,11 +336,13 @@ class _$ProspectImpl implements _Prospect {
   @override
   final String? convertiEnMilitantId;
   @override
+  final String? createdByNom;
+  @override
   final DateTime createdAt;
 
   @override
   String toString() {
-    return 'Prospect(id: $id, nom: $nom, prenom: $prenom, telephone: $telephone, email: $email, ville: $ville, sexe: $sexe, mouvementInteret: $mouvementInteret, etape: $etape, dateContact: $dateContact, notes: $notes, uniteId: $uniteId, convertiEnMilitantId: $convertiEnMilitantId, createdAt: $createdAt)';
+    return 'Prospect(id: $id, nom: $nom, prenom: $prenom, telephone: $telephone, email: $email, ville: $ville, sexe: $sexe, mouvementInteret: $mouvementInteret, etape: $etape, dateContact: $dateContact, notes: $notes, uniteId: $uniteId, convertiEnMilitantId: $convertiEnMilitantId, createdByNom: $createdByNom, createdAt: $createdAt)';
   }
 
   @override
@@ -351,6 +367,8 @@ class _$ProspectImpl implements _Prospect {
             (identical(other.uniteId, uniteId) || other.uniteId == uniteId) &&
             (identical(other.convertiEnMilitantId, convertiEnMilitantId) ||
                 other.convertiEnMilitantId == convertiEnMilitantId) &&
+            (identical(other.createdByNom, createdByNom) ||
+                other.createdByNom == createdByNom) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
@@ -371,6 +389,7 @@ class _$ProspectImpl implements _Prospect {
     notes,
     uniteId,
     convertiEnMilitantId,
+    createdByNom,
     createdAt,
   );
 
@@ -398,6 +417,7 @@ abstract class _Prospect implements Prospect {
     final String? notes,
     required final String uniteId,
     final String? convertiEnMilitantId,
+    final String? createdByNom,
     required final DateTime createdAt,
   }) = _$ProspectImpl;
 
@@ -427,6 +447,8 @@ abstract class _Prospect implements Prospect {
   String get uniteId;
   @override
   String? get convertiEnMilitantId;
+  @override
+  String? get createdByNom;
   @override
   DateTime get createdAt;
 

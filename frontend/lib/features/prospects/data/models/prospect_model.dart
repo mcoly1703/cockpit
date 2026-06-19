@@ -1,5 +1,15 @@
 import '../../domain/entities/prospect.dart';
 
+String? _extractCreatedByNom(Map<String, dynamic> j) {
+  final profile = j['profiles'];
+  if (profile is Map<String, dynamic>) {
+    final nom = profile['nom'] as String? ?? '';
+    final prenom = profile['prenom'] as String? ?? '';
+    return '$prenom $nom'.trim();
+  }
+  return null;
+}
+
 class ProspectModel {
   final String    id;
   final String    nom;
@@ -14,6 +24,7 @@ class ProspectModel {
   final String?   notes;
   final String    uniteId;
   final String?   convertiEnMilitantId;
+  final String?   createdByNom;
   final DateTime  createdAt;
 
   const ProspectModel({
@@ -30,6 +41,7 @@ class ProspectModel {
     this.notes,
     required this.uniteId,
     this.convertiEnMilitantId,
+    this.createdByNom,
     required this.createdAt,
   });
 
@@ -47,6 +59,7 @@ class ProspectModel {
         notes:                j['notes'] as String?,
         uniteId:              j['unite_id'] as String,
         convertiEnMilitantId: j['converti_en_militant_id'] as String?,
+        createdByNom:         _extractCreatedByNom(j),
         createdAt:            DateTime.parse(j['created_at'] as String),
       );
 
@@ -64,6 +77,7 @@ class ProspectModel {
         notes:                notes,
         uniteId:              uniteId,
         convertiEnMilitantId: convertiEnMilitantId,
+        createdByNom:         createdByNom,
         createdAt:            createdAt,
       );
 }

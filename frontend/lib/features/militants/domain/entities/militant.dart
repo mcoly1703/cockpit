@@ -21,6 +21,7 @@ class Militant with _$Militant {
     @Default('en_attente') String statutCarte,
     required DateTime dateAdhesion,
     String? photoUrl,
+    String? parrainId,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _Militant;

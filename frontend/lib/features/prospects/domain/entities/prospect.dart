@@ -18,6 +18,7 @@ class Prospect with _$Prospect {
     String?         notes,
     required String uniteId,
     String?         convertiEnMilitantId,
+    String?         createdByNom,
     required DateTime createdAt,
   }) = _Prospect;
 }
