@@ -1,5 +1,15 @@
 import '../../domain/entities/transaction.dart';
 
+String? _extractDonateurNom(Map<String, dynamic> j) {
+  final d = j['donateurs'];
+  if (d is Map<String, dynamic>) {
+    final nom = d['nom'] as String? ?? '';
+    final prenom = d['prenom'] as String? ?? '';
+    return '$prenom $nom'.trim();
+  }
+  return null;
+}
+
 class TransactionModel {
   final String   id;
   final String   type;
@@ -12,6 +22,8 @@ class TransactionModel {
   final String?  beneficiaire;
   final String?  pieceJustificativeUrl;
   final String?  militantId;
+  final String?  donateurId;
+  final String?  donateurNom;
 
   const TransactionModel({
     required this.id,
@@ -25,6 +37,8 @@ class TransactionModel {
     this.beneficiaire,
     this.pieceJustificativeUrl,
     this.militantId,
+    this.donateurId,
+    this.donateurNom,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> j) => TransactionModel(
@@ -39,6 +53,8 @@ class TransactionModel {
         beneficiaire:         j['beneficiaire'] as String?,
         pieceJustificativeUrl: j['piece_justificative_url'] as String?,
         militantId:           j['militant_id'] as String?,
+        donateurId:           j['donateur_id'] as String?,
+        donateurNom:          _extractDonateurNom(j),
       );
 
   Transaction toEntity() => Transaction(
@@ -53,5 +69,7 @@ class TransactionModel {
         beneficiaire:         beneficiaire,
         pieceJustificativeUrl: pieceJustificativeUrl,
         militantId:           militantId,
+        donateurId:           donateurId,
+        donateurNom:          donateurNom,
       );
 }

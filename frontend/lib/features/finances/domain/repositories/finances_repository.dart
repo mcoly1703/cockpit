@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/cotisation.dart';
+import '../entities/donateur.dart';
 import '../entities/transaction.dart';
 
 abstract class FinancesRepository {
@@ -9,6 +10,8 @@ abstract class FinancesRepository {
   Future<Either<Failure, List<Cotisation>>>  getCotisations({String? uniteId, int? annee});
   Future<Either<Failure, Transaction>>       ajouterTransaction(ParamsAjouterTransaction params);
   Future<Either<Failure, Cotisation>>        enregistrerCotisation(ParamsEnregistrerCotisation params);
+  Future<Either<Failure, List<Donateur>>>    getDonateurs();
+  Future<Either<Failure, Donateur>>          creerDonateur(ParamsCreerDonateur params);
 }
 
 class ParamsAjouterTransaction {
@@ -21,6 +24,8 @@ class ParamsAjouterTransaction {
   final String?  beneficiaire;
   final String?  militantId;
 
+  final String?  donateurId;
+
   const ParamsAjouterTransaction({
     required this.type,
     required this.categorie,
@@ -30,6 +35,23 @@ class ParamsAjouterTransaction {
     this.description,
     this.beneficiaire,
     this.militantId,
+    this.donateurId,
+  });
+}
+
+class ParamsCreerDonateur {
+  final String nom;
+  final String? prenom;
+  final String? telephone;
+  final String? email;
+  final String? ville;
+
+  const ParamsCreerDonateur({
+    required this.nom,
+    this.prenom,
+    this.telephone,
+    this.email,
+    this.ville,
   });
 }
 

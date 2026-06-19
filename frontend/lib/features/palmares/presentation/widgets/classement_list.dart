@@ -89,12 +89,35 @@ class _LigneClassement extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${entry.prenom} ${entry.nom}',
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.text),
-                    overflow: TextOverflow.ellipsis),
+                Row(children: [
+                  Flexible(
+                    child: Text(
+                        entry.prenom.isNotEmpty
+                            ? '${entry.prenom} ${entry.nom}'
+                            : entry.nom,
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  if (entry.estExterne) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('Externe',
+                          style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.accent)),
+                    ),
+                  ],
+                ]),
                 if (entry.uniteNom != null)
                   Text(entry.uniteNom!,
                       style:

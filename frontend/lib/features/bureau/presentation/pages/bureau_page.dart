@@ -70,17 +70,17 @@ class _BureauView extends ConsumerWidget {
   Future<void> _retirer(BuildContext context, WidgetRef ref, PosteBureau poste) async {
     final confirme = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Retirer ce membre ?'),
         content: Text(
             '${poste.militantPrenom} ${poste.militantNom} sera retiré du poste de '
             '"${_labelPoste(poste.intitule, ref)}"'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text('Annuler')),
           ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Navigator.of(ctx).pop(true),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary,
                   foregroundColor: Colors.white),
               child: const Text('Retirer')),

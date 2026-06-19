@@ -3,9 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_tables.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/cotisation.dart';
+import '../../domain/entities/donateur.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/repositories/finances_repository.dart';
 import '../models/cotisation_model.dart';
+import '../models/donateur_model.dart';
 import '../models/transaction_model.dart';
 import 'finances_datasource.dart';
 
@@ -16,7 +18,8 @@ class FinancesDatasourceImpl implements FinancesDatasource {
   @override
   Future<List<Transaction>> getTransactions({String? uniteId}) async {
     try {
-      var query = supabase.from(AppTables.transactions).select('*');
+      var query = supabase.from(AppTables.transactions)
+          .select('*, donateurs:donateur_id(nom, prenom, telephone)');
       if (uniteId != null) query = query.eq(AppTables.colUniteId, uniteId);
       final data = await query.order(AppTables.colDateTransaction, ascending: false);
       return (data as List).map((e) => TransactionModel.fromJson(e).toEntity()).toList();
@@ -56,6 +59,8 @@ class FinancesDatasourceImpl implements FinancesDatasource {
         AppTables.colDescription:    params.description,
         AppTables.colBeneficiaire:   params.beneficiaire,
         AppTables.colMilitantId:     params.militantId,
+        if (params.donateurId != null)
+          AppTables.colDonateurId:   params.donateurId,
         AppTables.colCreatedBy:      userId,
       }).select().single();
       return TransactionModel.fromJson(data).toEntity();
@@ -83,6 +88,41 @@ class FinancesDatasourceImpl implements FinancesDatasource {
         AppTables.colCreatedBy:     userId,
       }, onConflict: 'militant_id,annee,mois').select().single();
       return CotisationModel.fromJson(data).toEntity();
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (_) {
+      throw const NetworkException();
+    }
+  }
+
+  @override
+  Future<List<Donateur>> getDonateurs() async {
+    try {
+      final data = await supabase
+          .from(AppTables.donateurs)
+          .select()
+          .order(AppTables.colNom);
+      return (data as List)
+          .map((e) => DonateurModel.fromJson(e).toEntity())
+          .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (_) {
+      throw const NetworkException();
+    }
+  }
+
+  @override
+  Future<Donateur> creerDonateur(ParamsCreerDonateur params) async {
+    try {
+      final data = await supabase.from(AppTables.donateurs).insert({
+        AppTables.colNom:       params.nom,
+        AppTables.colPrenom:    params.prenom,
+        AppTables.colTelephone: params.telephone,
+        AppTables.colEmail:     params.email,
+        AppTables.colVille:     params.ville,
+      }).select().single();
+      return DonateurModel.fromJson(data).toEntity();
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
     } catch (_) {

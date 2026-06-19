@@ -16,5 +16,7 @@ class Transaction with _$Transaction {
     String?           beneficiaire,
     String?           pieceJustificativeUrl,
     String?           militantId,
+    String?           donateurId,
+    String?           donateurNom,
   }) = _Transaction;
 }

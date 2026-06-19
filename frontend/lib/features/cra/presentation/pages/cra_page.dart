@@ -247,15 +247,15 @@ class _CrCard extends ConsumerWidget {
   Future<bool> _confirmer(BuildContext context, String titre, String texte) async {
     return await showDialog<bool>(
           context: context,
-          builder: (_) => AlertDialog(
+          builder: (ctx) => AlertDialog(
             title: Text(titre),
             content: Text(texte),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => Navigator.of(ctx).pop(false),
                   child: const Text('Annuler')),
               ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => Navigator.of(ctx).pop(true),
                   child: const Text('Confirmer')),
             ],
           ),
@@ -425,7 +425,7 @@ class _CrRecuCard extends ConsumerWidget {
     final ctrl = TextEditingController();
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Retourner avec observations'),
         content: TextField(
           controller: ctrl,
@@ -437,13 +437,13 @@ class _CrRecuCard extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(ctx).pop(),
               child: const Text('Annuler')),
           ElevatedButton(
             onPressed: () async {
               final obs = ctrl.text.trim();
               if (obs.isEmpty) return;
-              Navigator.of(context).pop();
+              Navigator.of(ctx).pop();
               await notifier.retourner(cr.id, obs);
             },
             child: const Text('Retourner'),

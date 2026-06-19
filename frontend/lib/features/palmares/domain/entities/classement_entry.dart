@@ -12,5 +12,6 @@ class ClassementEntry with _$ClassementEntry {
     String? uniteNom,
     required int score,
     String? detailLabel,
+    @Default(false) bool estExterne,
   }) = _ClassementEntry;
 }

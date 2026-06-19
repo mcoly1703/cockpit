@@ -174,6 +174,7 @@ final craRecusProvider = StateNotifierProvider<CraRecusNotifier, CraRecusState>(
     getRendusRecus: GetRendusRecus(ref.watch(craRepositoryProvider)),
     validerCr:      ValiderCr(ref.watch(craRepositoryProvider)),
     retournerCr:    RetournerCr(ref.watch(craRepositoryProvider)),
+    ref:            ref,
   ),
 );
 
@@ -181,14 +182,17 @@ class CraRecusNotifier extends StateNotifier<CraRecusState> {
   final GetRendusRecus _getRendusRecus;
   final ValiderCr      _validerCr;
   final RetournerCr    _retournerCr;
+  final Ref            _ref;
 
   CraRecusNotifier({
     required GetRendusRecus getRendusRecus,
     required ValiderCr      validerCr,
     required RetournerCr    retournerCr,
+    required Ref            ref,
   })  : _getRendusRecus = getRendusRecus,
         _validerCr      = validerCr,
         _retournerCr    = retournerCr,
+        _ref            = ref,
         super(const CraRecusState.initial()) {
     charger();
   }
@@ -204,7 +208,10 @@ class CraRecusNotifier extends StateNotifier<CraRecusState> {
 
   Future<Either<Failure, void>> valider(String crId) async {
     final result = await _validerCr(crId);
-    if (result.isRight()) await charger();
+    if (result.isRight()) {
+      await charger();
+      await _ref.read(craProvider.notifier).charger();
+    }
     return result;
   }
 
@@ -212,7 +219,10 @@ class CraRecusNotifier extends StateNotifier<CraRecusState> {
     final result = await _retournerCr(
       ParamsRetournerCr(crId: crId, observations: observations),
     );
-    if (result.isRight()) await charger();
+    if (result.isRight()) {
+      await charger();
+      await _ref.read(craProvider.notifier).charger();
+    }
     return result;
   }
 }

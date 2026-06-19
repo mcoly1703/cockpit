@@ -28,6 +28,8 @@ mixin _$Transaction {
   String? get beneficiaire => throw _privateConstructorUsedError;
   String? get pieceJustificativeUrl => throw _privateConstructorUsedError;
   String? get militantId => throw _privateConstructorUsedError;
+  String? get donateurId => throw _privateConstructorUsedError;
+  String? get donateurNom => throw _privateConstructorUsedError;
 
   /// Create a copy of Transaction
   /// with the given fields replaced by the non-null parameter values.
@@ -55,6 +57,8 @@ abstract class $TransactionCopyWith<$Res> {
     String? beneficiaire,
     String? pieceJustificativeUrl,
     String? militantId,
+    String? donateurId,
+    String? donateurNom,
   });
 }
 
@@ -84,6 +88,8 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
     Object? beneficiaire = freezed,
     Object? pieceJustificativeUrl = freezed,
     Object? militantId = freezed,
+    Object? donateurId = freezed,
+    Object? donateurNom = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -131,6 +137,14 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
                 ? _value.militantId
                 : militantId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            donateurId: freezed == donateurId
+                ? _value.donateurId
+                : donateurId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            donateurNom: freezed == donateurNom
+                ? _value.donateurNom
+                : donateurNom // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -158,6 +172,8 @@ abstract class _$$TransactionImplCopyWith<$Res>
     String? beneficiaire,
     String? pieceJustificativeUrl,
     String? militantId,
+    String? donateurId,
+    String? donateurNom,
   });
 }
 
@@ -186,6 +202,8 @@ class __$$TransactionImplCopyWithImpl<$Res>
     Object? beneficiaire = freezed,
     Object? pieceJustificativeUrl = freezed,
     Object? militantId = freezed,
+    Object? donateurId = freezed,
+    Object? donateurNom = freezed,
   }) {
     return _then(
       _$TransactionImpl(
@@ -233,6 +251,14 @@ class __$$TransactionImplCopyWithImpl<$Res>
             ? _value.militantId
             : militantId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        donateurId: freezed == donateurId
+            ? _value.donateurId
+            : donateurId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        donateurNom: freezed == donateurNom
+            ? _value.donateurNom
+            : donateurNom // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -253,6 +279,8 @@ class _$TransactionImpl implements _Transaction {
     this.beneficiaire,
     this.pieceJustificativeUrl,
     this.militantId,
+    this.donateurId,
+    this.donateurNom,
   });
 
   @override
@@ -277,10 +305,14 @@ class _$TransactionImpl implements _Transaction {
   final String? pieceJustificativeUrl;
   @override
   final String? militantId;
+  @override
+  final String? donateurId;
+  @override
+  final String? donateurNom;
 
   @override
   String toString() {
-    return 'Transaction(id: $id, type: $type, categorie: $categorie, montant: $montant, dateTransaction: $dateTransaction, uniteId: $uniteId, createdBy: $createdBy, description: $description, beneficiaire: $beneficiaire, pieceJustificativeUrl: $pieceJustificativeUrl, militantId: $militantId)';
+    return 'Transaction(id: $id, type: $type, categorie: $categorie, montant: $montant, dateTransaction: $dateTransaction, uniteId: $uniteId, createdBy: $createdBy, description: $description, beneficiaire: $beneficiaire, pieceJustificativeUrl: $pieceJustificativeUrl, militantId: $militantId, donateurId: $donateurId, donateurNom: $donateurNom)';
   }
 
   @override
@@ -305,7 +337,11 @@ class _$TransactionImpl implements _Transaction {
             (identical(other.pieceJustificativeUrl, pieceJustificativeUrl) ||
                 other.pieceJustificativeUrl == pieceJustificativeUrl) &&
             (identical(other.militantId, militantId) ||
-                other.militantId == militantId));
+                other.militantId == militantId) &&
+            (identical(other.donateurId, donateurId) ||
+                other.donateurId == donateurId) &&
+            (identical(other.donateurNom, donateurNom) ||
+                other.donateurNom == donateurNom));
   }
 
   @override
@@ -322,6 +358,8 @@ class _$TransactionImpl implements _Transaction {
     beneficiaire,
     pieceJustificativeUrl,
     militantId,
+    donateurId,
+    donateurNom,
   );
 
   /// Create a copy of Transaction
@@ -346,6 +384,8 @@ abstract class _Transaction implements Transaction {
     final String? beneficiaire,
     final String? pieceJustificativeUrl,
     final String? militantId,
+    final String? donateurId,
+    final String? donateurNom,
   }) = _$TransactionImpl;
 
   @override
@@ -370,6 +410,10 @@ abstract class _Transaction implements Transaction {
   String? get pieceJustificativeUrl;
   @override
   String? get militantId;
+  @override
+  String? get donateurId;
+  @override
+  String? get donateurNom;
 
   /// Create a copy of Transaction
   /// with the given fields replaced by the non-null parameter values.

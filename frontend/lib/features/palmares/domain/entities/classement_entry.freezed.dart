@@ -24,6 +24,7 @@ mixin _$ClassementEntry {
   String? get uniteNom => throw _privateConstructorUsedError;
   int get score => throw _privateConstructorUsedError;
   String? get detailLabel => throw _privateConstructorUsedError;
+  bool get estExterne => throw _privateConstructorUsedError;
 
   /// Create a copy of ClassementEntry
   /// with the given fields replaced by the non-null parameter values.
@@ -47,6 +48,7 @@ abstract class $ClassementEntryCopyWith<$Res> {
     String? uniteNom,
     int score,
     String? detailLabel,
+    bool estExterne,
   });
 }
 
@@ -72,6 +74,7 @@ class _$ClassementEntryCopyWithImpl<$Res, $Val extends ClassementEntry>
     Object? uniteNom = freezed,
     Object? score = null,
     Object? detailLabel = freezed,
+    Object? estExterne = null,
   }) {
     return _then(
       _value.copyWith(
@@ -103,6 +106,10 @@ class _$ClassementEntryCopyWithImpl<$Res, $Val extends ClassementEntry>
                 ? _value.detailLabel
                 : detailLabel // ignore: cast_nullable_to_non_nullable
                       as String?,
+            estExterne: null == estExterne
+                ? _value.estExterne
+                : estExterne // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -126,6 +133,7 @@ abstract class _$$ClassementEntryImplCopyWith<$Res>
     String? uniteNom,
     int score,
     String? detailLabel,
+    bool estExterne,
   });
 }
 
@@ -150,6 +158,7 @@ class __$$ClassementEntryImplCopyWithImpl<$Res>
     Object? uniteNom = freezed,
     Object? score = null,
     Object? detailLabel = freezed,
+    Object? estExterne = null,
   }) {
     return _then(
       _$ClassementEntryImpl(
@@ -181,6 +190,10 @@ class __$$ClassementEntryImplCopyWithImpl<$Res>
             ? _value.detailLabel
             : detailLabel // ignore: cast_nullable_to_non_nullable
                   as String?,
+        estExterne: null == estExterne
+            ? _value.estExterne
+            : estExterne // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -197,6 +210,7 @@ class _$ClassementEntryImpl implements _ClassementEntry {
     this.uniteNom,
     required this.score,
     this.detailLabel,
+    this.estExterne = false,
   });
 
   @override
@@ -213,10 +227,13 @@ class _$ClassementEntryImpl implements _ClassementEntry {
   final int score;
   @override
   final String? detailLabel;
+  @override
+  @JsonKey()
+  final bool estExterne;
 
   @override
   String toString() {
-    return 'ClassementEntry(rang: $rang, militantId: $militantId, nom: $nom, prenom: $prenom, uniteNom: $uniteNom, score: $score, detailLabel: $detailLabel)';
+    return 'ClassementEntry(rang: $rang, militantId: $militantId, nom: $nom, prenom: $prenom, uniteNom: $uniteNom, score: $score, detailLabel: $detailLabel, estExterne: $estExterne)';
   }
 
   @override
@@ -233,7 +250,9 @@ class _$ClassementEntryImpl implements _ClassementEntry {
                 other.uniteNom == uniteNom) &&
             (identical(other.score, score) || other.score == score) &&
             (identical(other.detailLabel, detailLabel) ||
-                other.detailLabel == detailLabel));
+                other.detailLabel == detailLabel) &&
+            (identical(other.estExterne, estExterne) ||
+                other.estExterne == estExterne));
   }
 
   @override
@@ -246,6 +265,7 @@ class _$ClassementEntryImpl implements _ClassementEntry {
     uniteNom,
     score,
     detailLabel,
+    estExterne,
   );
 
   /// Create a copy of ClassementEntry
@@ -269,6 +289,7 @@ abstract class _ClassementEntry implements ClassementEntry {
     final String? uniteNom,
     required final int score,
     final String? detailLabel,
+    final bool estExterne,
   }) = _$ClassementEntryImpl;
 
   @override
@@ -285,6 +306,8 @@ abstract class _ClassementEntry implements ClassementEntry {
   int get score;
   @override
   String? get detailLabel;
+  @override
+  bool get estExterne;
 
   /// Create a copy of ClassementEntry
   /// with the given fields replaced by the non-null parameter values.

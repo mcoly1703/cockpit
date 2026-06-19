@@ -78,7 +78,7 @@ class BureauDatasourceImpl implements BureauDatasource {
       final data = await supabase
           .from(AppTables.militants)
           .select('${AppTables.colId}, ${AppTables.colNom}, ${AppTables.colPrenom}')
-          .eq(AppTables.colUniteId, uniteId)
+          .eq(AppTables.colStatut, AppEnums.militantActif)
           .or('${AppTables.colNom}.ilike.%$query%,${AppTables.colPrenom}.ilike.%$query%')
           .order(AppTables.colNom)
           .limit(20);

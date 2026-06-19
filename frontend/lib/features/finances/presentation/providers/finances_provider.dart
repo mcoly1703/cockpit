@@ -9,6 +9,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/finances_datasource_impl.dart';
 import '../../data/repositories/finances_repository_impl.dart';
 import '../../domain/entities/cotisation.dart';
+import '../../domain/entities/donateur.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/repositories/finances_repository.dart';
 import '../../domain/usecases/ajouter_transaction.dart';
@@ -278,6 +279,7 @@ class FinancesNotifier extends StateNotifier<FinancesState> {
       description:     params.description,
       beneficiaire:    params.beneficiaire,
       militantId:      params.militantId,
+      donateurId:      params.donateurId,
     );
     final result = await _ajouterTransaction(paramsAvecUnite);
     if (result.isRight()) await charger();
@@ -290,4 +292,15 @@ class FinancesNotifier extends StateNotifier<FinancesState> {
     if (result.isRight()) await charger();
     return result.map((_) {});
   }
+
+  Future<Either<Failure, Donateur>> creerDonateur(
+      ParamsCreerDonateur params) async {
+    return _ref.read(financesRepositoryProvider).creerDonateur(params);
+  }
 }
+
+final donateursProvider = FutureProvider.autoDispose<List<Donateur>>((ref) async {
+  final repo = ref.watch(financesRepositoryProvider);
+  final result = await repo.getDonateurs();
+  return result.getOrElse(() => []);
+});

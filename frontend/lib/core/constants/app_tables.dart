@@ -85,6 +85,10 @@ class AppTables {
   static const String colEvenementId        = 'evenement_id';
   static const String colCheckedAt          = 'checked_at';
 
+  // Table donateurs
+  static const String donateurs              = 'donateurs';
+  static const String colDonateurId          = 'donateur_id';
+
   // Table prospects
   static const String prospects               = 'prospects';
   static const String colEtape               = 'etape';
