@@ -22,6 +22,7 @@ class Militant with _$Militant {
     required DateTime dateAdhesion,
     String? photoUrl,
     String? parrainId,
+    String? createdBy,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _Militant;

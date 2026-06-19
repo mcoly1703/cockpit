@@ -25,6 +25,8 @@ import 'features/elections/presentation/pages/elections_page.dart';
 import 'features/cra/presentation/pages/cra_page.dart';
 import 'core/widgets/modules_page.dart';
 import 'core/widgets/organigramme_page.dart';
+import 'features/palmares/presentation/pages/palmares_page.dart';
+import 'features/espace_militant/presentation/pages/espace_militant_page.dart';
 
 
 /// Point d'entrée de l'application.
@@ -115,6 +117,8 @@ final _router = GoRouter(
     final estConnecte = session != null;
     final location    = state.matchedLocation;
 
+    if (location.startsWith('/mon-espace')) return null;
+
     final versLanding = location == AppRoutes.landing;
     final versLogin   = location == AppRoutes.login;
 
@@ -130,6 +134,12 @@ final _router = GoRouter(
     GoRoute(
       path: AppRoutes.login,
       builder: (_, __) => const LoginPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.espaceMilitant,
+      builder: (_, state) => EspaceMilitantPage(
+        numeroCarte: state.pathParameters['numeroCarte'] ?? '',
+      ),
     ),
     ShellRoute(
       builder: (context, state, child) => AppShell(child: child),
@@ -185,6 +195,10 @@ final _router = GoRouter(
         GoRoute(
           path: AppRoutes.organigramme,
           builder: (_, __) => const OrganigrammePage(),
+        ),
+        GoRoute(
+          path: AppRoutes.palmares,
+          builder: (_, __) => const PalmaresPage(),
         ),
       ],
     ),

@@ -16,6 +16,7 @@ class MilitantModel {
   final DateTime dateAdhesion;
   final String? photoUrl;
   final String? parrainId;
+  final String? createdBy;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -40,6 +41,7 @@ class MilitantModel {
     required this.dateAdhesion,
     this.photoUrl,
     this.parrainId,
+    this.createdBy,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -64,6 +66,7 @@ class MilitantModel {
         dateAdhesion:  DateTime.parse(json['date_adhesion'] as String),
         photoUrl:      json['photo_url'] as String?,
         parrainId:     json['parrain_id'] as String?,
+        createdBy:     json['created_by'] as String?,
         createdAt:     DateTime.parse(json['created_at'] as String),
         updatedAt:     DateTime.parse(json['updated_at'] as String),
       );
@@ -86,6 +89,7 @@ class MilitantModel {
         dateAdhesion:  dateAdhesion,
         photoUrl:      photoUrl,
         parrainId:     parrainId,
+        createdBy:     createdBy,
         createdAt:     createdAt,
         updatedAt:     updatedAt,
       );

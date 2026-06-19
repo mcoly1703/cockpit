@@ -34,6 +34,7 @@ mixin _$Militant {
   DateTime get dateAdhesion => throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
   String? get parrainId => throw _privateConstructorUsedError;
+  String? get createdBy => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
@@ -67,6 +68,7 @@ abstract class $MilitantCopyWith<$Res> {
     DateTime dateAdhesion,
     String? photoUrl,
     String? parrainId,
+    String? createdBy,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -104,6 +106,7 @@ class _$MilitantCopyWithImpl<$Res, $Val extends Militant>
     Object? dateAdhesion = null,
     Object? photoUrl = freezed,
     Object? parrainId = freezed,
+    Object? createdBy = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -177,6 +180,10 @@ class _$MilitantCopyWithImpl<$Res, $Val extends Militant>
                 ? _value.parrainId
                 : parrainId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            createdBy: freezed == createdBy
+                ? _value.createdBy
+                : createdBy // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -218,6 +225,7 @@ abstract class _$$MilitantImplCopyWith<$Res>
     DateTime dateAdhesion,
     String? photoUrl,
     String? parrainId,
+    String? createdBy,
     DateTime createdAt,
     DateTime updatedAt,
   });
@@ -254,6 +262,7 @@ class __$$MilitantImplCopyWithImpl<$Res>
     Object? dateAdhesion = null,
     Object? photoUrl = freezed,
     Object? parrainId = freezed,
+    Object? createdBy = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -327,6 +336,10 @@ class __$$MilitantImplCopyWithImpl<$Res>
             ? _value.parrainId
             : parrainId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        createdBy: freezed == createdBy
+            ? _value.createdBy
+            : createdBy // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -361,6 +374,7 @@ class _$MilitantImpl implements _Militant {
     required this.dateAdhesion,
     this.photoUrl,
     this.parrainId,
+    this.createdBy,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -401,13 +415,15 @@ class _$MilitantImpl implements _Militant {
   @override
   final String? parrainId;
   @override
+  final String? createdBy;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
 
   @override
   String toString() {
-    return 'Militant(id: $id, numeroCarte: $numeroCarte, nom: $nom, prenom: $prenom, dateNaissance: $dateNaissance, sexe: $sexe, telephone: $telephone, email: $email, ville: $ville, codePostal: $codePostal, uniteId: $uniteId, mouvementId: $mouvementId, statut: $statut, statutCarte: $statutCarte, dateAdhesion: $dateAdhesion, photoUrl: $photoUrl, parrainId: $parrainId, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Militant(id: $id, numeroCarte: $numeroCarte, nom: $nom, prenom: $prenom, dateNaissance: $dateNaissance, sexe: $sexe, telephone: $telephone, email: $email, ville: $ville, codePostal: $codePostal, uniteId: $uniteId, mouvementId: $mouvementId, statut: $statut, statutCarte: $statutCarte, dateAdhesion: $dateAdhesion, photoUrl: $photoUrl, parrainId: $parrainId, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -441,6 +457,8 @@ class _$MilitantImpl implements _Militant {
                 other.photoUrl == photoUrl) &&
             (identical(other.parrainId, parrainId) ||
                 other.parrainId == parrainId) &&
+            (identical(other.createdBy, createdBy) ||
+                other.createdBy == createdBy) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -467,6 +485,7 @@ class _$MilitantImpl implements _Militant {
     dateAdhesion,
     photoUrl,
     parrainId,
+    createdBy,
     createdAt,
     updatedAt,
   ]);
@@ -499,6 +518,7 @@ abstract class _Militant implements Militant {
     required final DateTime dateAdhesion,
     final String? photoUrl,
     final String? parrainId,
+    final String? createdBy,
     required final DateTime createdAt,
     required final DateTime updatedAt,
   }) = _$MilitantImpl;
@@ -537,6 +557,8 @@ abstract class _Militant implements Militant {
   String? get photoUrl;
   @override
   String? get parrainId;
+  @override
+  String? get createdBy;
   @override
   DateTime get createdAt;
   @override

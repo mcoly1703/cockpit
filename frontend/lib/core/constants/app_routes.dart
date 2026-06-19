@@ -16,4 +16,6 @@ class AppRoutes {
   static const String elections  = '/elections';
   static const String cra          = '/cra';
   static const String organigramme = '/organigramme';
+  static const String palmares     = '/palmares';
+  static const String espaceMilitant = '/mon-espace/:numeroCarte';
 }

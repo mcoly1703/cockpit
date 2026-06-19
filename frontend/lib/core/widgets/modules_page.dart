@@ -64,6 +64,13 @@ class ModulesPage extends StatelessWidget {
       gradient:  AppColors.kpiBleuGradient,
       route:     AppRoutes.organigramme,
     ),
+    _Module(
+      titre:     'Palmarès',
+      sousTitre: 'Top militants & cotiseurs',
+      icone:     Icons.emoji_events_rounded,
+      gradient:  AppColors.kpiOrGradient,
+      route:     AppRoutes.palmares,
+    ),
   ];
 
   @override
