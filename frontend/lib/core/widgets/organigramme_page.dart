@@ -57,10 +57,6 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState  = ref.watch(authProvider);
-    final utilisateur = authState.whenOrNull(connecte: (u) => u);
-    final role       = utilisateur?.role ?? '';
-    final monUniteId = utilisateur?.uniteOrganisationnelleId;
     final state      = ref.watch(militantsProvider);
     final photos     = ref.watch(_photosResponsablesProvider).valueOrNull ?? {};
 
@@ -80,7 +76,7 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
         ),
       ),
       charge: (militants, unites, _, _) {
-        final data    = _construire(militants, unites, role, monUniteId);
+        final data    = _construire(militants, unites);
         final countAG = ref.watch(_countAGProvider).valueOrNull ?? 0;
         final racine  = _buildArbre(data, countAG);
         return Column(
@@ -125,8 +121,6 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
   _OrganigrammeData _construire(
     List<Militant> militants,
     List<UniteOrganisationnelle> unites,
-    String role,
-    String? monUniteId,
   ) {
     final countParUnite = <String, int>{};
     for (final m in militants.where((m) => m.statut == AppEnums.militantActif)) {
@@ -140,10 +134,6 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
       ),
     );
 
-    final estGlobal = role == AppRoles.bureauExecutif ||
-        role == AppRoles.coordinateur ||
-        role == AppRoles.adminTechnique;
-
     final cellulesParSS = <String, List<UniteOrganisationnelle>>{};
     for (final u in unites.where((u) => u.type == AppUniteTypes.cellule)) {
       final parentId = u.parentId;
@@ -151,15 +141,10 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
       cellulesParSS.putIfAbsent(parentId, () => []).add(u);
     }
 
-    List<UniteOrganisationnelle> sousSections = unites
+    final sousSections = unites
         .where((u) => u.type == AppUniteTypes.sousSection)
         .toList()
       ..sort((a, b) => a.nom.compareTo(b.nom));
-    if (!estGlobal) {
-      sousSections = role == AppRoles.responsableSousSection
-          ? sousSections.where((ss) => ss.id == monUniteId).toList()
-          : [];
-    }
 
     final blocsSS = sousSections.map((ss) {
       final cellules = (cellulesParSS[ss.id] ?? [])
@@ -175,25 +160,15 @@ class _OrganigrammePageState extends ConsumerState<OrganigrammePage> {
       );
     }).toList();
 
-    List<UniteOrganisationnelle> mouvements = unites
+    final mouvements = unites
         .where((u) => u.type == AppUniteTypes.mouvement)
         .toList()
       ..sort((a, b) => a.nom.compareTo(b.nom));
-    if (!estGlobal) {
-      mouvements = role == AppRoles.responsableMouvement
-          ? mouvements.where((m) => m.id == monUniteId).toList()
-          : [];
-    }
 
-    List<UniteOrganisationnelle> secretariats = unites
+    final secretariats = unites
         .where((u) => u.type == AppUniteTypes.secretariat)
         .toList()
       ..sort((a, b) => a.nom.compareTo(b.nom));
-    if (!estGlobal) {
-      secretariats = role == AppRoles.responsableSecretariat
-          ? secretariats.where((s) => s.id == monUniteId).toList()
-          : [];
-    }
 
     final totalActifs =
         militants.where((m) => m.statut == AppEnums.militantActif).length;

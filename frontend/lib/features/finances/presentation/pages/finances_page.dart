@@ -113,11 +113,10 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
         final sousSections =
             unites.where((u) => u.type == AppUniteTypes.sousSection).toList();
         final result = sousSections
-            .where((ss) => (totaux[ss.id] ?? 0) > 0)
             .map((ss) {
               final p = payees[ss.id] ?? 0;
-              final t = totaux[ss.id] ?? 1;
-              return (ss.nom, p, t, p / t * 100, ss.code);
+              final t = totaux[ss.id] ?? 0;
+              return (ss.nom, p, t, t > 0 ? p / t * 100 : 0.0, ss.code);
             })
             .toList();
         result.sort((a, b) => b.$4.compareTo(a.$4));
@@ -265,8 +264,7 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
           )),
 
           // ── Taux par SS ────────────────────────────────────────────
-          if (tauxSS.isNotEmpty)
-            SliverToBoxAdapter(child: _TauxParSS(taux: tauxSS)),
+          SliverToBoxAdapter(child: _TauxParSS(taux: tauxSS)),
 
           // ── Chips filtre ───────────────────────────────────────────
           SliverToBoxAdapter(child: _FiltreChips(
@@ -675,10 +673,22 @@ class _Legende extends StatelessWidget {
 
 // ─── Taux de recouvrement par sous-section ────────────────────────────────────
 
-class _TauxParSS extends StatelessWidget {
+class _TauxParSS extends StatefulWidget {
   const _TauxParSS({required this.taux});
-  // (nom, payees, total, taux%, code)
   final List<(String, int, int, double, String?)> taux;
+
+  @override
+  State<_TauxParSS> createState() => _TauxParSSState();
+}
+
+class _TauxParSSState extends State<_TauxParSS> {
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
   static const _palette = [
     AppColors.secondary,
@@ -699,6 +709,7 @@ class _TauxParSS extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final taux = widget.taux;
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 4, 14, 4),
       padding: const EdgeInsets.all(14),
@@ -708,60 +719,77 @@ class _TauxParSS extends StatelessWidget {
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('TAUX DE RECOUVREMENT PAR SOUS-SECTION',
-            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                color: AppColors.text2, letterSpacing: 0.8)),
+        Row(children: [
+          const Text('TAUX DE RECOUVREMENT PAR SOUS-SECTION',
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                  color: AppColors.text2, letterSpacing: 0.8)),
+          const Spacer(),
+          Text('${taux.length}',
+              style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+        ]),
         const SizedBox(height: 12),
-        ...taux.take(AppConstants.maxLignesStats).toList().asMap().entries.map((e) {
-          final (nom, payees, total, pct, code) = e.value;
-          final couleur = _palette[e.key % _palette.length];
-          final badge   = _badge(code);
-          final enRetard = pct < AppConstants.objectifRecouvrement;
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 420),
+          child: Scrollbar(
+            controller: _scrollCtrl,
+            thumbVisibility: true,
+            child: ListView.builder(
+              controller: _scrollCtrl,
+              padding: const EdgeInsets.only(right: 14),
+              itemCount: taux.length,
+              itemBuilder: (_, i) {
+                final (nom, payees, total, pct, code) = taux[i];
+                final couleur = _palette[i % _palette.length];
+                final badge   = _badge(code);
+                final enRetard = pct < AppConstants.objectifRecouvrement;
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: Row(children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
-                child: Center(child: Text(badge,
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
-                        fontSize: badge.length > 3 ? 9 : 13),
-                    textAlign: TextAlign.center)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(nom,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                        color: AppColors.text),
-                    overflow: TextOverflow.ellipsis),
-                Text('$payees / $total',
-                    style: TextStyle(fontSize: 10, color: AppColors.text2)),
-                const SizedBox(height: 5),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: Stack(children: [
-                    Container(height: 6, color: AppColors.border),
-                    FractionallySizedBox(
-                      widthFactor: (pct / 100).clamp(0.0, 1.0),
-                      child: Container(height: 6, color: couleur),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: Row(children: [
+                    Container(
+                      width: 44, height: 44,
+                      decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
+                      child: Center(child: Text(badge,
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
+                              fontSize: badge.length > 3 ? 9 : 13),
+                          textAlign: TextAlign.center)),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(nom,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                              color: AppColors.text),
+                          overflow: TextOverflow.ellipsis),
+                      Text('$payees / $total',
+                          style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+                      const SizedBox(height: 5),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: Stack(children: [
+                          Container(height: 6, color: AppColors.border),
+                          FractionallySizedBox(
+                            widthFactor: (pct / 100).clamp(0.0, 1.0),
+                            child: Container(height: 6, color: couleur),
+                          ),
+                        ]),
+                      ),
+                    ])),
+                    const SizedBox(width: 12),
+                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      Text('${pct.toStringAsFixed(0)}%',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900,
+                              color: enRetard ? AppColors.secondary : AppColors.primary)),
+                      if (enRetard)
+                        Text('△ Bas',
+                            style: TextStyle(fontSize: 9, color: AppColors.accent,
+                                fontWeight: FontWeight.w700)),
+                    ]),
                   ]),
-                ),
-              ])),
-              const SizedBox(width: 12),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text('${pct.toStringAsFixed(0)}%',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900,
-                        color: enRetard ? AppColors.secondary : AppColors.primary)),
-                if (enRetard)
-                  Text('△ Bas',
-                      style: TextStyle(fontSize: 9, color: AppColors.accent,
-                          fontWeight: FontWeight.w700)),
-              ]),
-            ]),
-          );
-        }),
+                );
+              },
+            ),
+          ),
+        ),
       ]),
     );
   }
@@ -963,10 +991,22 @@ class _BarreActions extends StatelessWidget {
 
 // ─── Comparatif financier par sous-section ────────────────────────────────────
 
-class _ComparatifSS extends StatelessWidget {
+class _ComparatifSS extends StatefulWidget {
   const _ComparatifSS({required this.items});
-  // (nom, code, entrees, depenses)
   final List<(String, String?, double, double)> items;
+
+  @override
+  State<_ComparatifSS> createState() => _ComparatifSSState();
+}
+
+class _ComparatifSSState extends State<_ComparatifSS> {
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
   static const _palette = [
     AppColors.primary,
@@ -987,6 +1027,7 @@ class _ComparatifSS extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final items  = widget.items;
     final fmt    = NumberFormat.currency(locale: 'fr', symbol: '€', decimalDigits: 0);
     final maxVal = items.isEmpty
         ? 1.0
@@ -1002,9 +1043,14 @@ class _ComparatifSS extends StatelessWidget {
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('COMPARATIF PAR SOUS-SECTION',
-            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                color: AppColors.text2, letterSpacing: 0.8)),
+        Row(children: [
+          const Text('COMPARATIF PAR SOUS-SECTION',
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                  color: AppColors.text2, letterSpacing: 0.8)),
+          const Spacer(),
+          Text('${items.length}',
+              style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+        ]),
         const SizedBox(height: 14),
 
         if (items.isEmpty)
@@ -1016,45 +1062,57 @@ class _ComparatifSS extends StatelessWidget {
               child: Text('Aucune transaction enregistrée pour le moment',
                   style: TextStyle(fontSize: 11, color: AppColors.text2)),
             ),
-          ...items.asMap().entries.map((e) {
-            final (nom, code, entrees, depenses) = e.value;
-            final solde   = entrees - depenses;
-            final couleur = _palette[e.key % _palette.length];
-            final badge   = _badge(code);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                Container(
-                  width: 40, height: 40,
-                  decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
-                  child: Center(child: Text(badge,
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
-                          fontSize: badge.length > 3 ? 9 : 13),
-                      textAlign: TextAlign.center)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    Expanded(child: Text(nom,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                            color: AppColors.text),
-                        overflow: TextOverflow.ellipsis)),
-                    Text(
-                      '${solde >= 0 ? '+' : ''}${fmt.format(solde)}',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800,
-                          color: solde >= 0 ? AppColors.primary : AppColors.secondary),
-                    ),
-                  ]),
-                  const SizedBox(height: 6),
-                  _MiniBar(label: 'E', valeur: entrees, max: maxVal,
-                      couleur: AppColors.primary, fmt: fmt),
-                  const SizedBox(height: 4),
-                  _MiniBar(label: 'D', valeur: depenses, max: maxVal,
-                      couleur: AppColors.secondary, fmt: fmt),
-                ])),
-              ]),
-            );
-          }),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 420),
+            child: Scrollbar(
+              controller: _scrollCtrl,
+              thumbVisibility: true,
+              child: ListView.builder(
+                controller: _scrollCtrl,
+                padding: const EdgeInsets.only(right: 14),
+                itemCount: items.length,
+                itemBuilder: (_, i) {
+                  final (nom, code, entrees, depenses) = items[i];
+                  final solde   = entrees - depenses;
+                  final couleur = _palette[i % _palette.length];
+                  final badge   = _badge(code);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                      Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
+                        child: Center(child: Text(badge,
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
+                                fontSize: badge.length > 3 ? 9 : 13),
+                            textAlign: TextAlign.center)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          Expanded(child: Text(nom,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                                  color: AppColors.text),
+                              overflow: TextOverflow.ellipsis)),
+                          Text(
+                            '${solde >= 0 ? '+' : ''}${fmt.format(solde)}',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800,
+                                color: solde >= 0 ? AppColors.primary : AppColors.secondary),
+                          ),
+                        ]),
+                        const SizedBox(height: 6),
+                        _MiniBar(label: 'E', valeur: entrees, max: maxVal,
+                            couleur: AppColors.primary, fmt: fmt),
+                        const SizedBox(height: 4),
+                        _MiniBar(label: 'D', valeur: depenses, max: maxVal,
+                            couleur: AppColors.secondary, fmt: fmt),
+                      ])),
+                    ]),
+                  );
+                },
+              ),
+            ),
+          ),
         ],
       ]),
     );
@@ -1103,10 +1161,22 @@ class _MiniBar extends StatelessWidget {
 
 // ─── Comparatif financier par cellule ────────────────────────────────────────
 
-class _ComparatifCellules extends StatelessWidget {
+class _ComparatifCellules extends StatefulWidget {
   const _ComparatifCellules({required this.groupes});
-  // (ssNom, ssCode, [(celNom, celCode, payees, total, taux%)])
   final List<(String, String?, List<(String, String?, int, int, double)>)> groupes;
+
+  @override
+  State<_ComparatifCellules> createState() => _ComparatifCellulesState();
+}
+
+class _ComparatifCellulesState extends State<_ComparatifCellules> {
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
   static String _badge(String? code) {
     if (code == null) return '?';
@@ -1118,6 +1188,9 @@ class _ComparatifCellules extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final groupes = widget.groupes;
+    final totalCellules = groupes.fold(0, (s, g) => s + g.$3.length);
+
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 4, 14, 4),
       padding: const EdgeInsets.all(14),
@@ -1127,88 +1200,108 @@ class _ComparatifCellules extends StatelessWidget {
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('TAUX DE RECOUVREMENT PAR CELLULE',
-            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                color: AppColors.text2, letterSpacing: 0.8)),
+        Row(children: [
+          const Text('TAUX DE RECOUVREMENT PAR CELLULE',
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                  color: AppColors.text2, letterSpacing: 0.8)),
+          const Spacer(),
+          Text('$totalCellules cellule${totalCellules > 1 ? 's' : ''}',
+              style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+        ]),
         const SizedBox(height: 14),
 
         if (groupes.isEmpty)
           _etatVide('Aucune cellule enregistrée')
         else
-          ...groupes.expand((groupe) {
-            final (ssNom, ssCode, cellules) = groupe;
-            return [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10, top: 2),
-                child: Row(children: [
-                  Expanded(child: Divider(color: AppColors.border, height: 1)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(ssNom,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
-                            color: AppColors.text2)),
-                  ),
-                  Expanded(child: Divider(color: AppColors.border, height: 1)),
-                ]),
-              ),
-              if (cellules.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text('Aucune cellule dans cette sous-section',
-                      style: TextStyle(fontSize: 11, color: AppColors.text2)),
-                )
-              else
-                ...cellules.map((cel) {
-                  final (nom, code, payees, total, taux) = cel;
-                  final enRetard = taux < AppConstants.objectifRecouvrement;
-                  final badge    = _badge(code);
-                  final couleur  = enRetard ? AppColors.secondary : AppColors.primary;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(children: [
-                      Container(
-                        width: 36, height: 36,
-                        decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
-                        child: Center(child: Text(badge,
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
-                                fontSize: badge.length > 3 ? 8 : 11),
-                            textAlign: TextAlign.center)),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 420),
+            child: Scrollbar(
+              controller: _scrollCtrl,
+              thumbVisibility: true,
+              child: ListView(
+                controller: _scrollCtrl,
+                padding: const EdgeInsets.only(right: 14),
+                children: [
+                  for (final groupe in groupes) ...[
+                    Container(
+                      margin: const EdgeInsets.only(top: 8, bottom: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(nom,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-                                color: AppColors.text),
-                            overflow: TextOverflow.ellipsis),
-                        Text('$payees / $total militants',
-                            style: TextStyle(fontSize: 10, color: AppColors.text2)),
-                        const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(3),
-                          child: Stack(children: [
-                            Container(height: 5, color: AppColors.border),
-                            FractionallySizedBox(
-                              widthFactor: (taux / 100).clamp(0.0, 1.0),
-                              child: Container(height: 5, color: couleur),
-                            ),
-                          ]),
-                        ),
-                      ])),
-                      const SizedBox(width: 10),
-                      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Text('${taux.toStringAsFixed(0)}%',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900,
-                                color: couleur)),
-                        if (enRetard)
-                          Text('△ Bas',
-                              style: TextStyle(fontSize: 9, color: AppColors.accent,
-                                  fontWeight: FontWeight.w700)),
+                      child: Row(children: [
+                        const Icon(Icons.account_tree_outlined,
+                            size: 14, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Expanded(child: Text(groupe.$1,
+                            style: const TextStyle(fontSize: 12,
+                                fontWeight: FontWeight.w700, color: AppColors.primary))),
+                        Text('${groupe.$3.length} cellule${groupe.$3.length > 1 ? 's' : ''}',
+                            style: const TextStyle(fontSize: 10, color: AppColors.text2)),
                       ]),
-                    ]),
-                  );
-                }),
-            ];
-          }),
+                    ),
+                    if (groupe.$3.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text('Aucune cellule dans cette sous-section',
+                            style: TextStyle(fontSize: 11, color: AppColors.text2)),
+                      )
+                    else
+                      ...groupe.$3.map((cel) {
+                        final (nom, code, payees, total, taux) = cel;
+                        final enRetard = taux < AppConstants.objectifRecouvrement;
+                        final badge    = _badge(code);
+                        final couleur  = enRetard ? AppColors.secondary : AppColors.primary;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(children: [
+                            Container(
+                              width: 36, height: 36,
+                              decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
+                              child: Center(child: Text(badge,
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
+                                      fontSize: badge.length > 3 ? 8 : 11),
+                                  textAlign: TextAlign.center)),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(nom,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+                                      color: AppColors.text),
+                                  overflow: TextOverflow.ellipsis),
+                              Text('$payees / $total militants',
+                                  style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+                              const SizedBox(height: 4),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(3),
+                                child: Stack(children: [
+                                  Container(height: 5, color: AppColors.border),
+                                  FractionallySizedBox(
+                                    widthFactor: (taux / 100).clamp(0.0, 1.0),
+                                    child: Container(height: 5, color: couleur),
+                                  ),
+                                ]),
+                              ),
+                            ])),
+                            const SizedBox(width: 10),
+                            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                              Text('${taux.toStringAsFixed(0)}%',
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900,
+                                      color: couleur)),
+                              if (enRetard)
+                                Text('△ Bas',
+                                    style: TextStyle(fontSize: 9, color: AppColors.accent,
+                                        fontWeight: FontWeight.w700)),
+                            ]),
+                          ]),
+                        );
+                      }),
+                  ],
+                ],
+              ),
+            ),
+          ),
       ]),
     );
   }
