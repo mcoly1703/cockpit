@@ -19,6 +19,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController    = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey            = GlobalKey<FormState>();
+  bool  _obscurePassword    = true;
 
   @override
   void dispose() {
@@ -109,11 +110,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           // Mot de passe
                           TextFormField(
                             controller: _passwordController,
-                            obscureText: true,
-                            decoration: const InputDecoration(
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
                               labelText: AppStrings.motDePasse,
-                              prefixIcon: Icon(Icons.lock_outlined),
-                              border: OutlineInputBorder(),
+                              prefixIcon: const Icon(Icons.lock_outlined),
+                              border: const OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                ),
+                                onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword),
+                              ),
                             ),
                             validator: (v) =>
                             v == null || v.length < 6 ? 'Mot de passe trop court' : null,

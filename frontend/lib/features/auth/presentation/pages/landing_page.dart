@@ -30,13 +30,20 @@ class LandingPage extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
                   child: Column(
                     children: [
-                      // Drapeau tricolore sénégalais
+                      // Drapeau sénégalais (vert, jaune + étoile, rouge)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _barreFlag(AppColors.primary),
                           const SizedBox(width: 6),
-                          _barreFlag(const Color(0xFFFFD700)),
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              _barreFlag(const Color(0xFFFFD700)),
+                              const Icon(Icons.star,
+                                  color: AppColors.primary, size: 14),
+                            ],
+                          ),
                           const SizedBox(width: 6),
                           _barreFlag(AppColors.secondary),
                         ],

@@ -138,8 +138,8 @@ class MilitantsState with _$MilitantsState {
         orElse: () => [],
       );
 
-  // Tuple: (nom, count, objectif, nouveauxCeMois, code)
-  List<(String, int, int, int, String?)> get statsParSousSection => maybeWhen(
+  // Tuple: (nom, count, objectif, nouveauxCeMois, code, sousTitre?)
+  List<(String, int, int, int, String?, String?)> get statsParSousSection => maybeWhen(
         charge: (militants, unites, _, __) {
           final unitesMap   = {for (final u in unites) u.id: u};
           final sousSections = unites.where((u) => u.type == AppUniteTypes.sousSection).toList();
@@ -167,14 +167,15 @@ class MilitantsState with _$MilitantsState {
             }
           }
           return sousSections
-              .where((ss) => (counts[ss.id] ?? 0) > 0)
               .map((ss) {
-                final count = counts[ss.id]!;
-                final ratio = total > 0 ? count / total : 0.0;
-                final obj = (AppConstants.objectifMilitants * ratio)
-                    .round()
-                    .clamp(AppConstants.objectifMinSousSection, AppConstants.objectifMilitants);
-                return (ss.nom, count, obj, nouveaux[ss.id] ?? 0, ss.code);
+                final count = counts[ss.id] ?? 0;
+                final ratio = total > 0 && count > 0 ? count / total : 0.0;
+                final obj = count > 0
+                    ? (AppConstants.objectifMilitants * ratio)
+                        .round()
+                        .clamp(AppConstants.objectifMinSousSection, AppConstants.objectifMilitants)
+                    : AppConstants.objectifMinSousSection;
+                return (ss.nom, count, obj, nouveaux[ss.id] ?? 0, ss.code, null);
               })
               .toList()
             ..sort((a, b) => b.$2.compareTo(a.$2));
@@ -182,7 +183,7 @@ class MilitantsState with _$MilitantsState {
         orElse: () => [],
       );
 
-  List<(String, int, int, int, String?)> get statsParMouvement => maybeWhen(
+  List<(String, int, int, int, String?, String?)> get statsParMouvement => maybeWhen(
         charge: (militants, unites, _, __) {
           final mouvements = unites.where((u) => u.type == AppUniteTypes.mouvement).toList();
           if (mouvements.isEmpty) return [];
@@ -201,14 +202,15 @@ class MilitantsState with _$MilitantsState {
             }
           }
           final result = mouvements
-              .where((mv) => (counts[mv.id] ?? 0) > 0)
               .map((mv) {
-                final count = counts[mv.id]!;
-                final ratio = total > 0 ? count / total : 0.0;
-                final obj = (AppConstants.objectifMilitants * ratio)
-                    .round()
-                    .clamp(AppConstants.objectifMinSousSection, AppConstants.objectifMilitants);
-                return (mv.nom, count, obj, nouveaux[mv.id] ?? 0, mv.code);
+                final count = counts[mv.id] ?? 0;
+                final ratio = total > 0 && count > 0 ? count / total : 0.0;
+                final obj = count > 0
+                    ? (AppConstants.objectifMilitants * ratio)
+                        .round()
+                        .clamp(AppConstants.objectifMinSousSection, AppConstants.objectifMilitants)
+                    : AppConstants.objectifMinSousSection;
+                return (mv.nom, count, obj, nouveaux[mv.id] ?? 0, mv.code, null);
               })
               .toList();
           result.sort((a, b) => b.$2.compareTo(a.$2));
@@ -217,10 +219,11 @@ class MilitantsState with _$MilitantsState {
         orElse: () => [],
       );
 
-  List<(String, int, int, int, String?)> get statsParCellule => maybeWhen(
+  List<(String, int, int, int, String?, String?)> get statsParCellule => maybeWhen(
         charge: (militants, unites, _, __) {
           final cellules = unites.where((u) => u.type == AppUniteTypes.cellule).toList();
           if (cellules.isEmpty) return [];
+          final unitesMap = {for (final u in unites) u.id: u};
           final now       = DateTime.now();
           final debutMois = DateTime(now.year, now.month, 1);
           final total =
@@ -236,23 +239,26 @@ class MilitantsState with _$MilitantsState {
             }
           }
           final result = cellules
-              .where((c) => (counts[c.id] ?? 0) > 0)
               .map((c) {
-                final count = counts[c.id]!;
-                final ratio = total > 0 ? count / total : 0.0;
-                final obj = (AppConstants.objectifMilitants * ratio)
-                    .round()
-                    .clamp(AppConstants.objectifMinCellule, AppConstants.objectifMilitants);
-                return (c.nom, count, obj, nouveaux[c.id] ?? 0, c.code);
+                final count = counts[c.id] ?? 0;
+                final ratio = total > 0 && count > 0 ? count / total : 0.0;
+                final obj = count > 0
+                    ? (AppConstants.objectifMilitants * ratio)
+                        .round()
+                        .clamp(AppConstants.objectifMinCellule, AppConstants.objectifMilitants)
+                    : AppConstants.objectifMinCellule;
+                final parentSS = c.parentId != null ? unitesMap[c.parentId] : null;
+                final ssLabel = parentSS?.nom;
+                return (c.nom, count, obj, nouveaux[c.id] ?? 0, c.code, ssLabel);
               })
               .toList();
           result.sort((a, b) => b.$2.compareTo(a.$2));
-          return result.take(AppConstants.maxLignesCellules).toList();
+          return result;
         },
         orElse: () => [],
       );
 
-  List<(String, int, int, int, String?)> get statsParSecretariat => maybeWhen(
+  List<(String, int, int, int, String?, String?)> get statsParSecretariat => maybeWhen(
         charge: (militants, unites, _, __) {
           final secretariats = unites.where((u) => u.type == AppUniteTypes.secretariat).toList();
           if (secretariats.isEmpty) return [];
@@ -271,14 +277,15 @@ class MilitantsState with _$MilitantsState {
             }
           }
           final result = secretariats
-              .where((s) => (counts[s.id] ?? 0) > 0)
               .map((s) {
-                final count = counts[s.id]!;
-                final ratio = total > 0 ? count / total : 0.0;
-                final obj = (AppConstants.objectifMilitants * ratio)
-                    .round()
-                    .clamp(AppConstants.objectifMinCellule, AppConstants.objectifMilitants);
-                return (s.nom, count, obj, nouveaux[s.id] ?? 0, s.code);
+                final count = counts[s.id] ?? 0;
+                final ratio = total > 0 && count > 0 ? count / total : 0.0;
+                final obj = count > 0
+                    ? (AppConstants.objectifMilitants * ratio)
+                        .round()
+                        .clamp(AppConstants.objectifMinCellule, AppConstants.objectifMilitants)
+                    : AppConstants.objectifMinCellule;
+                return (s.nom, count, obj, nouveaux[s.id] ?? 0, s.code, null);
               })
               .toList();
           result.sort((a, b) => b.$2.compareTo(a.$2));

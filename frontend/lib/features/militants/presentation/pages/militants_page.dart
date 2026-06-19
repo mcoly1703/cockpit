@@ -84,7 +84,7 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
     if (_filtreCelluleId != null) {
       return liste.where((m) => m.uniteId == _filtreCelluleId).toList();
     }
-    if (_filtreUniteType == AppUniteTypes.sousSection) {
+    if (_filtreUniteType == AppUniteTypes.sousSection || _filtreUniteType == AppUniteTypes.cellule) {
       final ids = {
         _filtreSSId!,
         ...widget.unites
@@ -117,7 +117,7 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
       AppUniteTypes.mouvement   => state.statsParMouvement,
       AppUniteTypes.cellule     => state.statsParCellule,
       AppUniteTypes.secretariat => state.statsParSecretariat,
-      _                         => <(String, int, int, int, String?)>[],
+      _                         => <(String, int, int, int, String?, String?)>[],
     };
 
     final totalFiltre = state.countActifsForFilter(_filtreUniteType);
@@ -137,6 +137,10 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
       AppUniteTypes.secretariat => 'PAR SECRÉTARIAT',
       _                         => '',
     };
+
+    final nomSSSelectionnee = _filtreSSId != null
+        ? widget.unites.where((u) => u.id == _filtreSSId).firstOrNull?.nom
+        : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -200,13 +204,27 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
           ),
 
           // Stats (filtrées) — visible quand un type est sélectionné
-          if (_filtreUniteType != null)
+          if (_filtreUniteType != null && _filtreUniteType != AppUniteTypes.cellule)
             SliverToBoxAdapter(
               child: _StatsSousSections(
                 stats:           statsFiltered,
                 titre:           titreStats,
-                showStatutBadge: _filtreUniteType == AppUniteTypes.cellule,
+                showStatutBadge: false,
               ),
+            ),
+
+          // Stats cellules — groupées par SS ou filtrées sur une SS
+          if (_filtreUniteType == AppUniteTypes.cellule)
+            SliverToBoxAdapter(
+              child: _filtreSSId == null
+                  ? _StatsCellulesGroupees(stats: statsFiltered)
+                  : _StatsSousSections(
+                      stats: statsFiltered
+                          .where((s) => s.$6 == nomSSSelectionnee)
+                          .toList(),
+                      titre: 'CELLULES — ${nomSSSelectionnee ?? ''}',
+                      showStatutBadge: true,
+                    ),
             ),
 
           // Titre liste
@@ -935,16 +953,28 @@ class _TendanceChart extends StatelessWidget {
 
 // ─── Stats par sous-section ───────────────────────────────────────────────────
 
-class _StatsSousSections extends StatelessWidget {
+class _StatsSousSections extends StatefulWidget {
   const _StatsSousSections({
     required this.stats,
     this.titre = 'PAR SOUS-SECTION',
     this.showStatutBadge = false,
   });
-  // (nom, count, objectif, nouveauxCeMois, code)
-  final List<(String, int, int, int, String?)> stats;
+  final List<(String, int, int, int, String?, String?)> stats;
   final String titre;
   final bool   showStatutBadge;
+
+  @override
+  State<_StatsSousSections> createState() => _StatsSousSectionsState();
+}
+
+class _StatsSousSectionsState extends State<_StatsSousSections> {
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -959,16 +989,24 @@ class _StatsSousSections extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(titre,
-              style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text2,
-                  letterSpacing: 0.8)),
+          Row(
+            children: [
+              Text(widget.titre,
+                  style: const TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text2,
+                      letterSpacing: 0.8)),
+              const Spacer(),
+              if (widget.stats.isNotEmpty)
+                Text('${widget.stats.length}',
+                    style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+            ],
+          ),
           const SizedBox(height: 12),
-          if (stats.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+          if (widget.stats.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: Text(
                   'Aucune donnée pour ce filtre',
@@ -977,15 +1015,151 @@ class _StatsSousSections extends StatelessWidget {
               ),
             )
           else
-            ...stats.take(AppConstants.maxLignesStats).toList().asMap().entries.map((e) => _LigneSS(
-                  nom:              e.value.$1,
-                  count:            e.value.$2,
-                  objectif:         e.value.$3,
-                  nouveaux:         e.value.$4,
-                  code:             e.value.$5,
-                  index:            e.key,
-                  showStatutBadge:  showStatutBadge,
-                )),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 480),
+              child: Scrollbar(
+                controller: _scrollCtrl,
+                thumbVisibility: true,
+                child: ListView(
+                  controller: _scrollCtrl,
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(right: 14),
+                  children: widget.stats.asMap().entries.map((e) => _LigneSS(
+                        nom:              e.value.$1,
+                        count:            e.value.$2,
+                        objectif:         e.value.$3,
+                        nouveaux:         e.value.$4,
+                        code:             e.value.$5,
+                        sousTitre:        e.value.$6,
+                        index:            e.key,
+                        showStatutBadge:  widget.showStatutBadge,
+                      )).toList(),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatsCellulesGroupees extends StatefulWidget {
+  const _StatsCellulesGroupees({required this.stats});
+  final List<(String, int, int, int, String?, String?)> stats;
+
+  @override
+  State<_StatsCellulesGroupees> createState() => _StatsCellulesGroupeesState();
+}
+
+class _StatsCellulesGroupeesState extends State<_StatsCellulesGroupees> {
+  final _scrollCtrl = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = widget.stats;
+    final grouped = <String, List<(String, int, int, int, String?, String?)>>{};
+    for (final s in stats) {
+      final key = s.$6 ?? 'Sans sous-section';
+      grouped.putIfAbsent(key, () => []).add(s);
+    }
+    final sortedKeys = grouped.keys.toList()..sort();
+    final totalCellules = stats.length;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 4, 14, 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(13),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('PAR CELLULE',
+                  style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text2,
+                      letterSpacing: 0.8)),
+              const Spacer(),
+              Text('$totalCellules cellule${totalCellules > 1 ? 's' : ''}',
+                  style: const TextStyle(fontSize: 10, color: AppColors.text2)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (stats.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'Aucune cellule avec des militants',
+                  style: TextStyle(fontSize: 13, color: AppColors.text2),
+                ),
+              ),
+            )
+          else
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 480),
+              child: Scrollbar(
+                controller: _scrollCtrl,
+                thumbVisibility: true,
+                child: ListView(
+                  controller: _scrollCtrl,
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(right: 14),
+                  children: [
+                    for (final ssName in sortedKeys) ...[
+                      Container(
+                        margin: const EdgeInsets.only(top: 8, bottom: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.account_tree_outlined,
+                                size: 14, color: AppColors.primary),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(ssName,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary)),
+                            ),
+                            Text(
+                              '${grouped[ssName]!.length} cellule${grouped[ssName]!.length > 1 ? 's' : ''}',
+                              style: const TextStyle(
+                                  fontSize: 10, color: AppColors.text2),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...grouped[ssName]!.asMap().entries.map((e) => _LigneSS(
+                            nom:             e.value.$1,
+                            count:           e.value.$2,
+                            objectif:        e.value.$3,
+                            nouveaux:        e.value.$4,
+                            code:            e.value.$5,
+                            index:           e.key,
+                            showStatutBadge: true,
+                          )),
+                    ],
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1000,6 +1174,7 @@ class _LigneSS extends StatelessWidget {
     required this.nouveaux,
     required this.code,
     required this.index,
+    this.sousTitre,
     this.showStatutBadge = false,
   });
   final String  nom;
@@ -1007,6 +1182,7 @@ class _LigneSS extends StatelessWidget {
   final int     objectif;
   final int     nouveaux;
   final String? code;
+  final String? sousTitre;
   final int     index;
   final bool    showStatutBadge;
 
@@ -1067,6 +1243,11 @@ class _LigneSS extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: AppColors.text),
                     overflow: TextOverflow.ellipsis),
+                if (sousTitre != null)
+                  Text(sousTitre!,
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.text2),
+                      overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(
                   '$fmtCount / $fmtObj · $pctAff%',
@@ -1293,13 +1474,16 @@ class _FiltreUniteSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final typeNiveau2 = filtreType == AppUniteTypes.cellule
+        ? AppUniteTypes.sousSection
+        : filtreType;
     final unitesNiveau2 = filtreType == null
         ? <UniteOrganisationnelle>[]
-        : (unites.where((u) => u.type == filtreType).toList()
+        : (unites.where((u) => u.type == typeNiveau2).toList()
           ..sort((a, b) => a.nom.compareTo(b.nom)));
 
     // Cellules appartenant à la SS sélectionnée (niveau 3)
-    final cellulesDeSS = filtreType == AppUniteTypes.sousSection && filtreSSId != null
+    final cellulesDeSS = (filtreType == AppUniteTypes.sousSection || filtreType == AppUniteTypes.cellule) && filtreSSId != null
         ? (unites
             .where((u) => u.type == AppUniteTypes.cellule && u.parentId == filtreSSId)
             .toList()
@@ -1356,19 +1540,19 @@ class _FiltreUniteSelector extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: [
-                // Chip "Toutes"
-                ChoiceChip(
-                  label: Text('Toutes', style: TextStyle(
-                      fontSize: 11,
-                      color: filtreSSId == null ? Colors.white : AppColors.text2)),
-                  selected:        filtreSSId == null,
-                  onSelected:      (_) => onSSChanged(null),
-                  selectedColor:   AppColors.primary,
-                  backgroundColor: AppColors.card,
-                  side: BorderSide(
-                      color: filtreSSId == null ? AppColors.primary : AppColors.border),
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                ),
+                if (filtreType != AppUniteTypes.cellule)
+                  ChoiceChip(
+                    label: Text('Toutes', style: TextStyle(
+                        fontSize: 11,
+                        color: filtreSSId == null ? Colors.white : AppColors.text2)),
+                    selected:        filtreSSId == null,
+                    onSelected:      (_) => onSSChanged(null),
+                    selectedColor:   AppColors.primary,
+                    backgroundColor: AppColors.card,
+                    side: BorderSide(
+                        color: filtreSSId == null ? AppColors.primary : AppColors.border),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                  ),
                 ...unitesNiveau2.map((u) {
                   final actif = filtreSSId == u.id;
                   return ChoiceChip(
