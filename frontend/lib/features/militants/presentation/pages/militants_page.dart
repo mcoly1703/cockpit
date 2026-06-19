@@ -103,11 +103,39 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
     ));
   }
 
+  Set<String> _unitesAccessibles() {
+    final utilisateur = ref.read(authProvider).whenOrNull(connecte: (u) => u);
+    if (utilisateur == null) return {};
+    final role = utilisateur.role;
+    if (role == AppRoles.bureauExecutif ||
+        role == AppRoles.coordinateur ||
+        role == AppRoles.adminTechnique) {
+      return {};
+    }
+    final monUniteId = utilisateur.uniteOrganisationnelleId;
+    if (monUniteId == null) return {};
+    if (role == AppRoles.responsableSousSection) {
+      return {
+        monUniteId,
+        ...widget.unites
+            .where((u) => u.type == AppUniteTypes.cellule && u.parentId == monUniteId)
+            .map((u) => u.id),
+      };
+    }
+    return {monUniteId};
+  }
+
+  List<Militant> _filtrerParRole(List<Militant> liste) {
+    final accessibles = _unitesAccessibles();
+    if (accessibles.isEmpty) return liste;
+    return liste.where((m) => accessibles.contains(m.uniteId)).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final state    = widget.state;
     final notifier = ref.read(militantsProvider.notifier);
-    final filtres  = state.militantsFiltres;
+    final filtres  = _filtrerParRole(state.militantsFiltres);
 
     final filtresAvecUnite = _appliquerFiltreUnite(filtres);
     final affichage = filtresAvecUnite.take(100).toList();
@@ -142,6 +170,17 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
         ? widget.unites.where((u) => u.id == _filtreSSId).firstOrNull?.nom
         : null;
 
+    // KPIs du périmètre de l'utilisateur (pas global)
+    final mesMilitants = _filtrerParRole(widget.militants);
+    final mesActifs = mesMilitants.where((m) => m.statut == AppEnums.militantActif).toList();
+    final monTotal = mesActifs.length;
+    final monPctHommes = monTotal > 0
+        ? mesActifs.where((m) => m.sexe == AppEnums.sexeHomme).length / monTotal * 100
+        : 0.0;
+    final monPctFemmes = monTotal > 0
+        ? mesActifs.where((m) => m.sexe == AppEnums.sexeFemme).length / monTotal * 100
+        : 0.0;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
@@ -163,13 +202,13 @@ class _PageContenuState extends ConsumerState<_PageContenu> {
             ),
           ),
 
-          // KPIs
+          // KPIs (périmètre du rôle)
           SliverToBoxAdapter(
             child: _KpiSection(
-              total:              state.totalActifs,
+              total:              monTotal,
               variationTrimestre: state.variationCeTrimestre,
-              pctHommes:          state.pourcentageHommes,
-              pctFemmes:          state.pourcentageFemmes,
+              pctHommes:          monPctHommes,
+              pctFemmes:          monPctFemmes,
             ),
           ),
 
@@ -757,12 +796,19 @@ class _KpiSection extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _KpiCard(
-              valeur:    '${pctHommes.toStringAsFixed(0)}%',
-              label:     'HOMMES',
-              sousTitre: '${pctFemmes.toStringAsFixed(0)}% Femmes',
-              couleur:   AppColors.secondary,
-            ),
+            child: pctFemmes >= pctHommes
+                ? _KpiCard(
+                    valeur:    '${pctFemmes.toStringAsFixed(0)}%',
+                    label:     'FEMMES',
+                    sousTitre: '${pctHommes.toStringAsFixed(0)}% Hommes',
+                    couleur:   AppColors.secondary,
+                  )
+                : _KpiCard(
+                    valeur:    '${pctHommes.toStringAsFixed(0)}%',
+                    label:     'HOMMES',
+                    sousTitre: '${pctFemmes.toStringAsFixed(0)}% Femmes',
+                    couleur:   AppColors.secondary,
+                  ),
           ),
         ],
       ),

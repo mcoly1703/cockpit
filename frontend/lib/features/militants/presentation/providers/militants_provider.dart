@@ -437,11 +437,8 @@ class MilitantsNotifier extends StateNotifier<MilitantsState> {
       return;
     }
 
-    final filtrer = !_estAccesGlobal(utilisateur.role);
-    final uniteId = filtrer ? utilisateur.uniteOrganisationnelleId : null;
-
     final results = await Future.wait([
-      _getMilitants(ParamsGetMilitants(uniteId: uniteId)),
+      _getMilitants(const ParamsGetMilitants()),
       _getUnites(const NoParams()),
     ]);
 
